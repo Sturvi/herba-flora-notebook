@@ -1,6 +1,6 @@
-package com.example.todolist.views.about;
+package com.example.inovasiyanotebook.views.about;
 
-import com.example.todolist.views.MainLayout;
+import com.example.inovasiyanotebook.views.MainLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -8,9 +8,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
+import jakarta.annotation.security.PermitAll;
 
 @PageTitle("About")
 @Route(value = "about", layout = MainLayout.class)
+@PermitAll
 public class AboutView extends VerticalLayout {
 
     public AboutView() {

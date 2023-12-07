@@ -1,7 +1,7 @@
-package com.example.todolist.views;
+package com.example.inovasiyanotebook.views;
 
-import com.example.todolist.views.about.AboutView;
-import com.example.todolist.views.helloworld.HelloWorldView;
+import com.example.inovasiyanotebook.views.about.AboutView;
+import com.example.inovasiyanotebook.views.helloworld.HelloWorldView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.Footer;

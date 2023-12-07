@@ -1,4 +1,4 @@
-package com.example.todolist;
+package com.example.inovasiyanotebook;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;

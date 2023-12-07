@@ -3,9 +3,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <!-- Project from https://start.vaadin.com/project/baa6930e-a1c2-4a1c-85fb-ed69a43b73ab -->
-    <groupId>com.example.todolist</groupId>
-    <artifactId>todolist</artifactId>
-    <name>todolist</name>
+    <groupId>com.example.inovasiyanotebook</groupId>
+    <artifactId>inovasiyanotebook</artifactId>
+    <name>inovasiyanotebook</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -80,6 +80,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
@@ -87,6 +91,11 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-testbench-junit5</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
         </dependency>
     </dependencies>
 
