@@ -1,5 +1,7 @@
 package com.example.inovasiyanotebook.model;
 
+import com.example.inovasiyanotebook.model.client.Client;
+import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -17,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Product extends AbstractEntity implements ParentEntity{
+public class Product extends AbstractEntity implements ParentEntity {
 
     @Column(nullable = false, unique = true)
     private String name;

@@ -1,5 +1,9 @@
-package com.example.inovasiyanotebook.model;
+package com.example.inovasiyanotebook.model.client;
 
+import com.example.inovasiyanotebook.model.AbstractEntity;
+import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,7 +20,7 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Client extends AbstractEntity implements ParentEntity{
+public class Client extends AbstractEntity implements ParentEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
@@ -32,4 +36,7 @@ public class Client extends AbstractEntity implements ParentEntity{
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<Note> note;
+
+    @Column(nullable = false)
+    private Integer sortOrder;
 }

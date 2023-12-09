@@ -1,28 +1,46 @@
 package com.example.inovasiyanotebook.views;
 
+import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.service.UserService;
 import com.example.inovasiyanotebook.views.about.AboutView;
+import com.example.inovasiyanotebook.views.client.ClientViewElements;
 import com.example.inovasiyanotebook.views.helloworld.HelloWorldView;
+import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
-import com.vaadin.flow.component.html.Footer;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Header;
+import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import org.springframework.stereotype.Component;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
+
+
 /**
- * The main view is a top-level placeholder for other views.
+ * The MainLayout class is a component that serves as the main view for the application.
+ * It extends the AppLayout class and provides the layout structure for the application's
+ * header, footer, and drawer content.
  */
-public class MainLayout extends AppLayout {
+@Component
+@UIScope
+public class MainLayout extends AppLayout implements NavigationalTools{
+
+    private UserService userService;
+    private ClientViewElements clientViewElements;
+    User user;
 
     private H2 viewTitle;
 
-    public MainLayout() {
+    public MainLayout(UserService userService, ClientViewElements clientViewElements) {
+        this.userService = userService;
+        this.user = userService.findByUsername(getCurrentUsername());
+        this.clientViewElements = clientViewElements;
+
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();
@@ -45,7 +63,14 @@ public class MainLayout extends AppLayout {
 
         Scroller scroller = new Scroller(createNavigation());
 
-        addToDrawer(header, scroller, createFooter());
+        addToDrawer(
+                header,
+                new SideNavItem("Hello World", HelloWorldView.class, LineAwesomeIcon.GLOBE_SOLID.create()),
+                new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()),
+                addEmptySpace(),
+                addTitle("Şirkətlər"),
+                clientViewElements.newClientButton(user),
+                createFooter());
     }
 
     private SideNav createNavigation() {
@@ -72,5 +97,20 @@ public class MainLayout extends AppLayout {
     private String getCurrentPageTitle() {
         PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
         return title == null ? "" : title.value();
+    }
+
+    private HtmlContainer addTitle(String title) {
+        H3 projectsTitle = new H3(title);
+        projectsTitle.getStyle().set("text-align", "center");
+
+        return projectsTitle;
+    }
+
+    private HorizontalLayout addEmptySpace() {
+        HorizontalLayout space = new HorizontalLayout();
+        space.setWidthFull();
+        space.setHeight("20px");
+
+        return space;
     }
 }

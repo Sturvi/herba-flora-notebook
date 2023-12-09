@@ -1,5 +1,5 @@
 @import url('./main-layout.css');
     [theme~="dark"] {
-      --lumo-base-color: hsl(214, 0%, 7%);
+      --lumo-base-color: hsl(215, 30%, 10%);
 
     }
