@@ -18,3 +18,28 @@ vaadin-side-nav-item vaadin-icon {
 [slot="drawer"]:is(header, footer):is(:empty) {
   display: none;
 }
+
+
+/* CSS для иконки перетаскивания */
+.drag-handle {
+  color: white; /* Устанавливаем цвет иконки */
+  font-size: 1.0rem; /* Устанавливаем размер иконки */
+  cursor: grab; /* Курсор, указывающий, что элемент можно перетаскивать */
+  margin-right: -0.5em; /* Добавляем отступ справа от иконки */
+}
+
+/* Стили для контейнера элемента, чтобы выровнять иконку и текст */
+.project-item {
+  display: flex;
+  align-items: center; /* Вертикальное выравнивание элементов внутри */
+  border-radius: 3px; /* Скругление углов */
+  margin-bottom:  0.5em; /* Отступ снизу */
+}
+
+/* Убираем стандартные стили для ссылок внутри .project-item */
+.project-item a {
+  color: white; /* Цвет текста ссылки */
+  text-decoration: none; /* Убираем подчеркивание */
+  margin-left: 0em;
+  cursor: grab; /* Курсор, указывающий, что элемент можно перетаскивать */
+}

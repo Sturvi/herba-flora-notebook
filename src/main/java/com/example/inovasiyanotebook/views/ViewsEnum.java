@@ -5,7 +5,7 @@ public enum ViewsEnum {
     ABOUT("about"),
     HELLO("hello"),
     REGISTRATION("registration"),
-    PROJECT ("/project"),
+    CLIENT ("/client"),
     PAGE404("404");
 
     private String view;
@@ -16,5 +16,9 @@ public enum ViewsEnum {
 
     public String getView() {
         return view;
+    }
+
+    public String getViewWithParameter(String parameter) {
+        return view + "/" + parameter;
     }
 }

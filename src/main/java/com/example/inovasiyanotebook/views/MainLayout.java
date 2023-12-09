@@ -1,24 +1,36 @@
 package com.example.inovasiyanotebook.views;
 
+import com.example.inovasiyanotebook.model.client.Client;
+import com.example.inovasiyanotebook.model.client.ClientMapper;
+import com.example.inovasiyanotebook.model.user.RoleEnum;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.service.ClientService;
 import com.example.inovasiyanotebook.service.UserService;
 import com.example.inovasiyanotebook.views.about.AboutView;
-import com.example.inovasiyanotebook.views.client.ClientViewElements;
 import com.example.inovasiyanotebook.views.helloworld.HelloWorldView;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.dnd.DragSource;
+import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.stereotype.Component;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
+import java.util.Comparator;
+import java.util.List;
 
 
 /**
@@ -30,20 +42,105 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 @UIScope
 public class MainLayout extends AppLayout implements NavigationalTools{
 
-    private UserService userService;
-    private ClientViewElements clientViewElements;
-    User user;
+    private final UserService userService;
+    private final ClientMapper clientMapper;
+    private final ClientService clientService;
+
+    private final VerticalLayout clientsNav;
+    private final User user;
 
     private H2 viewTitle;
 
-    public MainLayout(UserService userService, ClientViewElements clientViewElements) {
+    public MainLayout(UserService userService, ClientMapper clientMapper, ClientService clientService) {
         this.userService = userService;
         this.user = userService.findByUsername(getCurrentUsername());
-        this.clientViewElements = clientViewElements;
+        this.clientMapper = clientMapper;
+        this.clientService = clientService;
+
+        this.clientsNav = new VerticalLayout();
+        clientsNav.setPadding(false);
+        clientsNav.setMargin(false);
+        clientsNav.setSpacing(false);
+
 
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();
+        updateClientNav();
+    }
+
+    private void updateClientNav() {
+        clientsNav.removeAll();
+
+
+        clientService.fetchAllClients().stream()
+                .sorted(Comparator.comparing((Client::getSortOrder), Comparator.nullsLast(Integer::compareTo)))
+                .forEach(client -> {
+                    Anchor link = new Anchor(
+                            ViewsEnum.CLIENT.getViewWithParameter(client.getId().toString()),
+                            client.getName());
+                    link.addClassNames("text");
+
+                    if (user.getRole() == RoleEnum.ADMIN) {
+                        Span dragHandle = new Span(LineAwesomeIcon.BARS_SOLID.create());
+                        dragHandle.addClassNames("drag-handle");
+
+                        HorizontalLayout itemLayout = new HorizontalLayout(dragHandle, link);
+                        itemLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+                        itemLayout.setSpacing(true);
+
+                        Div itemContainer = new Div(itemLayout);
+                        itemContainer.addClassName("project-item");
+                        itemContainer.setId("project-" + client.getId());
+
+                        // Устанавливаем dragHandle как источник для перетаскивания
+                        DragSource<Span> dragSource = DragSource.create(dragHandle);
+                        dragSource.setDraggable(true); // Указываем, что именно dragHandle можно перетаскивать
+
+                        dragSource.addDragStartListener(e -> {
+                            // Сохраняем идентификатор перетаскиваемого проекта в сессии
+                            VaadinSession.getCurrent().setAttribute("draggedClientId", client.getId());
+                        });
+
+                        // Настройка обработчика событий Drop
+                        DropTarget<Div> dropTarget = DropTarget.create(itemContainer);
+                        dropTarget.addDropListener(e -> {
+                            Long draggedClientId = (Long) VaadinSession.getCurrent().getAttribute("draggedClientId");
+                            var draggedClientOpt = clientService.findById(draggedClientId);
+
+                            draggedClientOpt.ifPresent(draggedClient -> {
+                                // Определяем проекты до точки сброса
+                                Client previousClient = null;
+
+                                List<Client> clients = clientService.fetchAllClients().stream()
+                                        .sorted(Comparator.comparing(Client::getSortOrder))
+                                        .toList();
+
+                                for (int i = 0; i < clients.size(); i++) {
+                                    Client selectedClient = clients.get(i);
+                                    if (selectedClient.getId().equals(client.getId())) {
+                                        if (i > 0) previousClient = clients.get(i - 1);
+                                        break;
+                                    }
+                                }
+
+                                clientService.updateClientPosition(previousClient, draggedClient);
+
+                                updateClientNav();
+                            });
+                        });
+                        clientsNav.add(itemContainer);
+                    } else {
+                        Div itemContainer = new Div(link);
+                        itemContainer.addClassName("project-item");
+                        itemContainer.setId("project-" + client.getId());
+
+                        clientsNav.add(itemContainer);
+                    }
+
+
+
+                });
     }
 
     private void addHeaderContent() {
@@ -61,7 +158,6 @@ public class MainLayout extends AppLayout implements NavigationalTools{
         appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         Header header = new Header(appName);
 
-        Scroller scroller = new Scroller(createNavigation());
 
         addToDrawer(
                 header,
@@ -69,17 +165,9 @@ public class MainLayout extends AppLayout implements NavigationalTools{
                 new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()),
                 addEmptySpace(),
                 addTitle("Şirkətlər"),
-                clientViewElements.newClientButton(user),
+                newClientButton(user),
+                new Scroller(clientsNav),
                 createFooter());
-    }
-
-    private SideNav createNavigation() {
-        SideNav nav = new SideNav();
-
-        nav.addItem(new SideNavItem("Hello World", HelloWorldView.class, LineAwesomeIcon.GLOBE_SOLID.create()));
-        nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()));
-
-        return nav;
     }
 
     private Footer createFooter() {
@@ -112,5 +200,74 @@ public class MainLayout extends AppLayout implements NavigationalTools{
         space.setHeight("20px");
 
         return space;
+    }
+
+    public Button newClientButton(User user) {
+        if (user.getRole() != RoleEnum.ADMIN) {
+            return null;
+        }
+
+        Button newClientButton = createButton("Yeni şirkət");
+        newClientButton.addClickListener(event -> createAddClientDialog());
+
+        return newClientButton;
+    }
+
+    private Button createButton(String title) {
+        return new Button(title);
+    }
+
+    private void createAddClientDialog() {
+        Dialog addClientDialog = new Dialog();
+        addClientDialog.setWidth("75%");
+
+        TextField nameField = createTextField("Müştəri adı", ".*\\S.*", "Ad boş ola bilməz");
+        TextField phoneNumberField = createTextField("Telefon nömrəsi", null, null);
+        TextField emailField = createTextField("Email", "^$|^(.+)@(.+)$", "Email doğru deyil");        TextField voenField = createTextField("Vöen", null, null);
+
+        VerticalLayout layout = new VerticalLayout(nameField, phoneNumberField, emailField, voenField);
+
+        Button addButton = createButton("Əlavə et");
+        addButton.addClickListener(click -> processNewClient(nameField, phoneNumberField, emailField, voenField, addClientDialog));
+
+        Button cancelButton = createButton("Ləğv et");
+        cancelButton.addClickListener(event -> addClientDialog.close());
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout(addButton, cancelButton);
+        horizontalLayout.setWidth("50%");
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        layout.add(horizontalLayout);
+        addClientDialog.add(layout);
+        addClientDialog.open();
+    }
+
+    private TextField createTextField(String label, String pattern, String errorMessage) {
+        TextField textField = new TextField();
+        textField.setLabel(label);
+        textField.setSizeFull();
+        if (pattern != null) {
+            textField.setPattern(pattern);
+            textField.setErrorMessage(errorMessage);
+        }
+        return textField;
+    }
+
+    private void processNewClient(TextField nameField, TextField phoneNumberField, TextField emailField, TextField voenField, Dialog dialog) {
+        String name = nameField.getValue().trim();
+        if (name.isEmpty()) {
+            nameField.setInvalid(true);
+            return;
+        }
+
+        if (!emailField.getValue().matches("^$|^(.+)@(.+)$")) {
+            emailField.setInvalid(true);
+            return;
+        }
+
+        Client newClient = clientMapper.creatNewClient(name, emailField.getValue().trim(), phoneNumberField.getValue().trim(), voenField.getValue().trim());
+        clientService.save(newClient);
+        updateClientNav();
+        dialog.close();
     }
 }
