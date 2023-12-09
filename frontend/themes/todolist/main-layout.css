@@ -43,3 +43,11 @@ vaadin-side-nav-item vaadin-icon {
   margin-left: 0em;
   cursor: grab; /* Курсор, указывающий, что элемент можно перетаскивать */
 }
+
+.italic {
+  font-style: italic;
+}
+
+.my-text-field {
+  font-size: 2em;
+}

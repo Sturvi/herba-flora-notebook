@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Component
 @UIScope
-public class MainLayout extends AppLayout implements NavigationalTools{
+public class MainLayout extends AppLayout implements NavigationalTools, DesignTools{
 
     private final UserService userService;
     private final ClientMapper clientMapper;
@@ -194,27 +194,15 @@ public class MainLayout extends AppLayout implements NavigationalTools{
         return projectsTitle;
     }
 
-    private HorizontalLayout addEmptySpace() {
-        HorizontalLayout space = new HorizontalLayout();
-        space.setWidthFull();
-        space.setHeight("20px");
-
-        return space;
-    }
-
     public Button newClientButton(User user) {
         if (user.getRole() != RoleEnum.ADMIN) {
             return null;
         }
 
-        Button newClientButton = createButton("Yeni şirkət");
+        Button newClientButton = new Button("Yeni şirkət");
         newClientButton.addClickListener(event -> createAddClientDialog());
 
         return newClientButton;
-    }
-
-    private Button createButton(String title) {
-        return new Button(title);
     }
 
     private void createAddClientDialog() {
@@ -227,10 +215,10 @@ public class MainLayout extends AppLayout implements NavigationalTools{
 
         VerticalLayout layout = new VerticalLayout(nameField, phoneNumberField, emailField, voenField);
 
-        Button addButton = createButton("Əlavə et");
+        Button addButton = new Button("Əlavə et");
         addButton.addClickListener(click -> processNewClient(nameField, phoneNumberField, emailField, voenField, addClientDialog));
 
-        Button cancelButton = createButton("Ləğv et");
+        Button cancelButton = new Button("Ləğv et");
         cancelButton.addClickListener(event -> addClientDialog.close());
 
         HorizontalLayout horizontalLayout = new HorizontalLayout(addButton, cancelButton);
