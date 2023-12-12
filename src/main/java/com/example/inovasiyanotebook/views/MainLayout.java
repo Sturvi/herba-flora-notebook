@@ -6,6 +6,7 @@ import com.example.inovasiyanotebook.model.user.RoleEnum;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.ClientService;
 import com.example.inovasiyanotebook.service.UserService;
+import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.views.about.AboutView;
 import com.example.inovasiyanotebook.views.helloworld.HelloWorldView;
 import com.vaadin.flow.component.HtmlContainer;
@@ -26,6 +27,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
@@ -258,5 +260,10 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
         clientService.save(newClient);
         updateClientNav();
         dialog.close();
+    }
+
+    @EventListener
+    public void waitingUpdateCommand(ClientListUpdateCommandEvent event) {
+        updateClientNav();
     }
 }

@@ -31,5 +31,5 @@ public class User extends AbstractEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RoleEnum role = RoleEnum.USER;
+    private RoleEnum role = RoleEnum.VIEWER;
 }

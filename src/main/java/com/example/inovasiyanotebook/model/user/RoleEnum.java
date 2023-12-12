@@ -1,6 +1,8 @@
 package com.example.inovasiyanotebook.model.user;
 
 public enum RoleEnum {
-    USER,
+    VIEWER,
+    CONTRIBUTOR,
+    EDITOR,
     ADMIN
 }
