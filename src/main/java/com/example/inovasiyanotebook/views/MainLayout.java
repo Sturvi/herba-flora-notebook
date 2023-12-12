@@ -211,7 +211,8 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
 
         TextField nameField = createTextField("Müştəri adı", ".*\\S.*", "Ad boş ola bilməz");
         TextField phoneNumberField = createTextField("Telefon nömrəsi", null, null);
-        TextField emailField = createTextField("Email", "^$|^(.+)@(.+)$", "Email doğru deyil");        TextField voenField = createTextField("Vöen", null, null);
+        TextField emailField = createTextField("Email", "^$|^(.+)@(.+)$", "Email doğru deyil");
+        TextField voenField = createTextField("Vöen", null, null);
 
         VerticalLayout layout = new VerticalLayout(nameField, phoneNumberField, emailField, voenField);
 
