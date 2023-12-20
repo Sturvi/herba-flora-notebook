@@ -1,8 +1,8 @@
 package com.example.inovasiyanotebook.views.registration;
 
 import com.example.inovasiyanotebook.model.user.User;
-import com.example.inovasiyanotebook.service.UserService;
-import com.example.inovasiyanotebook.views.NavigationalTools;
+import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
@@ -32,8 +32,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @Route("registration")
 @AnonymousAllowed
-public class RegistrationView extends VerticalLayout implements NavigationalTools {
+public class RegistrationView extends VerticalLayout {
 
+    private final NavigationTools navigationTools;
     private User user;
 
     // Create fields
@@ -52,7 +53,8 @@ public class RegistrationView extends VerticalLayout implements NavigationalTool
     // Create binder
     private BeanValidationBinder<User> binder = new BeanValidationBinder<>(User.class);
 
-    public RegistrationView(UserService userService, PasswordEncoder passwordEncoder) {
+    public RegistrationView(NavigationTools navigationTools, UserService userService, PasswordEncoder passwordEncoder) {
+        this.navigationTools = navigationTools;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         setSizeFull();
@@ -69,7 +71,7 @@ public class RegistrationView extends VerticalLayout implements NavigationalTool
 
                 userService.saveNewUser(user);
 
-                navigateTo(ViewsEnum.LOGIN);
+                navigationTools.navigateTo(ViewsEnum.LOGIN);
             } else {
                 showError();
             }

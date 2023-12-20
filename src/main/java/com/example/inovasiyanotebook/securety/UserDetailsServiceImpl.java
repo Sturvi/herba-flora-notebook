@@ -1,6 +1,7 @@
-package com.example.inovasiyanotebook.service;
+package com.example.inovasiyanotebook.securety;
 
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,4 +1,4 @@
-package com.example.inovasiyanotebook.service;
+package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.repository.UserRepository;

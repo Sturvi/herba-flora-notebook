@@ -1,6 +1,6 @@
 package com.example.inovasiyanotebook.views.login;
 
-import com.example.inovasiyanotebook.views.NavigationalTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
@@ -22,10 +22,12 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
  */
 @Route("login")
 @AnonymousAllowed
-public class LoginView extends VerticalLayout implements NavigationalTools {
+public class LoginView extends VerticalLayout {
+    private final NavigationTools navigationTools;
 
 
-    public LoginView() {
+    public LoginView(NavigationTools navigationTools) {
+        this.navigationTools = navigationTools;
         setSizeFull();
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -34,7 +36,7 @@ public class LoginView extends VerticalLayout implements NavigationalTools {
         login.setAction("login");
 
         Button registerButton = new Button("Register", event -> {
-            navigateTo(ViewsEnum.REGISTRATION);
+            navigationTools.navigateTo(ViewsEnum.REGISTRATION);
         });
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();

@@ -3,6 +3,7 @@ package com.example.inovasiyanotebook.model.client;
 import com.example.inovasiyanotebook.model.AbstractEntity;
 import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -20,7 +21,7 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Client extends AbstractEntity implements ParentEntity {
+public class Client extends AbstractEntity implements ParentEntity, NamedEntity {
 
     @Column(nullable = false, unique = true)
     private String name;

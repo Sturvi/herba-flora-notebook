@@ -2,18 +2,18 @@ package com.example.inovasiyanotebook.views;
 
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.client.ClientMapper;
-import com.example.inovasiyanotebook.model.user.RoleEnum;
 import com.example.inovasiyanotebook.model.user.User;
-import com.example.inovasiyanotebook.service.ClientService;
-import com.example.inovasiyanotebook.service.UserService;
+import com.example.inovasiyanotebook.service.viewservices.client.AddNewClientMenuService;
+import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
+import com.example.inovasiyanotebook.securety.PermissionsCheck;
+import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.views.about.AboutView;
-import com.example.inovasiyanotebook.views.helloworld.HelloWorldView;
+import com.example.inovasiyanotebook.views.category.CategoryView;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.*;
@@ -22,7 +22,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -42,22 +41,29 @@ import java.util.List;
  */
 @Component
 @UIScope
-public class MainLayout extends AppLayout implements NavigationalTools, DesignTools{
+public class MainLayout extends AppLayout{
 
     private final UserService userService;
+    private final PermissionsCheck permissionsCheck;
+    private final DesignTools designTools;
+    private final NavigationTools navigationTools;
     private final ClientMapper clientMapper;
     private final ClientService clientService;
-
+    private final AddNewClientMenuService addNewClientMenuService;
     private final VerticalLayout clientsNav;
     private final User user;
 
     private H2 viewTitle;
 
-    public MainLayout(UserService userService, ClientMapper clientMapper, ClientService clientService) {
+    public MainLayout(UserService userService, PermissionsCheck permissionsCheck, DesignTools designTools, NavigationTools navigationTools, ClientMapper clientMapper, ClientService clientService, AddNewClientMenuService addNewClientMenuService) {
         this.userService = userService;
-        this.user = userService.findByUsername(getCurrentUsername());
+        this.user = userService.findByUsername(navigationTools.getCurrentUsername());
+        this.permissionsCheck = permissionsCheck;
+        this.designTools = designTools;
+        this.navigationTools = navigationTools;
         this.clientMapper = clientMapper;
         this.clientService = clientService;
+        this.addNewClientMenuService = addNewClientMenuService;
 
         this.clientsNav = new VerticalLayout();
         clientsNav.setPadding(false);
@@ -71,6 +77,26 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
         updateClientNav();
     }
 
+    private void addDrawerContent() {
+        H1 appName = new H1("Herba flora".toUpperCase());
+        H1 appName2 = new H1("İNOVASİYA VƏ TƏHLİL");
+        VerticalLayout headerLayout = new VerticalLayout(appName, appName2);
+        appName.addClassNames(LumoUtility.FontSize.XLARGE, LumoUtility.Margin.NONE);
+        appName2.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.Margin.NONE);
+        Header header = new Header(headerLayout);
+
+        addToDrawer(
+                header,
+                new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
+                new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()),
+                designTools.addEmptySpace(),
+                addTitle("Şirkətlər"),
+                newClientButton(user),
+                new Scroller(clientsNav),
+                createFooter());
+    }
+
+
     private void updateClientNav() {
         clientsNav.removeAll();
 
@@ -83,7 +109,7 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
                             client.getName());
                     link.addClassNames("text");
 
-                    if (user.getRole() == RoleEnum.ADMIN) {
+                    if (permissionsCheck.needEditor(user.getRole())) {
                         Span dragHandle = new Span(LineAwesomeIcon.BARS_SOLID.create());
                         dragHandle.addClassNames("drag-handle");
 
@@ -139,9 +165,6 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
 
                         clientsNav.add(itemContainer);
                     }
-
-
-
                 });
     }
 
@@ -153,23 +176,6 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
         addToNavbar(true, toggle, viewTitle);
-    }
-
-    private void addDrawerContent() {
-        H1 appName = new H1("My App");
-        appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
-        Header header = new Header(appName);
-
-
-        addToDrawer(
-                header,
-                new SideNavItem("Hello World", HelloWorldView.class, LineAwesomeIcon.GLOBE_SOLID.create()),
-                new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()),
-                addEmptySpace(),
-                addTitle("Şirkətlər"),
-                newClientButton(user),
-                new Scroller(clientsNav),
-                createFooter());
     }
 
     private Footer createFooter() {
@@ -197,69 +203,14 @@ public class MainLayout extends AppLayout implements NavigationalTools, DesignTo
     }
 
     public Button newClientButton(User user) {
-        if (user.getRole() != RoleEnum.ADMIN) {
-            return null;
+        if (permissionsCheck.needEditor(user.getRole())) {
+            Button newClientButton = new Button("Yeni şirkət");
+            newClientButton.addClickListener(event -> addNewClientMenuService.createAddClientDialog());
+
+            return newClientButton;
         }
 
-        Button newClientButton = new Button("Yeni şirkət");
-        newClientButton.addClickListener(event -> createAddClientDialog());
-
-        return newClientButton;
-    }
-
-    private void createAddClientDialog() {
-        Dialog addClientDialog = new Dialog();
-        addClientDialog.setWidth("75%");
-
-        TextField nameField = createTextField("Müştəri adı", ".*\\S.*", "Ad boş ola bilməz");
-        TextField phoneNumberField = createTextField("Telefon nömrəsi", null, null);
-        TextField emailField = createTextField("Email", "^$|^(.+)@(.+)$", "Email doğru deyil");
-        TextField voenField = createTextField("Vöen", null, null);
-
-        VerticalLayout layout = new VerticalLayout(nameField, phoneNumberField, emailField, voenField);
-
-        Button addButton = new Button("Əlavə et");
-        addButton.addClickListener(click -> processNewClient(nameField, phoneNumberField, emailField, voenField, addClientDialog));
-
-        Button cancelButton = new Button("Ləğv et");
-        cancelButton.addClickListener(event -> addClientDialog.close());
-
-        HorizontalLayout horizontalLayout = new HorizontalLayout(addButton, cancelButton);
-        horizontalLayout.setWidth("50%");
-        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        layout.add(horizontalLayout);
-        addClientDialog.add(layout);
-        addClientDialog.open();
-    }
-
-    private TextField createTextField(String label, String pattern, String errorMessage) {
-        TextField textField = new TextField();
-        textField.setLabel(label);
-        textField.setSizeFull();
-        if (pattern != null) {
-            textField.setPattern(pattern);
-            textField.setErrorMessage(errorMessage);
-        }
-        return textField;
-    }
-
-    private void processNewClient(TextField nameField, TextField phoneNumberField, TextField emailField, TextField voenField, Dialog dialog) {
-        String name = nameField.getValue().trim();
-        if (name.isEmpty()) {
-            nameField.setInvalid(true);
-            return;
-        }
-
-        if (!emailField.getValue().matches("^$|^(.+)@(.+)$")) {
-            emailField.setInvalid(true);
-            return;
-        }
-
-        Client newClient = clientMapper.creatNewClient(name, emailField.getValue().trim(), phoneNumberField.getValue().trim(), voenField.getValue().trim());
-        clientService.save(newClient);
-        updateClientNav();
-        dialog.close();
+        return null;
     }
 
     @EventListener

@@ -10,6 +10,4 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
 
     @Query("SELECT MAX(p.sortOrder) FROM Client p")
     Integer findMaxSortOrder();
-
-
 }

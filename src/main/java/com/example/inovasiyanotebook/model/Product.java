@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.model;
 
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import jakarta.persistence.Column;
@@ -33,5 +34,6 @@ public class Product extends AbstractEntity implements ParentEntity {
     @ManyToOne
     private Client client;
 
-
+    @ManyToOne
+    private Category category;
 }

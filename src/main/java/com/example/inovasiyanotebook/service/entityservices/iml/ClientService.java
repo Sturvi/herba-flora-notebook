@@ -1,10 +1,10 @@
-package com.example.inovasiyanotebook.service;
+package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ClientRepository;
+import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,12 +13,32 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ClientService {
+public class ClientService implements CRUDService<Client> {
     private final ClientRepository clientRepository;
 
 
-    public void save (Client client) {
-        clientRepository.save(client);
+    public Client create(Client client) {
+        return clientRepository.save(client);
+    }
+
+    @Override
+    public Optional<Client> getById(Long id) {
+        return clientRepository.findById(id);
+    }
+
+    @Override
+    public List<Client> getAll() {
+        return clientRepository.findAll();
+    }
+
+    @Override
+    public Client update(Client entity) {
+        return clientRepository.save(entity);
+    }
+
+    @Override
+    public void delete(Client entity) {
+        clientRepository.delete(entity);
     }
 
     public Integer getMaxSortOrder (){

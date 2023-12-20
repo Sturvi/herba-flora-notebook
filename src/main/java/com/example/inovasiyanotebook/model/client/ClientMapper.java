@@ -1,6 +1,6 @@
 package com.example.inovasiyanotebook.model.client;
 
-import com.example.inovasiyanotebook.service.ClientService;
+import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

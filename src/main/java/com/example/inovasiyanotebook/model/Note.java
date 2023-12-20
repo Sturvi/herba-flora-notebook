@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.model;
 
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.HasParentEntity;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
@@ -29,6 +30,9 @@ public class Note extends AbstractEntity implements HasParentEntity {
     @ManyToOne
     private Product product;
 
+    @ManyToOne
+    private Category category;
+
     private String text;
 
     @Column(nullable = false)
@@ -39,12 +43,12 @@ public class Note extends AbstractEntity implements HasParentEntity {
 
     @Override
     public ParentEntity getParent() {
-        return client != null ? client : product;
+        return client != null ? client : product != null ? product : category;
     }
 
     @Override
     public boolean hasParent() {
-        return true;
+        return client != null || product != null || category != null;
     }
 
 }

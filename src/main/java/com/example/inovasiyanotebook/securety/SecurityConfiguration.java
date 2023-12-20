@@ -1,6 +1,5 @@
-package com.example.inovasiyanotebook.configurations;
+package com.example.inovasiyanotebook.securety;
 
-import com.example.inovasiyanotebook.service.UserDetailsServiceImpl;
 import com.example.inovasiyanotebook.views.login.LoginView;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import lombok.RequiredArgsConstructor;

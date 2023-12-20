@@ -4,6 +4,8 @@ public enum ViewsEnum {
     LOGIN("login"),
     ABOUT("about"),
     HELLO("hello"),
+    CATEGORY("category"),
+    PRODUCT("product"),
     REGISTRATION("registration"),
     CLIENT ("/client"),
     PAGE404("404");
