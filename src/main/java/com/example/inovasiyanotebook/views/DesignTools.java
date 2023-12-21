@@ -22,6 +22,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
@@ -154,6 +155,18 @@ public class DesignTools {
             textField.setErrorMessage(errorMessage);
         }
         return textField;
+    }
+
+    public TextArea createTextArea(String label, String pattern, String errorMessage) {
+        TextArea textArea = new TextArea();
+        textArea.setLabel(label);
+        textArea.setMinHeight("300px");
+        textArea.setWidthFull();
+        if (pattern != null) {
+            textArea.setPattern(pattern);
+            textArea.setErrorMessage(errorMessage);
+        }
+        return textArea;
     }
 
     public void addEditableField(Client client,

@@ -5,6 +5,7 @@ import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
+import com.example.inovasiyanotebook.views.ViewsEnum;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -40,4 +41,9 @@ public class Client extends AbstractEntity implements ParentEntity, NamedEntity 
 
     @Column(nullable = false)
     private Integer sortOrder;
+
+    @Override
+    public ViewsEnum getViewEnum() {
+        return ViewsEnum.CLIENT;
+    }
 }

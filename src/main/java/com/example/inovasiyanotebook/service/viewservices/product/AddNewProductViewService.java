@@ -7,13 +7,15 @@ import com.example.inovasiyanotebook.service.entityservices.iml.CategoryService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.DataView;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,13 +33,15 @@ public class AddNewProductViewService {
     private final DesignTools designTools;
     private final CategoryService categoryService;
     private final ProductService productService;
+    private final NavigationTools navigationTools;
     private Dialog addClientDialog;
 
 
+
     /**
-     * Opens a dialog for creating a new product.
+     * Creates a new product dialog for the given client.
      *
-     * @param client the client for which to create a new product
+     * @param client The client to create a new product for
      */
     @Transactional
     public void creatNewProductDialog(Client client) {
@@ -53,7 +57,7 @@ public class AddNewProductViewService {
                     .forEach(categories::add);
         });
 
-                var desktopView = createCommonComponents(categories, client);
+        var desktopView = createCommonComponents(categories, client);
         var mobileView = createCommonComponents(categories, client);
 
         designTools.creatDialog(addClientDialog, desktopView, mobileView);
@@ -107,6 +111,8 @@ public class AddNewProductViewService {
 
         productService.create(product);
         addClientDialog.close();
+
+        navigationTools.reloadPage();
     }
 
 

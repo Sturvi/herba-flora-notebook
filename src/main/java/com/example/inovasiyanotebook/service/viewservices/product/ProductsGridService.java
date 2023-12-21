@@ -61,6 +61,7 @@ public class ProductsGridService {
         }
 
         Grid<Product> productGrid = new Grid<>();
+        productGrid.setHeightFull();
         productGrid.addColumn(Product::getName)
                 .setHeader("Məhsul")
                 .setSortable(true)
@@ -97,7 +98,12 @@ public class ProductsGridService {
         productNameLine.add(textField);
         productNameLine.setWidthFull();
         productNameLine.setAlignItems(FlexComponent.Alignment.CENTER);
-        return new VerticalLayout(productNameLine, productGrid);
+
+        // Existing code
+        VerticalLayout verticalLayout = new VerticalLayout(productNameLine, productGrid);
+        verticalLayout.setHeightFull();
+
+        return verticalLayout;
     }
 
     /**

@@ -33,6 +33,7 @@ public class Note extends AbstractEntity implements HasParentEntity {
     @ManyToOne
     private Category category;
 
+    @Column(columnDefinition="TEXT")
     private String text;
 
     @Column(nullable = false)
@@ -41,10 +42,15 @@ public class Note extends AbstractEntity implements HasParentEntity {
     @ManyToOne
     private User addedBy;
 
+    @ManyToOne
+    private User updatedBy;
+
     @Override
     public ParentEntity getParent() {
         return client != null ? client : product != null ? product : category;
     }
+
+
 
     @Override
     public boolean hasParent() {

@@ -6,6 +6,7 @@ import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.interfaces.HasParentEntity;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
+import com.example.inovasiyanotebook.views.ViewsEnum;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -56,5 +57,10 @@ public class Category extends AbstractEntity implements ParentEntity, HasParentE
 
     public String getFullName() {
         return hasParent() ? parentCategory.name + ": " + getName() : getName();
+    }
+
+    @Override
+    public ViewsEnum getViewEnum() {
+        return ViewsEnum.CATEGORY;
     }
 }

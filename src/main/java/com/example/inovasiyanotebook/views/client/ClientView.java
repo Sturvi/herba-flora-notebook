@@ -4,6 +4,7 @@ import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.service.viewservices.client.ClientInformation;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
+import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
 import com.example.inovasiyanotebook.service.viewservices.product.AddNewProductViewService;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
@@ -23,7 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ClientView extends HorizontalLayout implements HasUrlParameter<String> {
     private Client client;
     private final ClientService clientService;
-    private final ProductsGridService productsGridServise;
+    private final ProductsGridService productsGridService;
+    private final NoteGridService noteGridService;
     private final PermissionsCheck permissionsCheck;
     private final UserService userService;
     private final ClientInformation clientInformation;
@@ -31,9 +33,10 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
     private final NavigationTools navigationTools;
     private User user;
 
-    public ClientView(ClientService clientService, ProductsGridService productsGridServise, PermissionsCheck permissionsCheck, UserService userService, ClientInformation clientInformation, AddNewProductViewService addNewProductViewService, NavigationTools navigationTools) {
+    public ClientView(ClientService clientService, ProductsGridService productsGridService, NoteGridService noteGridService, PermissionsCheck permissionsCheck, UserService userService, ClientInformation clientInformation, AddNewProductViewService addNewProductViewService, NavigationTools navigationTools) {
         this.clientService = clientService;
-        this.productsGridServise = productsGridServise;
+        this.productsGridService = productsGridService;
+        this.noteGridService = noteGridService;
         this.permissionsCheck = permissionsCheck;
         this.userService = userService;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
@@ -70,9 +73,12 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
         VerticalLayout clientLayout = new VerticalLayout(
                 clientInformation.getClientName(client, user),
                 information,
-                productsGridServise.getProductGrid(client, user)
+                productsGridService.getProductGrid(client, user)
         );
         clientLayout.setWidthFull();
+        setSpacing(false); // Убираем интервалы между компонентами
+        setPadding(false);
+        setMargin(false);
 
 /*        clientLayout.getStyle().set("margin-left", "20px");
         clientLayout.getStyle().set("margin-top", "20px");*/
@@ -80,7 +86,10 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
         setMargin(true);*/
         setHeightFull();
 
-        add(clientLayout, new VerticalLayout());
+        var notesColumn = new VerticalLayout(noteGridService.getNoteGrid(client, user));
+
+
+        add(clientLayout, notesColumn);
     }
 
     private void handleHaventClient() {

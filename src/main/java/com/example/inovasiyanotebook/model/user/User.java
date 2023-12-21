@@ -32,4 +32,8 @@ public class User extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RoleEnum role = RoleEnum.VIEWER;
+
+    public  String getFullName () {
+        return firstName + " " + lastName;
+    }
 }
