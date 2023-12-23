@@ -16,7 +16,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
+import elemental.json.JsonObject;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,6 +31,8 @@ public class NoteGridService {
     private final AddNewNoteService addNewNoteService;
     private final NavigationTools navigationTools;
     private final NoteService noteService;
+
+    private boolean allDataLoaded = false;
 
     public Component getNoteGrid (Client client, User user) {
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
@@ -45,15 +49,21 @@ public class NoteGridService {
         scroller.addClassName("no-padding-margin");
 
         VerticalLayout container = new VerticalLayout();
+        loadNotes(client, container, 0); // начальная загрузка первых 10 заметок
 
+        // Добавление слушателя прокрутки
+        scroller.getElement().addEventListener("scroll", e -> {
+            JsonObject json = e.getEventData();
+            double clientHeight = json.getNumber("element.clientHeight");
+            double scrollTop = json.getNumber("element.scrollTop");
+            double scrollHeight = json.getNumber("element.scrollHeight");
 
-        var notes = noteService.getAllByClient(client);
+            if (scrollTop + clientHeight >= scrollHeight) {
+                // Загрузка следующих 10 заметок
+                loadNotes(client, container, (int) container.getChildren().count());
+            }
+        }).addEventData("element.clientHeight").addEventData("element.scrollTop").addEventData("element.scrollHeight");
 
-        for (Note note : notes) {
-            NoteCard noteCard = new NoteCard(note, navigationTools);
-            noteCard.addClassName("note-card");
-            container.add(noteCard);
-        }
 
         scroller.setContent(container);
 
@@ -64,11 +74,27 @@ public class NoteGridService {
         notesColumn.setPadding(false);
         notesColumn.setMargin(false);
         notesColumn.setSpacing(false);
-        // Java
-
 
         notesColumn.setAlignItems(FlexComponent.Alignment.START);
 
         return notesColumn;
+    }
+
+    private void loadNotes(Client client, VerticalLayout container, int currentElementCount) {
+        int currentPade = (int) Math.ceil((double) currentElementCount / 10);
+
+
+        if (!allDataLoaded) {
+            Page<Note> notesPage = noteService.getAllByClientWithPagination(client, currentPade);
+
+            if (notesPage.getTotalPages() <= currentPade + 1) {
+                allDataLoaded = true; // Установка флага, если это последняя страница
+            }
+
+            for (Note note : notesPage.getContent()) {
+                NoteCard noteCard = new NoteCard(note, navigationTools);
+                container.add(noteCard);
+            }
+        }
     }
 }

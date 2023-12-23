@@ -5,6 +5,8 @@ import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.NoteRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,5 +44,10 @@ public class NoteService implements CRUDService<Note> {
 
     public List<Note> getAllByClient (Client client) {
         return noteRepository.findAllByClient(client);
+    }
+
+    public Page<Note> getAllByClientWithPagination(Client client, int pageNumber) {
+        // Здесь '10' - это размер страницы
+        return noteRepository.findAllByClientWithPagination(client, PageRequest.of(pageNumber, 10));
     }
 }

@@ -6,6 +6,8 @@ import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
+import java.time.format.DateTimeFormatter;
+
 public class NoteCard extends VerticalLayout {
     private NavigationTools navigationTools;
 
@@ -25,10 +27,18 @@ public class NoteCard extends VerticalLayout {
         parentName.addClickListener(event -> navigationTools.navigateTo(parentEntity.getViewEnum(), parentEntity.getId().toString()));
         informationLayout.add(parentName);
 
-        H5 creatInformation = new H5("Yaradılıb: " + note.getCreatedAt() + ". (" + note.getAddedBy().getFullName());
-        informationLayout.add(creatInformation);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
+        H5 createdAtInformation = new H5("Yaradılıb: "
+                + note.getCreatedAt().format(formatter)
+                + ". (" + note.getAddedBy().getFullName() + ")");
+        informationLayout.add(createdAtInformation);
+
+
         if (note.getUpdatedBy() != null) {
-            H5 updatedInformation = new H5("Son düzəliş: " + note.getUpdatedAt() + ". (" + note.getUpdatedBy().getFullName());
+            H5 updatedInformation = new H5("Son düzəliş: "
+                    + note.getUpdatedAt().format(formatter)
+                    + ". (" + note.getUpdatedBy().getFullName() + ")");
             informationLayout.add(updatedInformation);
         }
 
@@ -36,6 +46,8 @@ public class NoteCard extends VerticalLayout {
 
         H5 text = new H5(note.getText());
         text.setWidthFull();
+
+        addClassName("note-card");
 
         add(text);
     }
