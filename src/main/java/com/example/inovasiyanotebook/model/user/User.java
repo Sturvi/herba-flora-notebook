@@ -29,6 +29,9 @@ public class User extends AbstractEntity {
     @Column(nullable = false)
     private String email;
 
+    @Column(nullable = false)
+    private boolean isFunctionalityEnabled = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private RoleEnum role = RoleEnum.VIEWER;

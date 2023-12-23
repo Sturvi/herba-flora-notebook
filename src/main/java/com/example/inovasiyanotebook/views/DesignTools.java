@@ -215,14 +215,14 @@ public class DesignTools {
         H1 title = new H1(entity.getName());
         HorizontalLayout titleLine = new HorizontalLayout(title);
 
-        if (permissionsCheck.needEditor(user.getRole())) {
+        if (permissionsCheck.needEditor(user)) {
             TextField titleEditor = createEditableField(entity, title, "", "", updateEntityFunction);
             titleEditor.addClassName("my-text-field");
             titleLine.add(titleEditor);
             titleEditor.setWidthFull();
 
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH)); // Используем иконку корзины
-            deleteButton.addClickListener(e -> deleteProject(entity, CRUDService));
+            deleteButton.addClickListener(e -> showConfirmationDialog(() -> deleteProject(entity, CRUDService)));
 
             deleteButton.addClassNames("text-error", "icon-error", "small-button");
 

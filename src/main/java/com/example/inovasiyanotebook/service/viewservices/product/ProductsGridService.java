@@ -53,7 +53,7 @@ public class ProductsGridService {
      */
     private Component createNewProductsGrid(List<Product> productList, User user, Client client) {
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Məhsullar"));
-        if (permissionsCheck.needEditor(user.getRole())) {
+        if (permissionsCheck.needEditor(user)) {
             Button button = new Button(new Icon(VaadinIcon.PLUS));
             button.addClickListener(e -> addNewProductViewService.creatNewProductDialog(client));
             button.setClassName("small-button");

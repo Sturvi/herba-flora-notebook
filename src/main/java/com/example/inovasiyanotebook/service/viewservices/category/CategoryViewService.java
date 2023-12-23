@@ -52,7 +52,7 @@ public class CategoryViewService {
         var headerName = new H1("Bütün kateqoriyalar.");
         horizontalLayout.add(headerName);
 
-        if (permissionsCheck.needEditor(user.getRole())) {
+        if (permissionsCheck.needEditor(user)) {
             var addButton = designTools.getAddButton(this::addNewCategoryDialog);
             horizontalLayout.add(addButton);
         }
@@ -74,7 +74,7 @@ public class CategoryViewService {
 
         categoriesGrid.addHierarchyColumn(Category::getName).setHeader("Kateqoriya");
 
-        if (permissionsCheck.needEditor(user.getRole())) {
+        if (permissionsCheck.needEditor(user)) {
             // Добавление кнопки удаления
             var deleteColumn = categoriesGrid.addComponentColumn(category -> {
                 Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));

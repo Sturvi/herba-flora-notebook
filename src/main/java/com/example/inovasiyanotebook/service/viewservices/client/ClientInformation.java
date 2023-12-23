@@ -41,7 +41,7 @@ public class ClientInformation {
     public VerticalLayout getInformation(Client client, User user) {
         VerticalLayout verticalLayout = new VerticalLayout();
 
-        if (permissionsCheck.needEditor(user.getRole())) {
+        if (permissionsCheck.needEditor(user)) {
             designTools.addEditableField(client, verticalLayout, "Telefon nömrəsi:", client.getPhoneNumber(),
                     "^\\+(?:[0-9] ?){6,14}[0-9]$", "Telefon nömrəsi doğru yazılmayıb",this::updatePhoneNumber);
 
@@ -69,9 +69,9 @@ public class ClientInformation {
                 this::updateClientName
         );
 
-        horizontalLayout.setSpacing(false);
+/*        horizontalLayout.setSpacing(false);
         horizontalLayout.setMargin(false);
-        horizontalLayout.setPadding(false);
+        horizontalLayout.setPadding(false);*/
 
         return horizontalLayout;
     }

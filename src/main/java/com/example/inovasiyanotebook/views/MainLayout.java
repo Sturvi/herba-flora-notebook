@@ -10,10 +10,12 @@ import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.views.about.AboutView;
 import com.example.inovasiyanotebook.views.category.CategoryView;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dnd.DragSource;
 import com.vaadin.flow.component.dnd.DropTarget;
 import com.vaadin.flow.component.html.*;
@@ -27,7 +29,7 @@ import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.Comparator;
@@ -39,7 +41,7 @@ import java.util.List;
  * It extends the AppLayout class and provides the layout structure for the application's
  * header, footer, and drawer content.
  */
-@Component
+@Service
 @UIScope
 public class MainLayout extends AppLayout{
 
@@ -93,6 +95,7 @@ public class MainLayout extends AppLayout{
                 addTitle("Şirkətlər"),
                 newClientButton(user),
                 new Scroller(clientsNav),
+                getIsFunctionalityEnabledButton(),
                 createFooter());
     }
 
@@ -109,7 +112,7 @@ public class MainLayout extends AppLayout{
                             client.getName());
                     link.addClassNames("text");
 
-                    if (permissionsCheck.needEditor(user.getRole())) {
+                    if (permissionsCheck.needEditor(user)) {
                         Span dragHandle = new Span(LineAwesomeIcon.BARS_SOLID.create());
                         dragHandle.addClassNames("drag-handle");
 
@@ -203,7 +206,7 @@ public class MainLayout extends AppLayout{
     }
 
     public Button newClientButton(User user) {
-        if (permissionsCheck.needEditor(user.getRole())) {
+        if (permissionsCheck.needEditor(user)) {
             Button newClientButton = new Button("Yeni şirkət");
             newClientButton.addClickListener(event -> addNewClientMenuService.createAddClientDialog());
 
@@ -211,6 +214,21 @@ public class MainLayout extends AppLayout{
         }
 
         return null;
+    }
+
+
+    private Component getIsFunctionalityEnabledButton() {
+        Checkbox toggleButton = new Checkbox("Admin funksiyaları");
+        toggleButton.setValue(user.isFunctionalityEnabled());
+        toggleButton.addClassName("custom-checkbox"); // Добавление кастомного класса
+
+        toggleButton.addValueChangeListener(event -> {
+            user.setFunctionalityEnabled(event.getValue());
+            userService.update(user);
+            navigationTools.reloadPage();
+        });
+
+        return toggleButton;
     }
 
     @EventListener

@@ -37,7 +37,7 @@ public class NoteGridService {
     public Component getNoteGrid (Client client, User user) {
         allDataLoaded = false;
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
-        if (permissionsCheck.needContributor(user.getRole())) {
+        if (permissionsCheck.isContributorOrHigher(user)) {
             Button button = new Button(new Icon(VaadinIcon.PLUS));
             button.addClickListener(e -> addNewNoteService.createNewProductDialog(client, user));
             button.setClassName("small-button");

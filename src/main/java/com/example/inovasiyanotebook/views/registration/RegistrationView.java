@@ -69,7 +69,7 @@ public class RegistrationView extends VerticalLayout {
                 String hashedPassword = passwordEncoder.encode(user.getPassword());
                 user.setPassword(hashedPassword);
 
-                userService.saveNewUser(user);
+                userService.create(user);
 
                 navigationTools.navigateTo(ViewsEnum.LOGIN);
             } else {
