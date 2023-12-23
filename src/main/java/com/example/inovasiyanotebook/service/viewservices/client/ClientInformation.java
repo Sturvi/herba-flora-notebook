@@ -69,12 +69,9 @@ public class ClientInformation {
                 this::updateClientName
         );
 
-/*        horizontalLayout.setSpacing(false);
-        horizontalLayout.setMargin(false);
-        horizontalLayout.setPadding(false);*/
-
         return horizontalLayout;
     }
+
 
     private void updateClientName(NamedEntity abstractEntity, TextField titleEditor, Component title) {
         Client client = (Client) abstractEntity;

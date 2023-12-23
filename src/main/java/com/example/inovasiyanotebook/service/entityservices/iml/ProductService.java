@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ProductRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
@@ -43,5 +44,9 @@ public class ProductService implements CRUDService<Product> {
 
     public List<Product> getAllByClient (Client client) {
         return productRepository.findAllByClient(client);
+    }
+
+    public List<Product> getAllByCategory(Category category) {
+        return productRepository.findAllByCategory(category);
     }
 }

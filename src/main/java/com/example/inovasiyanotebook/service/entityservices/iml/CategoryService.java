@@ -21,7 +21,7 @@ public class CategoryService implements CRUDService<Category> {
 
     @Override
     public Optional<Category> getById(Long id) {
-        return Optional.empty();
+        return categoryRepository.findById(id);
     }
 
     public List<Category> getAll () {

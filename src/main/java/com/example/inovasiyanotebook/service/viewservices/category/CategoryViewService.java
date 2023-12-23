@@ -1,10 +1,14 @@
 package com.example.inovasiyanotebook.service.viewservices.category;
 
 import com.example.inovasiyanotebook.model.client.Category;
+import com.example.inovasiyanotebook.model.client.Client;
+import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.CategoryService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
+import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -35,14 +39,26 @@ public class CategoryViewService {
     private final CategoryService categoryService;
     private final DesignTools designTools;
     private final PermissionsCheck permissionsCheck;
+    private final NavigationTools navigationTools;
 
     private Dialog addCategoryDialog;
 
 
     public VerticalLayout getCategoryName(Category category, User user) {
-        VerticalLayout verticalLayout = new VerticalLayout();
+        return new VerticalLayout(designTools.getNameLine(category, user, categoryService, this::updateCategoryName));
+    }
 
-        return verticalLayout;
+    private void updateCategoryName(NamedEntity abstractEntity, TextField titleEditor, Component title) {
+        Category category = (Category) abstractEntity;
+
+        String newName = titleEditor.getValue().trim();
+        if (!newName.isEmpty()) {
+            category.setName(newName);
+            categoryService.create(category);
+            ((H1) title).setText(newName);
+        }
+        title.setVisible(true);
+        titleEditor.setVisible(false);
     }
 
     public HorizontalLayout getAllCategoryHeader(User user) {
@@ -89,6 +105,11 @@ public class CategoryViewService {
             // Отключаем возможность изменения размера колонки
             deleteColumn.setFlexGrow(0);
         }
+
+        categoriesGrid.addItemClickListener(event -> {
+            String categoryId = event.getItem().getId().toString();
+            navigationTools.navigateTo(ViewsEnum.CATEGORY, categoryId);
+        });
 
         return getVerticalLayout(currentSearchTerm, updateGridItems, categoriesGrid);
     }

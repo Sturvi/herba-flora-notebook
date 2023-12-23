@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.views;
 
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.user.User;
@@ -210,7 +211,7 @@ public class DesignTools {
 
     public <T extends NamedEntity> HorizontalLayout getNameLine(T entity,
                                                                 User user,
-                                                                CRUDService<T> CRUDService,
+                                                                CRUDService<T> service,
                                                                 TriConsumer<T, TextField, Component> updateEntityFunction) {
         H1 title = new H1(entity.getName());
         HorizontalLayout titleLine = new HorizontalLayout(title);
@@ -222,7 +223,7 @@ public class DesignTools {
             titleEditor.setWidthFull();
 
             Button deleteButton = new Button(new Icon(VaadinIcon.TRASH)); // Используем иконку корзины
-            deleteButton.addClickListener(e -> showConfirmationDialog(() -> deleteProject(entity, CRUDService)));
+            deleteButton.addClickListener(e -> showConfirmationDialog(() -> deleteProject(entity, service)));
 
             deleteButton.addClassNames("text-error", "icon-error", "small-button");
 

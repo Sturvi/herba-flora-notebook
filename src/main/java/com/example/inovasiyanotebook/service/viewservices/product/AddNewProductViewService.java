@@ -12,10 +12,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.DataView;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -57,35 +55,71 @@ public class AddNewProductViewService {
                     .forEach(categories::add);
         });
 
-        var desktopView = createCommonComponents(categories, client);
-        var mobileView = createCommonComponents(categories, client);
+        var desktopView = createComponentsForClient(categories, client);
+        var mobileView = createComponentsForClient(categories, client);
+
+        designTools.creatDialog(addClientDialog, desktopView, mobileView);
+    }
+
+    @Transactional
+    public void creatNewProductDialog(Category category) {
+        addClientDialog = new Dialog();
+        addClientDialog.setWidth("75%");
+
+        List<Client> allClients = clientService.getAll();
+
+        var desktopView = createComponentsForCategoty(allClients, category);
+        var mobileView = createComponentsForCategoty(allClients, category);
 
         designTools.creatDialog(addClientDialog, desktopView, mobileView);
     }
 
 
-    private List<Component> createCommonComponents(List<Category> categories, Client client) {
-        ViewComponents components = new ViewComponents();
+    private List<Component> createComponentsForCategoty(List<Client> clients, Category category) {
 
-        components.productName = designTools.createTextField("Adı:", "^.+$", "Məhsul adı boş ola bilməz.");
-        components.productTs = designTools.createTextField("TŞ:", null, null);
-        components.productBarcode = designTools.createTextField("Barkod:", "^[0-9]+$", "Barkod yalnız rəqəmlərdən ibarət olmalıdır");
-        components.productWeight = designTools.createTextField("Çəkisi:", null, null);
-        components.productCategory = designTools.creatComboBox("Məhsul növü:", categories, Category::getFullName);
+        TextField productName = designTools.createTextField("Adı:", "^.+$", "Məhsul adı boş ola bilməz.");
+        TextField productTs = designTools.createTextField("TŞ:", null, null);
+        TextField productBarcode = designTools.createTextField("Barkod:", "^[0-9]+$", "Barkod yalnız rəqəmlərdən ibarət olmalıdır");
+        TextField productWeight = designTools.createTextField("Çəkisi:", null, null);
+        ComboBox<Client> productClient = designTools.creatComboBox("Müştəri:", clients, Client::getName);
 
-        components.addButton = new Button("Əlavə et");
-        components.addButton.addClickListener(click -> processNewProduct(components.productName, components.productTs, components.productBarcode, components.productWeight, client, components.productCategory));
+        Button addButton = new Button("Əlavə et");
+        addButton.addClickListener(click -> processNewProduct(productName, productTs, productBarcode, productWeight, productClient, category));
 
-        components.cancelButton = new Button("Ləğv et");
-        components.cancelButton.addClickListener(event -> addClientDialog.close());
-        HorizontalLayout buttonLayout = new HorizontalLayout(components.addButton, components.cancelButton);
+        Button cancelButton = new Button("Ləğv et");
+        cancelButton.addClickListener(event -> addClientDialog.close());
+        HorizontalLayout buttonLayout = new HorizontalLayout(addButton, cancelButton);
         buttonLayout.setWidthFull();
 
-        return List.of(components.productName,
-                components.productTs,
-                components.productBarcode,
-                components.productWeight,
-                components.productCategory,
+        return List.of(productName,
+                productTs,
+                productBarcode,
+                productWeight,
+                productClient,
+                buttonLayout);
+    }
+
+    private List<Component> createComponentsForClient(List<Category> categories, Client client) {
+
+        TextField productName = designTools.createTextField("Adı:", "^.+$", "Məhsul adı boş ola bilməz.");
+        TextField productTs = designTools.createTextField("TŞ:", null, null);
+        TextField productBarcode = designTools.createTextField("Barkod:", "^[0-9]+$", "Barkod yalnız rəqəmlərdən ibarət olmalıdır");
+        TextField productWeight = designTools.createTextField("Çəkisi:", null, null);
+        ComboBox<Category> productCategory = designTools.creatComboBox("Kateqoriya:", categories, Category::getFullName);
+
+        Button addButton = new Button("Əlavə et");
+        addButton.addClickListener(click -> processNewProduct(productName, productTs, productBarcode, productWeight, client, productCategory));
+
+        Button cancelButton = new Button("Ləğv et");
+        cancelButton.addClickListener(event -> addClientDialog.close());
+        HorizontalLayout buttonLayout = new HorizontalLayout(addButton, cancelButton);
+        buttonLayout.setWidthFull();
+
+        return List.of(productName,
+                productTs,
+                productBarcode,
+                productWeight,
+                productCategory,
                 buttonLayout);
     }
 
@@ -115,17 +149,29 @@ public class AddNewProductViewService {
         navigationTools.reloadPage();
     }
 
+    private void processNewProduct(TextField productName, TextField productTs, TextField productBarcode, TextField productWeight, ComboBox<Client> productClient, Category category) {
+        if (productName.getValue().trim().isEmpty()) {
+            productName.setInvalid(true);
+            return;
+        }
 
-    /**
-     * Class for storing view components related to adding new products.
-     */
-    private static class ViewComponents {
-        TextField productName;
-        TextField productTs;
-        TextField productBarcode;
-        TextField productWeight;
-        ComboBox<Category> productCategory;
-        Button addButton;
-        Button cancelButton;
+        if (productClient.getValue() == null) {
+            productClient.setInvalid(true);
+            return;
+        }
+
+        Product product = Product.builder()
+                .name(productName.getValue().trim())
+                .ts(productTs.getValue().trim())
+                .barcode(productBarcode.getValue().trim())
+                .weight(productWeight.getValue().trim())
+                .client(productClient.getValue())
+                .category(category)
+                .build();
+
+        productService.create(product);
+        addClientDialog.close();
+
+        navigationTools.reloadPage();
     }
 }

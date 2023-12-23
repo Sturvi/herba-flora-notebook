@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.viewservices.product;
 
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
@@ -43,6 +44,11 @@ public class ProductsGridService {
         return createNewProductsGrid(productList, user, client);
     }
 
+    public Component getProductGrid(Category category, User user) {
+        List<Product> productList = productService.getAllByCategory(category);
+        return createNewProductsGrid(productList, user, category);
+    }
+
     /**
      * Creates a new products grid component.
      *
@@ -76,6 +82,61 @@ public class ProductsGridService {
         productGrid.addItemClickListener(event -> {
             String categoryId = event.getItem().getId().toString();
             navigationTools.navigateTo(ViewsEnum.PRODUCT, categoryId);
+        });
+
+        // Создание объекта TextField для фильтрации
+        TextField textField = new TextField();
+        textField.setPlaceholder("Search...");
+        textField.setWidthFull();
+        textField.addValueChangeListener(event -> {
+            // Обновление всего списка при изменении текста в поле поиска
+            dataView.refreshAll();
+        });
+        // Анонимный класс фильтрации
+        dataView.addFilter(product -> {
+            String searchTerm = textField.getValue().trim().toLowerCase();
+            if (searchTerm.isEmpty())
+                return true;
+            boolean matchesName = matchesTerm(product.getName(), searchTerm);
+            boolean matchesCategory = matchesTerm(product.getCategory().getName(), searchTerm);
+            return matchesName || matchesCategory;
+        });
+        productNameLine.add(textField);
+        productNameLine.setWidthFull();
+        productNameLine.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        // Existing code
+        VerticalLayout verticalLayout = new VerticalLayout(productNameLine, productGrid);
+        verticalLayout.setHeightFull();
+
+        return verticalLayout;
+    }
+
+    private Component createNewProductsGrid(List<Product> products, User user, Category clientCategory) {
+        HorizontalLayout productNameLine = new HorizontalLayout(new H2("Məhsullar"));
+        if (permissionsCheck.needEditor(user)) {
+            Button button = new Button(new Icon(VaadinIcon.PLUS));
+            button.addClickListener(e -> addNewProductViewService.creatNewProductDialog(clientCategory));
+            button.setClassName("small-button");
+            productNameLine.add(button);
+        }
+
+        Grid<Product> productGrid = new Grid<>();
+        productGrid.setHeightFull();
+        productGrid.addColumn(Product::getName)
+                .setHeader("Məhsul")
+                .setSortable(true)
+                .setFlexGrow(4)
+                .setKey("name");
+        productGrid.addColumn(Product::getCategory)
+                .setHeader("Kateqoriya")
+                .setSortable(true)
+                .setFlexGrow(3)
+                .setKey("category");
+        GridListDataView<Product> dataView = productGrid.setItems(products);
+        productGrid.addItemClickListener(event -> {
+            String productId = event.getItem().getId().toString();
+            navigationTools.navigateTo(ViewsEnum.PRODUCT, productId);
         });
 
         // Создание объекта TextField для фильтрации
