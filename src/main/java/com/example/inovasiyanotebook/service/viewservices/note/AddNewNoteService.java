@@ -30,7 +30,7 @@ public class AddNewNoteService {
 
 
     @Transactional
-    public void createNewProductDialog(Client client, User user) {
+    public void createNewNoteDialog(Client client, User user) {
         dialog = new Dialog();
         dialog.setWidth("75%");
         dialog.setMaxWidth("600px");

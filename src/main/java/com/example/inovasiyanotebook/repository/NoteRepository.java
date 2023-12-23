@@ -14,8 +14,9 @@ import java.util.List;
 public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findAllByClient(Client client);
 
-    @Query("SELECT n FROM Note n WHERE n.client = :client ORDER BY n.createdAt DESC")
-    Page<Note> findAllByClientWithPagination(Client client, Pageable pageable);
+    @Query("SELECT n FROM Note n WHERE n.client = :client ORDER BY n.isPinned DESC, n.createdAt DESC")
+    Page<Note> findAllByClientWithPaginationAndSorting(Client client, Pageable pageable);
+
 
 
 }

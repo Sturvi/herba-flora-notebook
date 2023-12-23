@@ -21,8 +21,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @UIScope
@@ -39,7 +37,7 @@ public class NoteGridService {
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
         if (permissionsCheck.isContributorOrHigher(user)) {
             Button button = new Button(new Icon(VaadinIcon.PLUS));
-            button.addClickListener(e -> addNewNoteService.createNewProductDialog(client, user));
+            button.addClickListener(e -> addNewNoteService.createNewNoteDialog(client, user));
             button.setClassName("small-button");
             productNameLine.add(button);
         }
@@ -50,7 +48,7 @@ public class NoteGridService {
         scroller.addClassName("no-padding-margin");
 
         VerticalLayout container = new VerticalLayout();
-        loadNotes(client, container, 0); // начальная загрузка первых 10 заметок
+        loadNotes(client, container, 0, user); // начальная загрузка первых 10 заметок
 
         // Добавление слушателя прокрутки
         scroller.getElement().addEventListener("scroll", e -> {
@@ -61,7 +59,7 @@ public class NoteGridService {
 
             if (scrollTop + clientHeight >= scrollHeight) {
                 // Загрузка следующих 10 заметок
-                loadNotes(client, container, (int) container.getChildren().count());
+                loadNotes(client, container, (int) container.getChildren().count(), user);
             }
         }).addEventData("element.clientHeight").addEventData("element.scrollTop").addEventData("element.scrollHeight");
 
@@ -81,7 +79,7 @@ public class NoteGridService {
         return notesColumn;
     }
 
-    private void loadNotes(Client client, VerticalLayout container, int currentElementCount) {
+    private void loadNotes(Client client, VerticalLayout container, int currentElementCount, User user) {
         int currentPade = (int) Math.ceil((double) currentElementCount / 10);
 
 
@@ -93,7 +91,7 @@ public class NoteGridService {
             }
 
             for (Note note : notesPage.getContent()) {
-                NoteCard noteCard = new NoteCard(note, navigationTools);
+                NoteCard noteCard = new NoteCard(note, navigationTools, noteService, user);
                 container.add(noteCard);
             }
         }

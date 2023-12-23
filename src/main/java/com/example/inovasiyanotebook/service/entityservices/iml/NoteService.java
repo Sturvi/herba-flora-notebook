@@ -48,6 +48,6 @@ public class NoteService implements CRUDService<Note> {
 
     public Page<Note> getAllByClientWithPagination(Client client, int pageNumber) {
         // Здесь '10' - это размер страницы
-        return noteRepository.findAllByClientWithPagination(client, PageRequest.of(pageNumber, 10));
+        return noteRepository.findAllByClientWithPaginationAndSorting(client, PageRequest.of(pageNumber, 10));
     }
 }

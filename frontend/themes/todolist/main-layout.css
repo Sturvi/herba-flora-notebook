@@ -1,50 +1,4 @@
-vaadin-scroller[slot="drawer"] {
-  padding: var(--lumo-space-s);
-}
-
-vaadin-side-nav-item vaadin-icon {
-  padding: 0;
-}
-
-[slot="drawer"]:is(header, footer) {
-  display: flex;
-  align-items: center;
-  gap: var(--lumo-space-s);
-  padding: var(--lumo-space-s) var(--lumo-space-m);
-  min-height: var(--lumo-size-xl);
-  box-sizing: border-box;
-}
-
-[slot="drawer"]:is(header, footer):is(:empty) {
-  display: none;
-}
-
-
-/* CSS для иконки перетаскивания */
-.drag-handle {
-  color: white; /* Устанавливаем цвет иконки */
-  font-size: 1.0rem; /* Устанавливаем размер иконки */
-  cursor: grab; /* Курсор, указывающий, что элемент можно перетаскивать */
-  margin-right: -0.5em; /* Добавляем отступ справа от иконки */
-}
-
-/* Стили для контейнера элемента, чтобы выровнять иконку и текст */
-.project-item {
-  display: flex;
-  align-items: center; /* Вертикальное выравнивание элементов внутри */
-  border-radius: 3px; /* Скругление углов */
-  margin-bottom:  0.5em; /* Отступ снизу */
-}
-
-/* Убираем стандартные стили для ссылок внутри .project-item */
-.project-item a {
-  color: white; /* Цвет текста ссылки */
-  text-decoration: none; /* Убираем подчеркивание */
-  margin-left: 0em;
-  cursor: grab; /* Курсор, указывающий, что элемент можно перетаскивать */
-}
-
-.italic {
+body{
   font-style: italic;
 }
 
@@ -128,6 +82,12 @@ color: var(--lumo-error-color); // Цвет текста - красный
   padding: 10px;
   display: inline-block;
   box-shadow: 0px 5px 15px rgb(0, 9, 14); /* тень карточки */
+}
+
+.smaller-text {
+  font-size: 13px; /* или любой другой размер, который вам нужен */
+  font-style: italic;
+  line-height: 1.7; /* для уменьшения расстояния между строками */
 }
 
 
