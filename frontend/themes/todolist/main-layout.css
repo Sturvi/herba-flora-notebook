@@ -70,15 +70,56 @@ border: none; // Убираем границу
 color: var(--lumo-error-color); // Цвет текста - красный
 }
 
+@import url('https://fonts.googleapis.com/css?family=Arbutus+Slab|Open+Sans&display=swap');
+
 .note-card {
-  border: 1px solid rgba(100,100,100,0.6);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-radius: 1px;
-  padding: 10px;
-  margin-bottom: 0px;
-  transition: box-shadow 0.3s ease-in-out;
+  /* Стили контейнера */
+  display: inline-block; /* или block в зависимости от вашего макета */
+  max-width: 900px; /* пример ширины, задайте свою */
+  margin: 0px; /* пространство вокруг карточки */
+  padding: 16px; /* внутренние отступы карточки */
+  box-sizing: border-box;
+
+  /* Шрифты и текст */
+  font-family: 'Open Sans', sans-serif;
+  color: #495456; /* цвет текста */
+
+  /* Фон и тени */
+  background: #161f2b; /* фон карточки */
+  box-shadow: 0px 5px 15px rgb(0, 9, 14); /* тень карточки */
+  border-radius: 6px; /* скругление углов */
+
+  /* Переходы и интерактивность */
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* плавный переход тени и преобразования */
+
+  /* Псевдо-параметры для наведения */
+  --offset-multiplier: 4px; /* множитель смещения */
 }
 
 .note-card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  --offset-multiplier: 6px; /* увеличенное смещение при наведении */
+  transform: scale(1.03); /* небольшое увеличение карточки */
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* усиленная тень */
 }
+
+/* Стили для заголовков и параграфов внутри карточки */
+.note-card h2 {
+  font-family: 'Arbutus Slab', serif;
+  font-weight: normal;
+  color: #000;
+  line-height: 1.25;
+}
+
+.note-card p {
+  font-size: 14px;
+}
+
+/* CSS */
+.no-padding-margin {
+  padding: 0;
+  margin: 0;
+}
+
+
+

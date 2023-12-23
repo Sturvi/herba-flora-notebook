@@ -69,6 +69,10 @@ public class ClientInformation {
                 this::updateClientName
         );
 
+        horizontalLayout.setSpacing(false);
+        horizontalLayout.setMargin(false);
+        horizontalLayout.setPadding(false);
+
         return horizontalLayout;
     }
 

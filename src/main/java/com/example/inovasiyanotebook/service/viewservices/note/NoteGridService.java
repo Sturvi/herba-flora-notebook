@@ -11,6 +11,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -41,6 +42,7 @@ public class NoteGridService {
         Scroller scroller = new Scroller();
         scroller.setSizeFull();
         scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scroller.addClassName("no-padding-margin");
 
         VerticalLayout container = new VerticalLayout();
 
@@ -61,6 +63,12 @@ public class NoteGridService {
         notesColumn.setWidthFull();
         notesColumn.setPadding(false);
         notesColumn.setMargin(false);
+        notesColumn.setSpacing(false);
+        // Java
+
+
+        notesColumn.setAlignItems(FlexComponent.Alignment.START);
+
         return notesColumn;
     }
 }
