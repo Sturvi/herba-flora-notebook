@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.viewservices.note;
 
 import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
@@ -40,6 +41,17 @@ public class AddNewNoteService {
         dialog.open();
     }
 
+    @Transactional
+    public void createNewNoteDialog(Category category, User user) {
+        dialog = new Dialog();
+        dialog.setWidth("75%");
+        dialog.setMaxWidth("600px");
+
+        createCommonComponents(category, user).forEach(dialog::add);
+
+        dialog.open();
+    }
+
 
     private List<Component> createCommonComponents (Client client, User user) {
         TextArea textArea = designTools.createTextArea("Not", "^.+$", "Not boş ola bilməz.");
@@ -73,4 +85,39 @@ public class AddNewNoteService {
 
         navigationTools.reloadPage();
     }
+
+    private List<Component> createCommonComponents (Category category, User user) {
+        TextArea textArea = designTools.createTextArea("Not", "^.+$", "Not boş ola bilməz.");
+
+        var addButton = new Button("Əlavə et");
+        addButton.addClickListener(click -> processNewNote(textArea, category, user));
+
+        var cancelButton = new Button("Ləğv et");
+        cancelButton.addClickListener(event -> dialog.close());
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(addButton, cancelButton);
+        buttonLayout.setWidthFull();
+
+        return List.of(textArea, buttonLayout);
+    }
+
+    private void processNewNote(TextArea textArea, Category category, User user) {
+        if (textArea.getValue().trim().isEmpty()) {
+            textArea.setInvalid(true);
+            return;
+        }
+
+        Note note = Note.builder()
+                .text(textArea.getValue())
+                .category(category)
+                .addedBy(user)
+                .build();
+
+        noteService.create(note);
+        dialog.close();
+
+        navigationTools.reloadPage();
+    }
+
+
 }

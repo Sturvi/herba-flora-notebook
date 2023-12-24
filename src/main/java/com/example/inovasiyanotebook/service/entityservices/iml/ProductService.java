@@ -47,6 +47,6 @@ public class ProductService implements CRUDService<Product> {
     }
 
     public List<Product> getAllByCategory(Category category) {
-        return productRepository.findAllByCategory(category);
+        return productRepository.findAllByCategoryAndHisSubCategory(category);
     }
 }

@@ -6,6 +6,7 @@ import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.CategoryService;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.viewservices.category.CategoryViewService;
+import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductsGridService;
 import com.example.inovasiyanotebook.views.MainLayout;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -25,14 +26,16 @@ public class CategoryView extends HorizontalLayout implements HasUrlParameter<St
     private final CategoryViewService categoryViewService;
     private final NavigationTools navigationTools;
     private final ProductsGridService productsGridService;
+    private final NoteGridService noteGridService;
 
     private User user;
     private Category category;
 
 
-    public CategoryView(UserService userService, PermissionsCheck permissionsCheck, CategoryService categoryService, CategoryViewService categoryViewService, ProductsGridService productsGridService, NavigationTools navigationTools) {
+    public CategoryView(UserService userService, PermissionsCheck permissionsCheck, CategoryService categoryService, CategoryViewService categoryViewService, ProductsGridService productsGridService, NoteGridService noteGridService, NavigationTools navigationTools) {
         this.userService = userService;
         this.productsGridService = productsGridService;
+        this.noteGridService = noteGridService;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
         this.permissionsCheck = permissionsCheck;
         this.categoryService = categoryService;
@@ -66,7 +69,7 @@ public class CategoryView extends HorizontalLayout implements HasUrlParameter<St
 
         add(
                 verticalLayout,
-                new VerticalLayout()
+                new VerticalLayout(noteGridService.getNoteGrid(category, user))
         );
 
     }

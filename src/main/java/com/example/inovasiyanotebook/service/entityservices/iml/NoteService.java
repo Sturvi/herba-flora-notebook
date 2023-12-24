@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.NoteRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
@@ -42,12 +43,20 @@ public class NoteService implements CRUDService<Note> {
         noteRepository.delete(entity);
     }
 
-    public List<Note> getAllByClient (Client client) {
+    public List<Note> getAllByClient(Client client) {
         return noteRepository.findAllByClient(client);
     }
 
     public Page<Note> getAllByClientWithPagination(Client client, int pageNumber) {
         // Здесь '10' - это размер страницы
         return noteRepository.findAllByClientWithPaginationAndSorting(client, PageRequest.of(pageNumber, 10));
+    }
+
+    public Page<Note> getAllByCategoryWithPagination(Category category, int pageNumber) {
+        if (category.hasParent()){
+            return noteRepository.findByCategoriesWithPaginationAndSorting(PageRequest.of(pageNumber, 10), category, category.getParentCategory());
+        } else {
+            return noteRepository.findByCategoriesWithPaginationAndSorting(PageRequest.of(pageNumber, 10), category);
+        }
     }
 }

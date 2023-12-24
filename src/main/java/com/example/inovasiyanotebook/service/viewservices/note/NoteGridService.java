@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.viewservices.note;
 
 import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
@@ -33,6 +34,77 @@ public class NoteGridService {
     private final NoteService noteService;
 
     private boolean allDataLoaded = false;
+
+
+    public Component getNoteGrid (Category category, User user) {
+        allDataLoaded = false;
+        HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
+        if (permissionsCheck.isContributorOrHigher(user)) {
+            Button button = new Button(new Icon(VaadinIcon.PLUS));
+            button.addClickListener(e -> addNewNoteService.createNewNoteDialog(category, user));
+            button.setClassName("small-button");
+            productNameLine.add(button);
+        }
+
+        Scroller scroller = new Scroller();
+        scroller.setSizeFull();
+        scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scroller.addClassName("no-padding-margin");
+
+        VerticalLayout container = new VerticalLayout();
+        loadNotes(category, container, 0, user); // начальная загрузка первых 10 заметок
+
+        // Добавление слушателя прокрутки
+        scroller.getElement().addEventListener("scroll", e -> {
+            JsonObject json = e.getEventData();
+            double clientHeight = json.getNumber("element.clientHeight");
+            double scrollTop = json.getNumber("element.scrollTop");
+            double scrollHeight = json.getNumber("element.scrollHeight");
+
+            if (scrollTop + clientHeight >= scrollHeight) {
+                // Загрузка следующих 10 заметок
+                loadNotes(category, container, (int) container.getChildren().count(), user);
+            }
+        }).addEventData("element.clientHeight").addEventData("element.scrollTop").addEventData("element.scrollHeight");
+
+
+        scroller.setContent(container);
+        scroller.setClassName("note-bar-padding");
+        scroller.setWidthFull();
+        scroller.setHeightFull();
+
+
+        VerticalLayout notesColumn = new VerticalLayout(productNameLine, scroller);
+        notesColumn.setHeightFull();
+        notesColumn.setWidthFull();
+        notesColumn.setPadding(false);
+        notesColumn.setMargin(false);
+        notesColumn.setSpacing(false);
+        notesColumn.getStyle().set("margin-left", "-10px");
+
+        notesColumn.setAlignItems(FlexComponent.Alignment.START);
+
+        return notesColumn;
+    }
+
+    private void loadNotes(Category category, VerticalLayout container, int currentElementCount, User user) {
+        int currentPade = (int) Math.ceil((double) currentElementCount / 10);
+
+
+        if (!allDataLoaded) {
+            Page<Note> notesPage = noteService.getAllByCategoryWithPagination(category, currentPade);
+
+            if (notesPage.getTotalPages() <= currentPade + 1) {
+                allDataLoaded = true; // Установка флага, если это последняя страница
+            }
+
+            for (Note note : notesPage.getContent()) {
+                NoteCard noteCard = new NoteCard(note, navigationTools, noteService, user);
+                container.add(noteCard);
+            }
+        }
+    }
+
 
     public Component getNoteGrid (Client client, User user) {
         allDataLoaded = false;
