@@ -58,6 +58,7 @@ public class ClientInformation {
             );
         }
 
+        verticalLayout.getStyle().set("font-weight", "100");
         return verticalLayout;
     }
 

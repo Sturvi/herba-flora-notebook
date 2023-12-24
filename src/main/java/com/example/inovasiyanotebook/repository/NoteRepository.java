@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.repository;
 
 import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,5 +19,7 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     Page<Note> findAllByClientWithPaginationAndSorting(Client client, Pageable pageable);
 
 
+    @Query("SELECT n FROM Note n WHERE n.category = :category OR n.category IN (SELECT c FROM Category c WHERE c.parentCategory = :category) ORDER BY n.isPinned DESC, n.createdAt DESC")
+    Page<Note> findAllByCategoryAndParentCategoryWithPaginationAndSorting(Category category, Pageable pageable);
 
 }

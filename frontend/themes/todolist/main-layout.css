@@ -1,5 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+
+
+vaadin-scroller[slot="drawer"] {
+  padding: var(--lumo-space-s);
+}
+
+vaadin-side-nav-item vaadin-icon {
+  padding: 0;
+}
+
+[slot="drawer"]:is(header, footer) {
+  display: flex;
+  align-items: center;
+  gap: var(--lumo-space-s);
+  padding: var(--lumo-space-s) var(--lumo-space-m);
+  min-height: var(--lumo-size-xl);
+  box-sizing: border-box;
+}
+
+[slot="drawer"]:is(header, footer):is(:empty) {
+  display: none;
+}
+
 body{
-  font-style: italic;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 500;
+  background-color: #11161f;
+  padding: 0;
+
+  scrollbar-width: thin;
+  scrollbar-color: green black;
 }
 
 .my-text-field {
@@ -24,7 +54,6 @@ border: none; // Убираем границу
 color: var(--lumo-error-color); // Цвет текста - красный
 }
 
-@import url('https://fonts.googleapis.com/css?family=Arbutus+Slab|Open+Sans&display=swap');
 
 .note-card {
   /* Стили контейнера */
@@ -90,4 +119,8 @@ color: var(--lumo-error-color); // Цвет текста - красный
   line-height: 1.7; /* для уменьшения расстояния между строками */
 }
 
+.note-bar-padding {
+  margin: 15px 0px 12px -15px;
+  padding-top: 0px;
+}
 

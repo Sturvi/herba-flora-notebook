@@ -76,18 +76,18 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
                 productsGridService.getProductGrid(client, user)
         );
         clientLayout.setWidthFull();
-        setSpacing(false); // Убираем интервалы между компонентами
-        setPadding(false);
-        setMargin(false);
+
 
 /*        clientLayout.getStyle().set("margin-left", "20px");
         clientLayout.getStyle().set("margin-top", "20px");*/
 /*        setPadding(true);
         setMargin(true);*/
         setHeightFull();
+        setWidthFull();
 
         var notesColumn = new VerticalLayout(noteGridService.getNoteGrid(client, user));
-
+        notesColumn.setWidthFull();
+        notesColumn.setWidthFull();
 
         add(clientLayout, notesColumn);
     }
@@ -95,8 +95,7 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
     private void handleHaventClient() {
         H1 title = new H1("Bütün müştərilər");
         HorizontalLayout layout = new HorizontalLayout(title);
-        layout.getStyle().set("margin-left", "20px");
-        layout.getStyle().set("margin-top", "20px");
+
 
         add(layout);
     }

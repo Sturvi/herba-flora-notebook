@@ -1,4 +1,5 @@
 @import url('./main-layout.css');
+@import url('./scroller.css');
     [theme~="dark"] {
       --lumo-base-color: hsl(215, 30%, 10%);
 

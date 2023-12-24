@@ -8,6 +8,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @UIScope
+
 public class NoteGridService {
     private final PermissionsCheck permissionsCheck;
     private final AddNewNoteService addNewNoteService;
@@ -65,6 +67,9 @@ public class NoteGridService {
 
 
         scroller.setContent(container);
+        scroller.setClassName("note-bar-padding");
+        scroller.setWidthFull();
+        scroller.setHeightFull();
 
 
         VerticalLayout notesColumn = new VerticalLayout(productNameLine, scroller);
@@ -73,6 +78,7 @@ public class NoteGridService {
         notesColumn.setPadding(false);
         notesColumn.setMargin(false);
         notesColumn.setSpacing(false);
+        notesColumn.getStyle().set("margin-left", "-10px");
 
         notesColumn.setAlignItems(FlexComponent.Alignment.START);
 
