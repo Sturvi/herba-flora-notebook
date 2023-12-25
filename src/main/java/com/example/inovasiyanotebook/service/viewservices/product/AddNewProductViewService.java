@@ -1,10 +1,8 @@
 package com.example.inovasiyanotebook.service.viewservices.product;
 
-import com.example.inovasiyanotebook.model.AbstractEntity;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
-import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.service.entityservices.iml.CategoryService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
@@ -127,8 +125,8 @@ public class AddNewProductViewService {
             return;
         }
 
-        Client client = null;
-        Category category = null;
+        Client client;
+        Category category;
 
         try {
             client = checkComboBox(clientComboBox);
@@ -162,6 +160,6 @@ public class AddNewProductViewService {
         }
     }
 
-    private class EmptyComboBoxException extends RuntimeException {
+    private static class EmptyComboBoxException extends RuntimeException {
     }
 }
