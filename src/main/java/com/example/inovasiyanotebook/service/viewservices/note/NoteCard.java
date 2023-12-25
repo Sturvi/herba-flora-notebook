@@ -42,7 +42,7 @@ public class NoteCard extends VerticalLayout {
         informationLayout.setSpacing(false);
 
         ParentEntity parentEntity = note.getParent();
-        H5 parentName = new H5("Parent: " + parentEntity.getName());
+        H5 parentName = new H5("Səviyyə: " + parentEntity.getName());
         parentName.addClassName("smaller-text");
         parentName.addClickListener(event -> navigationTools.navigateTo(parentEntity.getViewEnum(), parentEntity.getId().toString()));
         informationLayout.add(parentName);
