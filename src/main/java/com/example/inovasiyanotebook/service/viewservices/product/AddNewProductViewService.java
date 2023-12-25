@@ -18,12 +18,16 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * The AddNewProductViewService class is responsible for creating a dialog for adding a new product to a client's inventory.
+ */
 @Service
 @RequiredArgsConstructor
 @UIScope
@@ -40,7 +44,11 @@ public class AddNewProductViewService {
     /**
      * Creates a new product dialog for the given client.
      *
-     * @param client The client to create a new product for
+     * This method creates a dialog box for adding a new product to the client's inventory. The dialog is
+     * initialized with the necessary components and design tools.
+     *
+     * @param client The client for whom the product is being added.
+     * @throws TransactionException if there is an error in the transaction.
      */
     @Transactional
     public void creatNewProductDialog(Client client) {
@@ -62,6 +70,11 @@ public class AddNewProductViewService {
         designTools.creatDialog(addClientDialog, desktopView, mobileView);
     }
 
+    /**
+     * Creates a new product dialog for the given category.
+     *
+     * @param category the category of the product
+     */
     @Transactional
     public void creatNewProductDialog(Category category) {
         addClientDialog = new Dialog();
@@ -75,6 +88,13 @@ public class AddNewProductViewService {
         designTools.creatDialog(addClientDialog, desktopView, mobileView);
     }
 
+    /**
+     * Creates a list of components for creating products.
+     *
+     * @param clients    The list of clients.
+     * @param categories The list of categories.
+     * @return The list of components.
+     */
     private List<Component> createComponents (List<Client> clients, List<Category> categories) {
         List<Component> componentList = new ArrayList<>();
 
@@ -113,6 +133,16 @@ public class AddNewProductViewService {
         return componentList;
     }
 
+    /**
+     * Process a new product by validating the input fields and creating the product.
+     *
+     * @param productName       The text field for the product name.
+     * @param productTs         The text field for the product TS.
+     * @param productBarcode    The text field for the product barcode.
+     * @param productWeight     The text field for the product weight.
+     * @param clientComboBox    The combo box for selecting the client.
+     * @param categoryComboBox  The combo box for selecting the category.
+     */
     private void processNewProduct(TextField productName,
                                    TextField productTs,
                                    TextField productBarcode,
@@ -151,6 +181,14 @@ public class AddNewProductViewService {
     }
 
 
+    /**
+     * Checks if the given ComboBox has a selected value. If not, throws an EmptyComboBoxException.
+     *
+     * @param comboBox the ComboBox to be checked.
+     * @param <T>      the type of values in the ComboBox.
+     * @return the selected value of the ComboBox.
+     * @throws EmptyComboBoxException if the ComboBox does not have a selected value.
+     */
     private <T> T checkComboBox(ComboBox<T> comboBox) {
         if (comboBox.getValue() == null) {
             comboBox.setInvalid(true);
@@ -160,6 +198,10 @@ public class AddNewProductViewService {
         }
     }
 
+    /**
+     * The {@code EmptyComboBoxException} is a subclass of {@code RuntimeException} that is thrown when a combo box is empty.
+     * This exception is used to handle situations where a combo box should have a selected item, but no item is selected.
+     */
     private static class EmptyComboBoxException extends RuntimeException {
     }
 }
