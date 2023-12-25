@@ -115,7 +115,8 @@ public class ProductsGridService {
             if (searchTerm.isEmpty()) return true;
             boolean matchesName = matchesTerm(product.getName(), searchTerm);
             boolean matchesCategory = matchesTerm(product.getCategory().getName(), searchTerm);
-            return matchesName || matchesCategory;
+            boolean matchesClient = matchesTerm(product.getClient().getName(), searchTerm);
+            return matchesName || matchesCategory || matchesClient;
         });
 
         productNameLine.add(textField);
