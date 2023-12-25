@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * This class provides a component representing a grid of products.
+ * This class provides methods to create a product grid component based on different parameters.
  */
 @Service
 @RequiredArgsConstructor
@@ -39,84 +39,43 @@ public class ProductsGridService {
     private final NavigationTools navigationTools;
     private final AddNewProductViewService addNewProductViewService;
 
+    /**
+     * This method is used to create a product grid component.
+     *
+     * @param client The client object.
+     * @param user The user object.
+     * @return The product grid component.
+     */
     public Component getProductGrid(Client client, User user) {
         List<Product> productList = productService.getAllByClient(client);
-        return createNewProductsGrid(productList, user, client);
-    }
-
-    public Component getProductGrid(Category category, User user) {
-        List<Product> productList = productService.getAllByCategory(category);
-        return createNewProductsGrid(productList, user, category);
+        return createProductGridComponent(productList, user, () -> addNewProductViewService.creatNewProductDialog(client));
     }
 
     /**
-     * Creates a new products grid component.
+     * Retrieves a product grid component for the given category and user.
      *
-     * @param productList the list of products to display in the grid
-     * @param user        the user object representing the current user
-     * @param client      the client object representing the current client
-     * @return the created VerticalLayout component containing the products grid
+     * @param category The category of products to display in the grid.
+     * @param user The user for whom the grid is being displayed.
+     * @return A {@code Component} representing the product grid.
      */
-    private Component createNewProductsGrid(List<Product> productList, User user, Client client) {
-        HorizontalLayout productNameLine = new HorizontalLayout(new H2("Məhsullar"));
-        if (permissionsCheck.needEditor(user)) {
-            Button button = new Button(new Icon(VaadinIcon.PLUS));
-            button.addClickListener(e -> addNewProductViewService.creatNewProductDialog(client));
-            button.setClassName("small-button");
-            productNameLine.add(button);
-        }
-
-        Grid<Product> productGrid = new Grid<>();
-        productGrid.setHeightFull();
-        productGrid.addColumn(Product::getName)
-                .setHeader("Məhsul")
-                .setSortable(true)
-                .setFlexGrow(4)
-                .setKey("name");
-        productGrid.addColumn(Product::getCategory)
-                .setHeader("Kateqoriya")
-                .setSortable(true)
-                .setFlexGrow(3)
-                .setKey("category");
-        GridListDataView<Product> dataView = productGrid.setItems(productList);
-        productGrid.addItemClickListener(event -> {
-            String categoryId = event.getItem().getId().toString();
-            navigationTools.navigateTo(ViewsEnum.PRODUCT, categoryId);
-        });
-
-        // Создание объекта TextField для фильтрации
-        TextField textField = new TextField();
-        textField.setPlaceholder("Search...");
-        textField.setWidthFull();
-        textField.addValueChangeListener(event -> {
-            // Обновление всего списка при изменении текста в поле поиска
-            dataView.refreshAll();
-        });
-        // Анонимный класс фильтрации
-        dataView.addFilter(product -> {
-            String searchTerm = textField.getValue().trim().toLowerCase();
-            if (searchTerm.isEmpty())
-                return true;
-            boolean matchesName = matchesTerm(product.getName(), searchTerm);
-            boolean matchesCategory = matchesTerm(product.getCategory().getName(), searchTerm);
-            return matchesName || matchesCategory;
-        });
-        productNameLine.add(textField);
-        productNameLine.setWidthFull();
-        productNameLine.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        // Existing code
-        VerticalLayout verticalLayout = new VerticalLayout(productNameLine, productGrid);
-        verticalLayout.setHeightFull();
-
-        return verticalLayout;
+    public Component getProductGrid(Category category, User user) {
+        List<Product> productList = productService.getAllByCategory(category);
+        return createProductGridComponent(productList, user, () -> addNewProductViewService.creatNewProductDialog(category));
     }
 
-    private Component createNewProductsGrid(List<Product> products, User user, Category clientCategory) {
+    /**
+     * Creates a component that displays a grid of products.
+     *
+     * @param products         the list of products to display in the grid
+     * @param user             the user for permission check
+     * @param addButtonAction  the action to be performed when the add button is clicked
+     * @return a component containing the product grid
+     */
+    private Component createProductGridComponent(List<Product> products, User user, Runnable addButtonAction) {
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Məhsullar"));
         if (permissionsCheck.needEditor(user)) {
             Button button = new Button(new Icon(VaadinIcon.PLUS));
-            button.addClickListener(e -> addNewProductViewService.creatNewProductDialog(clientCategory));
+            button.addClickListener(e -> addButtonAction.run());
             button.setClassName("small-button");
             productNameLine.add(button);
         }
@@ -126,13 +85,18 @@ public class ProductsGridService {
         productGrid.addColumn(Product::getName)
                 .setHeader("Məhsul")
                 .setSortable(true)
-                .setFlexGrow(4)
+                .setFlexGrow(3)
                 .setKey("name");
         productGrid.addColumn(Product::getCategory)
                 .setHeader("Kateqoriya")
                 .setSortable(true)
-                .setFlexGrow(3)
+                .setFlexGrow(1)
                 .setKey("category");
+        productGrid.addColumn(Product::getClient)
+                .setHeader("Müştəri")
+                .setSortable(true)
+                .setFlexGrow(1)
+                .setKey("client");
         GridListDataView<Product> dataView = productGrid.setItems(products);
         productGrid.addItemClickListener(event -> {
             String productId = event.getItem().getId().toString();
@@ -143,24 +107,21 @@ public class ProductsGridService {
         TextField textField = new TextField();
         textField.setPlaceholder("Search...");
         textField.setWidthFull();
-        textField.addValueChangeListener(event -> {
-            // Обновление всего списка при изменении текста в поле поиска
-            dataView.refreshAll();
-        });
+        textField.addValueChangeListener(event -> dataView.refreshAll());
+
         // Анонимный класс фильтрации
         dataView.addFilter(product -> {
             String searchTerm = textField.getValue().trim().toLowerCase();
-            if (searchTerm.isEmpty())
-                return true;
+            if (searchTerm.isEmpty()) return true;
             boolean matchesName = matchesTerm(product.getName(), searchTerm);
             boolean matchesCategory = matchesTerm(product.getCategory().getName(), searchTerm);
             return matchesName || matchesCategory;
         });
+
         productNameLine.add(textField);
         productNameLine.setWidthFull();
         productNameLine.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // Existing code
         VerticalLayout verticalLayout = new VerticalLayout(productNameLine, productGrid);
         verticalLayout.setHeightFull();
 
@@ -168,11 +129,11 @@ public class ProductsGridService {
     }
 
     /**
-     * Checks if a given value matches a search term.
+     * Determines whether the given search term is present in the value.
      *
-     * @param value      The value to check against the search term. (non-null)
-     * @param searchTerm The search term to match against the value. (non-null, case-insensitive)
-     * @return true if the value contains the search term, false otherwise.
+     * @param value The string value to search in. Must not be null.
+     * @param searchTerm The search term to look for. Must not be null.
+     * @return True if the search term is present in the value, false otherwise.
      */
     private boolean matchesTerm(String value, String searchTerm) {
         return value != null && value.trim().toLowerCase().contains(searchTerm);

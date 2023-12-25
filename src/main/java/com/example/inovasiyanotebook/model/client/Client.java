@@ -46,4 +46,9 @@ public class Client extends AbstractEntity implements ParentEntity, NamedEntity 
     public ViewsEnum getViewEnum() {
         return ViewsEnum.CLIENT;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
