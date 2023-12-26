@@ -1,7 +1,5 @@
 package com.example.inovasiyanotebook.views;
 
-import com.example.inovasiyanotebook.model.client.Category;
-import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
@@ -31,6 +29,7 @@ import org.apache.logging.log4j.util.TriConsumer;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 
@@ -170,13 +169,13 @@ public class DesignTools {
         return textArea;
     }
 
-    public void addEditableField(Client client,
+    public void addEditableField(NamedEntity client,
                                  VerticalLayout layout,
                                  String titleText,
                                  String value,
                                  String regex,
                                  String errorMessage,
-                                 TriConsumer<Client, TextField, Component> updateFunction) {
+                                 BiConsumer<NamedEntity, String> updateFunction) {
         H4 title = new H4(titleText);
         H4 displayValue = getInformationH4(value);
         TextField editField = createEditableField(client, displayValue, regex, errorMessage, updateFunction);
@@ -185,6 +184,29 @@ public class DesignTools {
         line.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER); // Центрирование элементов по вертикали
         line.setFlexGrow(1, title); // Растягивание заголовка для выравнивания остальных элементов
         layout.add(line);
+    }
+
+    public <T extends NamedEntity> void processEntityUpdate(T entity,
+                                    TextField textField,
+                                    HtmlContainer htmlContainer,
+                                    BiConsumer<T, String> updateFunction) {
+        String newText = textField.getValue().trim();
+
+         if (newText.matches(textField.getPattern())) {
+             if (newText.isEmpty()) {
+                 setEmptyFieldStyle(htmlContainer, "Əlavə et");
+             } else {
+                 resetFieldStyle(htmlContainer, newText);
+             }
+             updateFunction.accept(entity, newText);
+        } else {
+            textField.setVisible(true);
+            textField.focus();
+            return;
+        }
+
+        textField.setVisible(false);
+        htmlContainer.setVisible(true);
     }
 
     public <T> ComboBox<T> creatComboBox(String boxName, List<T> dataList, Function<T, String> nameFunction) {
@@ -212,12 +234,12 @@ public class DesignTools {
     public <T extends NamedEntity> HorizontalLayout getNameLine(T entity,
                                                                 User user,
                                                                 CRUDService<T> service,
-                                                                TriConsumer<T, TextField, Component> updateEntityFunction) {
+                                                                BiConsumer<T, String> updateFunction) {
         H1 title = new H1(entity.getName());
         HorizontalLayout titleLine = new HorizontalLayout(title);
 
         if (permissionsCheck.needEditor(user)) {
-            TextField titleEditor = createEditableField(entity, title, "", "", updateEntityFunction);
+            TextField titleEditor = createEditableField(entity, title, "^.+$", "Boş ola bilməz", updateFunction);
             titleEditor.addClassName("my-text-field");
             titleLine.add(titleEditor);
             titleEditor.setWidthFull();
@@ -235,13 +257,13 @@ public class DesignTools {
         return titleLine;
     }
 
-    public void setEmptyFieldStyle(H4 field, String text) {
+    public void setEmptyFieldStyle(HtmlContainer field, String text) {
         field.setText(text);
         field.getElement().getStyle().set("color", "#4fc3f7");
         field.getElement().getClassList().add("italic");
     }
 
-    public void resetFieldStyle(H4 field, String text) {
+    public void resetFieldStyle(HtmlContainer field, String text) {
         field.setText(text);
         field.getElement().getStyle().remove("color");
         field.getElement().getClassList().remove("italic");
@@ -263,18 +285,18 @@ public class DesignTools {
     }
 
     private <T extends NamedEntity> TextField createEditableField(T entity,
-                                                                  Component displayComponent,
+                                                                  HtmlContainer displayComponent,
                                                                   String regex,
                                                                   String errorMessage,
-                                                                  TriConsumer<T, TextField, Component> updateFunction) {
+                                                                  BiConsumer<T, String> updateFunction) {
         TextField editField = new TextField();
         editField.setVisible(false);
         editField.setPattern(regex);
         editField.setErrorMessage(errorMessage);
         editField.setWidth("250px");
 
-        editField.addBlurListener(e -> updateFunction.accept(entity, editField, displayComponent));
-        editField.addKeyDownListener(Key.ENTER, e -> updateFunction.accept(entity, editField, displayComponent));
+        editField.addBlurListener(e -> processEntityUpdate(entity, editField, displayComponent, updateFunction));
+        editField.addKeyDownListener(Key.ENTER, e -> processEntityUpdate(entity, editField, displayComponent, updateFunction));
         editField.addKeyDownListener(Key.ESCAPE, e -> {
             displayComponent.setVisible(true);
             editField.setVisible(false);

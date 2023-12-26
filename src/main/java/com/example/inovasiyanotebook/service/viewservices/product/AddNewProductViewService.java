@@ -50,19 +50,11 @@ public class AddNewProductViewService {
      * @param client The client for whom the product is being added.
      * @throws TransactionException if there is an error in the transaction.
      */
-    @Transactional
     public void creatNewProductDialog(Client client) {
         addClientDialog = new Dialog();
         addClientDialog.setWidth("75%");
 
-        List<Category> allParentCategories = categoryService.getAllParentCategories();
-        List<Category> categories = new ArrayList<>();
-        allParentCategories.forEach(category -> {
-            categories.add(category);
-            category.getSubCategories().stream()
-                    .sorted(Comparator.comparing(Category::getName))
-                    .forEach(categories::add);
-        });
+        List<Category> categories = categoryService.getAllSortingByParent();
 
         var desktopView = createComponents(List.of(client), categories);
         var mobileView = createComponents(List.of(client), categories);

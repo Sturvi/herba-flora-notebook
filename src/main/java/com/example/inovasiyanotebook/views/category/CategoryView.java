@@ -16,7 +16,7 @@ import com.vaadin.flow.router.*;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.transaction.annotation.Transactional;
 
-@PageTitle("Məhsul növləri")
+@PageTitle("Kateqoriyalar")
 @Route(value = "category", layout = MainLayout.class)
 @PermitAll
 public class CategoryView extends HorizontalLayout implements HasUrlParameter<String> {

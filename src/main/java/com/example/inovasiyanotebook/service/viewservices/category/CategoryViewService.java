@@ -10,6 +10,7 @@ import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -48,17 +49,13 @@ public class CategoryViewService {
         return new VerticalLayout(designTools.getNameLine(category, user, categoryService, this::updateCategoryName));
     }
 
-    private void updateCategoryName(NamedEntity abstractEntity, TextField titleEditor, Component title) {
-        Category category = (Category) abstractEntity;
+    private void updateCategoryName(NamedEntity namedEntity, String text) {
+        Category category = (Category) namedEntity;
 
-        String newName = titleEditor.getValue().trim();
-        if (!newName.isEmpty()) {
-            category.setName(newName);
-            categoryService.create(category);
-            ((H1) title).setText(newName);
+        if (!text.isEmpty()) {
+            category.setName(text);
+            categoryService.update(category);
         }
-        title.setVisible(true);
-        titleEditor.setVisible(false);
     }
 
     public HorizontalLayout getAllCategoryHeader(User user) {
@@ -202,7 +199,7 @@ public class CategoryViewService {
         ViewComponents components = new ViewComponents();
 
         components.categoryName = designTools.createTextField("Adı", "^.+$", "Məhsul adı boş ola bilməz.");
-        components.categories = designTools.creatComboBox("Məhsul növü:", categories, Category::getName);
+        components.categories = designTools.creatComboBox("Kateqoriya:", categories, Category::getName);
 
         components.addButton = new Button("Əlavə et");
         components.addButton.addClickListener(click -> processNewCategory(components.categoryName, components.categories));
