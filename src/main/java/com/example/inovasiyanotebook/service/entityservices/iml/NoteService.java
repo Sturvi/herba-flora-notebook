@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.NoteRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,5 +60,13 @@ public class NoteService implements CRUDService<Note> {
         } else {
             return noteRepository.findByCategoriesWithPaginationAndSorting(PageRequest.of(pageNumber, 10), category);
         }
+    }
+
+    public Page<Note> getAllByProductWithPagination (Product product, int pageNumber) {
+        var categoriesList = new ArrayList<Category>();
+        if (product.getCategory() != null) categoriesList.add(product.getCategory());
+        if (product.getCategory() != null && product.getCategory().getParent() != null) categoriesList.add(product.getCategory().getParentCategory());
+
+        return noteRepository.findByProductClientAndCategoriesWithPaginationAndSorting(product, product.getClient(), categoriesList,PageRequest.of(pageNumber, 10));
     }
 }

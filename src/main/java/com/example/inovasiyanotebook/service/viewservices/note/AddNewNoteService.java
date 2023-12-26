@@ -1,6 +1,8 @@
 package com.example.inovasiyanotebook.service.viewservices.note;
 
+import com.example.inovasiyanotebook.model.AbstractEntity;
 import com.example.inovasiyanotebook.model.Note;
+import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.user.User;
@@ -29,37 +31,26 @@ public class AddNewNoteService {
 
     private Dialog dialog;
 
-
     @Transactional
-    public void createNewNoteDialog(Client client, User user) {
+    public <T extends AbstractEntity> void createNewNoteDialog(T entity, User user) {
         dialog = new Dialog();
         dialog.setWidth("75%");
         dialog.setMaxWidth("600px");
 
-        createCommonComponents(client, user).forEach(dialog::add);
+        if (entity instanceof Client || entity instanceof Category || entity instanceof Product) {
+            createCommonComponents(entity, user).forEach(dialog::add);
+        }
 
         dialog.open();
     }
 
-    @Transactional
-    public void createNewNoteDialog(Category category, User user) {
-        dialog = new Dialog();
-        dialog.setWidth("75%");
-        dialog.setMaxWidth("600px");
-
-        createCommonComponents(category, user).forEach(dialog::add);
-
-        dialog.open();
-    }
-
-
-    private List<Component> createCommonComponents (Client client, User user) {
+    private <T extends AbstractEntity> List<Component> createCommonComponents(T entity, User user) {
         TextArea textArea = designTools.createTextArea("Not", "^.+$", "Not boş ola bilməz.");
 
-        var addButton = new Button("Əlavə et");
-        addButton.addClickListener(click -> processNewNote(textArea, client, user));
+        Button addButton = new Button("Əlavə et");
+        addButton.addClickListener(click -> processNewNote(textArea, entity, user));
 
-        var cancelButton = new Button("Ləğv et");
+        Button cancelButton = new Button("Ləğv et");
         cancelButton.addClickListener(event -> dialog.close());
 
         HorizontalLayout buttonLayout = new HorizontalLayout(addButton, cancelButton);
@@ -68,17 +59,13 @@ public class AddNewNoteService {
         return List.of(textArea, buttonLayout);
     }
 
-    private void processNewNote(TextArea textArea, Client client, User user) {
+    private <T extends AbstractEntity> void processNewNote(TextArea textArea, T entity, User user) {
         if (textArea.getValue().trim().isEmpty()) {
             textArea.setInvalid(true);
             return;
         }
 
-        Note note = Note.builder()
-                .text(textArea.getValue())
-                .client(client)
-                .addedBy(user)
-                .build();
+        Note note = createNoteFromEntity(textArea.getValue(), entity, user);
 
         noteService.create(note);
         dialog.close();
@@ -86,38 +73,17 @@ public class AddNewNoteService {
         navigationTools.reloadPage();
     }
 
-    private List<Component> createCommonComponents (Category category, User user) {
-        TextArea textArea = designTools.createTextArea("Not", "^.+$", "Not boş ola bilməz.");
+    private <T extends AbstractEntity> Note createNoteFromEntity(String text, T entity, User user) {
+        Note.NoteBuilder noteBuilder = Note.builder().text(text).addedBy(user);
 
-        var addButton = new Button("Əlavə et");
-        addButton.addClickListener(click -> processNewNote(textArea, category, user));
-
-        var cancelButton = new Button("Ləğv et");
-        cancelButton.addClickListener(event -> dialog.close());
-
-        HorizontalLayout buttonLayout = new HorizontalLayout(addButton, cancelButton);
-        buttonLayout.setWidthFull();
-
-        return List.of(textArea, buttonLayout);
-    }
-
-    private void processNewNote(TextArea textArea, Category category, User user) {
-        if (textArea.getValue().trim().isEmpty()) {
-            textArea.setInvalid(true);
-            return;
+        if (entity instanceof Client) {
+            noteBuilder.client((Client) entity);
+        } else if (entity instanceof Category) {
+            noteBuilder.category((Category) entity);
+        } else if (entity instanceof Product) {
+            noteBuilder.product((Product) entity);
         }
 
-        Note note = Note.builder()
-                .text(textArea.getValue())
-                .category(category)
-                .addedBy(user)
-                .build();
-
-        noteService.create(note);
-        dialog.close();
-
-        navigationTools.reloadPage();
+        return noteBuilder.build();
     }
-
-
 }

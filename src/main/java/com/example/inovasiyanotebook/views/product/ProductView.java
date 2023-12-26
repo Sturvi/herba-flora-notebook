@@ -5,6 +5,7 @@ import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
+import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductInfoViewService;
 import com.example.inovasiyanotebook.views.MainLayout;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -24,15 +25,17 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private final ProductInfoViewService infoViewService;
     private final UserService userService;
     private final NavigationTools navigationTools;
+    private final NoteGridService noteGridService;
 
     private Product product;
     private User user;
 
-    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, NavigationTools navigationTools) {
+    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, NavigationTools navigationTools, NoteGridService noteGridService) {
         this.productService = productService;
         this.infoViewService = infoViewService;
         this.userService = userService;
         this.navigationTools = navigationTools;
+        this.noteGridService = noteGridService;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
 
         setHeightFull();
@@ -62,9 +65,14 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         );
         verticalLayout.setWidthFull();
 
+        VerticalLayout notesLayout = new VerticalLayout(
+                noteGridService.getNoteGrid(product, user)
+        );
+        notesLayout.setWidthFull();
+        
         add(
                 verticalLayout,
-                new VerticalLayout()
+                notesLayout
         );
     }
 
