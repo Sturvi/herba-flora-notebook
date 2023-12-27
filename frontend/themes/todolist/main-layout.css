@@ -124,3 +124,9 @@ color: var(--lumo-error-color); // Цвет текста - красный
   padding-top: 0px;
 }
 
+.pre-text-component {
+  color: #ffffff;
+  background-color: transparent;
+  font-family: 'Open Sans', sans-serif;
+}
+

@@ -6,6 +6,7 @@ import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.html.H5;
+import com.vaadin.flow.component.html.Pre;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -65,8 +66,9 @@ public class NoteCard extends VerticalLayout {
 
         add(new HorizontalLayout(informationLayout, header));
 
-        H5 text = new H5(note.getText());
+        Pre text = new Pre(note.getText());
         text.setWidthFull();
+        text.setClassName("pre-text-component");
         addClassName("note-card");
         add(text);
     }
