@@ -68,7 +68,7 @@ public class NoteCard extends VerticalLayout {
 
         Pre text = new Pre(note.getText());
         text.setWidthFull();
-        text.setClassName("pre-text-component");
+        text.setClassName("pretext-component");
         addClassName("note-card");
         add(text);
     }
