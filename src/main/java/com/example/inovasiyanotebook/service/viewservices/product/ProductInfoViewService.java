@@ -30,6 +30,7 @@ public class ProductInfoViewService {
     private final PermissionsCheck permissionsCheck;
     private final CategoryService categoryService;
     private final ClientService clientService;
+    private final AddNewProductViewService addNewProductViewService;
 
     public HorizontalLayout getProductNameLine(Product product, User user) {
         return designTools.getNameLine(product, user, productService, this::updateProductName);
@@ -103,5 +104,7 @@ public class ProductInfoViewService {
         productService.update(product);
     }
 
-
+    public Component getAllProductsHeader (User user) {
+        return designTools.getAllCommonViewHeader(user, "Bütün məhsullar", addNewProductViewService::creatNewProductDialog);
+    }
 }

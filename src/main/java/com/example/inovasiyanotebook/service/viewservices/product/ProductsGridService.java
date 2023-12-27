@@ -63,6 +63,15 @@ public class ProductsGridService {
         return createProductGridComponent(productList, user, () -> addNewProductViewService.creatNewProductDialog(category));
     }
 
+    public Component getProductGrid(User user) {
+        List<Product> productList = productService.getAll();
+        return createProductGridComponent(productList, user, null, false);
+    }
+
+    private Component createProductGridComponent(List<Product> products, User user, Runnable addButtonAction){
+        return createProductGridComponent(products, user, addButtonAction, true);
+    }
+
     /**
      * Creates a component that displays a grid of products.
      *
@@ -71,9 +80,14 @@ public class ProductsGridService {
      * @param addButtonAction  the action to be performed when the add button is clicked
      * @return a component containing the product grid
      */
-    private Component createProductGridComponent(List<Product> products, User user, Runnable addButtonAction) {
-        HorizontalLayout productNameLine = new HorizontalLayout(new H2("Məhsullar"));
-        if (permissionsCheck.needEditor(user)) {
+    private Component createProductGridComponent(List<Product> products, User user, Runnable addButtonAction, boolean hasTitle) {
+        HorizontalLayout productNameLine = new HorizontalLayout();
+
+        if (hasTitle) {
+             productNameLine.add(new H2("Məhsullar"));
+        }
+
+        if (permissionsCheck.needEditor(user) && addButtonAction != null) {
             Button button = new Button(new Icon(VaadinIcon.PLUS));
             button.addClickListener(e -> addButtonAction.run());
             button.setClassName("small-button");

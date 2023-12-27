@@ -257,6 +257,21 @@ public class DesignTools {
         return titleLine;
     }
 
+    public HorizontalLayout getAllCommonViewHeader(User user, String headerText, Runnable addFunction) {
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        var headerName = new H1(headerText);
+        horizontalLayout.add(headerName);
+
+        if (permissionsCheck.needEditor(user)) {
+            var addButton = getAddButton(addFunction);
+            horizontalLayout.add(addButton);
+        }
+
+        return horizontalLayout;
+    }
+
     public void setEmptyFieldStyle(HtmlContainer field, String text) {
         field.setText(text);
         field.getElement().getStyle().set("color", "#4fc3f7");

@@ -59,18 +59,7 @@ public class CategoryViewService {
     }
 
     public HorizontalLayout getAllCategoryHeader(User user) {
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        var headerName = new H1("Bütün kateqoriyalar.");
-        horizontalLayout.add(headerName);
-
-        if (permissionsCheck.needEditor(user)) {
-            var addButton = designTools.getAddButton(this::addNewCategoryDialog);
-            horizontalLayout.add(addButton);
-        }
-
-        return horizontalLayout;
+        return designTools.getAllCommonViewHeader(user, "Bütün kateqoriyalar.", this::addNewCategoryDialog);
     }
 
     public VerticalLayout getAllCategoriesGridLayout(User user) {
@@ -220,6 +209,7 @@ public class CategoryViewService {
 
         categoryService.update(category);
         addCategoryDialog.close();
+        navigationTools.reloadPage();
     }
 
     private static class ViewComponents {

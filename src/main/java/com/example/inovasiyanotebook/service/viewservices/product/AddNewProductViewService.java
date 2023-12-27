@@ -62,6 +62,19 @@ public class AddNewProductViewService {
         designTools.creatDialog(addClientDialog, desktopView, mobileView);
     }
 
+    public void creatNewProductDialog () {
+        addClientDialog = new Dialog();
+        addClientDialog.setWidth("75%");
+
+        List<Category> categories = categoryService.getAllSortingByParent();
+        List<Client> clients = clientService.getAll();
+
+        var desktopView = createComponents(clients, categories);
+        var mobileView = createComponents(clients, categories);
+
+        designTools.creatDialog(addClientDialog, desktopView, mobileView);
+    }
+
     /**
      * Creates a new product dialog for the given category.
      *

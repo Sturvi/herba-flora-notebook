@@ -10,6 +10,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.views.about.AboutView;
 import com.example.inovasiyanotebook.views.category.CategoryView;
+import com.example.inovasiyanotebook.views.product.ProductView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -90,7 +91,7 @@ public class MainLayout extends AppLayout{
         addToDrawer(
                 header,
                 new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
-                new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()),
+                new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
                 designTools.addEmptySpace(),
                 addTitle("Şirkətlər"),
                 newClientButton(user),
@@ -218,17 +219,21 @@ public class MainLayout extends AppLayout{
 
 
     private Component getIsFunctionalityEnabledButton() {
-        Checkbox toggleButton = new Checkbox("Admin funksiyaları");
-        toggleButton.setValue(user.isFunctionalityEnabled());
-        toggleButton.addClassName("custom-checkbox"); // Добавление кастомного класса
+        if (permissionsCheck.isEditorOrHigher(user)) {
+            Checkbox toggleButton = new Checkbox("Admin funksiyaları");
+            toggleButton.setValue(user.isFunctionalityEnabled());
+            toggleButton.addClassName("custom-checkbox"); // Добавление кастомного класса
 
-        toggleButton.addValueChangeListener(event -> {
-            user.setFunctionalityEnabled(event.getValue());
-            userService.update(user);
-            navigationTools.reloadPage();
-        });
+            toggleButton.addValueChangeListener(event -> {
+                user.setFunctionalityEnabled(event.getValue());
+                userService.update(user);
+                navigationTools.reloadPage();
+            });
 
-        return toggleButton;
+            return toggleButton;
+        }
+
+        return null;
     }
 
     @EventListener
