@@ -6,6 +6,7 @@ import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
+import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
@@ -38,7 +39,7 @@ public class NoteGridService {
     private boolean allDataLoaded = false;
 
 
-    public Component getNoteGrid (AbstractEntity entity, User user) {
+    public Component getNoteGrid (Noteable entity, User user) {
         allDataLoaded = false;
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
         if (permissionsCheck.isContributorOrHigher(user)) {
@@ -89,7 +90,7 @@ public class NoteGridService {
         return notesColumn;
     }
 
-    private void loadNotes(AbstractEntity entity, VerticalLayout container, int currentElementCount, User user) {
+    private void loadNotes(Noteable entity, VerticalLayout container, int currentElementCount, User user) {
         int currentPade = (int) Math.ceil((double) currentElementCount / 10);
 
 

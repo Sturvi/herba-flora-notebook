@@ -3,6 +3,7 @@ package com.example.inovasiyanotebook.model;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
+import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import jakarta.persistence.Column;
@@ -22,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Product extends AbstractEntity implements ParentEntity, NamedEntity {
+public class Product extends AbstractEntity implements ParentEntity, NamedEntity, Noteable {
 
     @Column(nullable = false, unique = true)
     private String name;

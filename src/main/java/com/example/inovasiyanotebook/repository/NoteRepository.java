@@ -23,9 +23,7 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     @Query("SELECT n FROM Note n WHERE n.category IN :categories ORDER BY n.isPinned DESC, n.createdAt DESC")
     Page<Note> findByCategoriesWithPaginationAndSorting(Pageable pageable, Category... categories);
 
-    @Query("SELECT n FROM Note n WHERE n.product = :product OR n.client = :client OR n.category IN :categories ORDER BY n.isPinned DESC, n.createdAt DESC")
+    @Query("SELECT n FROM Note n WHERE n.product = :product OR (n.client = :client AND n.category = null) OR (n.category IN :categories AND n.client = null ) OR (n.client = :client AND n.category IN :categories)ORDER BY n.isPinned DESC, n.createdAt DESC")
     Page<Note> findByProductClientAndCategoriesWithPaginationAndSorting(Product product, Client client, Collection<Category> categories, Pageable pageable);
 
-    @Query("SELECT n FROM Note n WHERE n.product = :product OR (n.client = :client AND n.category = null) OR (n.client = :client AND n.category IN :categories) OR (n.category IN :categories AND n.client = null) ORDER BY n.isPinned DESC, n.createdAt DESC")
-    Page<Note> findNotesByProductOrClientAndCategoriesWithPaginationAndSorting(Product product, Client client, Collection<Category> categories, Pageable pageable);
 }

@@ -5,6 +5,7 @@ import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.interfaces.HasParentEntity;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
+import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import jakarta.persistence.*;
@@ -23,7 +24,7 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Category extends AbstractEntity implements ParentEntity, HasParentEntity, NamedEntity {
+public class Category extends AbstractEntity implements ParentEntity, HasParentEntity, NamedEntity, Noteable {
 
     @Column(nullable = false, unique = true)
     private String name;
