@@ -125,7 +125,7 @@ color: var(--lumo-error-color); // Цвет текста - красный
 }
 
 .pretext-component {
-  color: #ffffff;
+  color: rgb(255, 255, 255);
   background-color: transparent;
   font-family: 'Open Sans', sans-serif;
 }

@@ -11,6 +11,7 @@ import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommand
 import com.example.inovasiyanotebook.views.about.AboutView;
 import com.example.inovasiyanotebook.views.category.CategoryView;
 import com.example.inovasiyanotebook.views.product.ProductView;
+import com.example.inovasiyanotebook.views.user.UserView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.applayout.AppLayout;
@@ -92,6 +93,7 @@ public class MainLayout extends AppLayout{
                 header,
                 new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
                 new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
+                permissionsCheck.isAdminOrHigher(user) ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 designTools.addEmptySpace(),
                 addTitle("Şirkətlər"),
                 newClientButton(user),
