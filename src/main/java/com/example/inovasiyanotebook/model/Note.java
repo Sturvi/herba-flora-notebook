@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "notes")
@@ -22,7 +25,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Note extends AbstractEntity implements HasParentEntity {
+public class Note extends AbstractEntity {
 
     @ManyToOne
     private Client client;
@@ -45,16 +48,20 @@ public class Note extends AbstractEntity implements HasParentEntity {
     @ManyToOne
     private User updatedBy;
 
-    @Override
-    public ParentEntity getParent() {
-        return client != null ? client : product != null ? product : category;
+
+    public List<ParentEntity> getParents() {
+        List<ParentEntity> parents = new ArrayList<>();
+
+        if (client != null) {
+            parents.add(client);
+        }
+        if (product != null) {
+            parents.add(product);
+        }
+        if (category != null) {
+            parents.add(category);
+        }
+
+        return parents;
     }
-
-
-
-    @Override
-    public boolean hasParent() {
-        return client != null || product != null || category != null;
-    }
-
 }

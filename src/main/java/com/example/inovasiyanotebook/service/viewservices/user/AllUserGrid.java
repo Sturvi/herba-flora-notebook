@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.viewservices.user;
 
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -28,6 +29,7 @@ public class AllUserGrid {
     private final UserService userService;
     private final DesignTools designTools;
     private final UserInfoValidation userInfoValidation;
+    private final PermissionsCheck permissionsCheck;
 
     public Component getAllUsersLayout(User user) {
         var UserList = userService.getAll();
@@ -38,24 +40,38 @@ public class AllUserGrid {
         userGrid.addColumn(User::getFirstName)
                 .setHeader("Adı")
                 .setSortable(true)
-                .setKey("firstName");
+                .setKey("firstName")
+                .setFlexGrow(5);
 
         userGrid.addColumn(User::getLastName)
                 .setHeader("Soyadı")
                 .setSortable(true)
-                .setKey("lastName");
+                .setKey("lastName")
+                .setFlexGrow(5);
 
         userGrid.addColumn(User::getUsername)
                 .setHeader("Username")
                 .setSortable(true)
-                .setKey("username");
+                .setKey("username")
+                .setFlexGrow(5);
 
         userGrid.addColumn(User::getEmail)
                 .setHeader("Email")
                 .setSortable(true)
-                .setKey("email");
+                .setKey("email")
+                .setFlexGrow(5);
 
-        userGrid.addComponentColumn(this::getButtonLayout);
+        userGrid.addColumn(currentUser -> currentUser.getRole().getRoleName())
+                .setHeader("Rol")
+                .setSortable(true)
+                .setKey("role")
+                .setFlexGrow(1);
+
+        if (permissionsCheck.needEditor(user)) {
+            userGrid
+                    .addComponentColumn(this::getButtonLayout)
+                    .setFlexGrow(1);
+        }
 
         userGrid.setItems(UserList);
 

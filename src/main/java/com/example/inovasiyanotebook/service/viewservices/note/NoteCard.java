@@ -42,11 +42,7 @@ public class NoteCard extends VerticalLayout {
         VerticalLayout informationLayout = new VerticalLayout();
         informationLayout.setSpacing(false);
 
-        ParentEntity parentEntity = note.getParent();
-        H5 parentName = new H5("Səviyyə: " + parentEntity.getName());
-        parentName.addClassName("smaller-text");
-        parentName.addClickListener(event -> navigationTools.navigateTo(parentEntity.getViewEnum(), parentEntity.getId().toString()));
-        informationLayout.add(parentName);
+        informationLayout.add(getParentLayout(note, navigationTools));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
@@ -71,5 +67,23 @@ public class NoteCard extends VerticalLayout {
         text.setClassName("pretext-component");
         addClassName("note-card");
         add(text);
+    }
+
+    private static HorizontalLayout getParentLayout(Note note, NavigationTools navigationTools) {
+        H5 h5 = new H5("Səviyyə: ");
+        h5.addClassName("smaller-text");
+        var parentLayout = new HorizontalLayout(h5);
+
+
+        var parentEntities = note.getParents();
+        for (ParentEntity parentEntity : parentEntities) {
+            H5 parentName = new H5(parentEntity.getName());
+            parentName.addClassName("smaller-text");
+            parentName.addClickListener(event -> navigationTools.navigateTo(parentEntity.getViewEnum(), parentEntity.getId().toString()));
+            parentLayout.add(parentName);
+        }
+
+        parentLayout.addClassName("smaller-text");
+        return parentLayout;
     }
 }
