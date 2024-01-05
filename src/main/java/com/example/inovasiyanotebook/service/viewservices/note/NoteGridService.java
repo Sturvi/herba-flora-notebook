@@ -10,6 +10,7 @@ import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
+import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -35,6 +36,8 @@ public class NoteGridService {
     private final AddNewNoteService addNewNoteService;
     private final NavigationTools navigationTools;
     private final NoteService noteService;
+    private final EditNoteDialog editNoteDialog;
+    private final DesignTools designTools;
 
     private boolean allDataLoaded = false;
 
@@ -111,7 +114,7 @@ public class NoteGridService {
             }
 
             for (Note note : notesPage.getContent()) {
-                NoteCard noteCard = new NoteCard(note, navigationTools, noteService, user);
+                NoteCard noteCard = new NoteCard(note, navigationTools, noteService, user, permissionsCheck, editNoteDialog, designTools);
                 container.add(noteCard);
             }
         }

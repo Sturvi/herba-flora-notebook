@@ -3,7 +3,9 @@ package com.example.inovasiyanotebook.service.viewservices.note;
 import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
+import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Pre;
@@ -17,27 +19,58 @@ import java.time.format.DateTimeFormatter;
 public class NoteCard extends VerticalLayout {
     private NavigationTools navigationTools;
     private NoteService noteService;
+    private PermissionsCheck permissionsCheck;
+    private EditNoteDialog editNoteDialog;
+    private DesignTools designTools;
     private Note note;
 
-    public NoteCard(Note note, NavigationTools navigationTools, NoteService noteService, User user) {
+    public NoteCard(Note note, NavigationTools navigationTools, NoteService noteService, User user, PermissionsCheck permissionsCheck, EditNoteDialog editNoteDialog, DesignTools designTools) {
         this.navigationTools = navigationTools;
         this.note = note;
+        this.permissionsCheck = permissionsCheck;
+        this.editNoteDialog = editNoteDialog;
+        this.designTools = designTools;
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         setWidthFull();
 
         HorizontalLayout header = new HorizontalLayout();
         header.setJustifyContentMode(JustifyContentMode.END);
 
+        if (permissionsCheck.needEditor(user)) {
+            Icon editIcon = new Icon(VaadinIcon.EDIT);
+            editIcon.setClassName("small-button");
+            editIcon.setColor("gray");
+            header.add(editIcon);
+            editIcon.addClickListener(clickEvent -> {
+                editNoteDialog.createNewNoteDialog(note, user);
+            });
+        }
+
+        if (permissionsCheck.needEditor(user)) {
+            Icon deleteIcon = new Icon(VaadinIcon.TRASH);
+            deleteIcon.setClassName("small-button");
+            deleteIcon.setColor("gray");
+            header.add(deleteIcon);
+            deleteIcon.addClickListener(clickEvent -> {
+                designTools.showConfirmationDialog(() -> {
+                    noteService.delete(note);
+                    navigationTools.reloadPage();
+                });
+            });
+        }
+
         Icon pinIcon = new Icon(VaadinIcon.PIN);
         pinIcon.setClassName("small-button");
         pinIcon.setColor(note.isPinned() ? "#FF6666" : "gray");
         header.add(pinIcon);
-        pinIcon.addClickListener(click -> {
-            note.setPinned(!note.isPinned());
-            note.setUpdatedBy(user);
-            pinIcon.setColor(note.isPinned() ? "#FF6666" : "gray");
-            noteService.update(note);
-        });
+        if (permissionsCheck.needEditor(user)) {
+            pinIcon.addClickListener(click -> {
+                note.setPinned(!note.isPinned());
+                note.setUpdatedBy(user);
+                pinIcon.setColor(note.isPinned() ? "#FF6666" : "gray");
+                noteService.update(note);
+            });
+        }
 
         VerticalLayout informationLayout = new VerticalLayout();
         informationLayout.setSpacing(false);
@@ -86,4 +119,7 @@ public class NoteCard extends VerticalLayout {
         parentLayout.addClassName("smaller-text");
         return parentLayout;
     }
+
+
+
 }

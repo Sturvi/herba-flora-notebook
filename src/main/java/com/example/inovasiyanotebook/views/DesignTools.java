@@ -158,6 +158,10 @@ public class DesignTools {
     }
 
     public TextArea createTextArea(String label, String pattern, String errorMessage) {
+        return createTextArea(label, pattern, errorMessage, null);
+    }
+
+    public TextArea createTextArea(String label, String pattern, String errorMessage, String  value) {
         TextArea textArea = new TextArea();
         textArea.setLabel(label);
         textArea.setMinHeight("300px");
@@ -166,6 +170,7 @@ public class DesignTools {
             textArea.setPattern(pattern);
             textArea.setErrorMessage(errorMessage);
         }
+        textArea.setValue(value);
         return textArea;
     }
 
@@ -209,14 +214,19 @@ public class DesignTools {
         htmlContainer.setVisible(true);
     }
 
-    public <T> ComboBox<T> creatComboBox(String boxName, List<T> dataList, Function<T, String> nameFunction) {
+    public <T> ComboBox<T> creatComboBox(String boxName, List<T> dataList, Function<T, String> nameFunction, T value) {
         ComboBox<T> comboBox = new ComboBox<>(boxName);
         comboBox.setItems(dataList);
         comboBox.setItemLabelGenerator(nameFunction::apply);
         comboBox.setErrorMessage("Boş ola bilməz");
+        comboBox.setValue(value);
         comboBox.setWidthFull();
 
         return comboBox;
+    }
+
+    public <T> ComboBox<T> creatComboBox(String boxName, List<T> dataList, Function<T, String> nameFunction) {
+        return creatComboBox(boxName, dataList, nameFunction, null);
     }
 
     public void addResponsive(Component desktopView, Component mobileView) {

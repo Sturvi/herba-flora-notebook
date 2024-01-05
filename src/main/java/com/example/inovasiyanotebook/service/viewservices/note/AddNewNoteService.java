@@ -48,12 +48,12 @@ private final DesignTools designTools;
     }
 
     private <T extends Noteable> List<Component> createCommonComponents(T entity, User user) {
-        TextArea textArea = designTools.createTextArea("Not", "^.+$", "Not boş ola bilməz.");
+        TextArea textArea = designTools.createTextArea("Not", "^(?=.*[^\\n])[\\s\\S]+$", "Not boş ola bilməz.");
 
         var clientsComboBox = designTools.creatComboBox("Müştəri:", List.of(), Client::getName);
         clientsComboBox.setVisible(false);
         clientsComboBox.setWidthFull();
-        var categoriesComboBox = designTools.creatComboBox("Kateqoriya:", List.of(), Category::getName);
+        var categoriesComboBox = designTools.creatComboBox("Kateqoriya:", List.of(), Category::getFullName);
         categoriesComboBox.setVisible(false);
         categoriesComboBox.setWidthFull();
 
