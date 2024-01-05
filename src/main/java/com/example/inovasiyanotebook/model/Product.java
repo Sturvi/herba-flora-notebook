@@ -5,16 +5,16 @@ import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
+import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.views.ViewsEnum;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -39,6 +39,9 @@ public class Product extends AbstractEntity implements ParentEntity, NamedEntity
 
     @ManyToOne
     private Category category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<OrderPosition> orderPositions;
 
     @Override
     public ViewsEnum getViewEnum() {

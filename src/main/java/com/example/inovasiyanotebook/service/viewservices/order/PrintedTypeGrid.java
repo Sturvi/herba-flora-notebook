@@ -1,0 +1,163 @@
+package com.example.inovasiyanotebook.service.viewservices.order;
+
+import com.example.inovasiyanotebook.model.order.PrintedType;
+import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.PermissionsCheck;
+import com.example.inovasiyanotebook.service.entityservices.iml.PrintedTypeService;
+import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.spring.annotation.UIScope;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+@UIScope
+@Slf4j
+public class PrintedTypeGrid {
+    private final DesignTools designTools;
+    private final PermissionsCheck permissionsCheck;
+    private final PrintedTypeService printedTypeService;
+    private final NavigationTools navigationTools;
+
+
+    public VerticalLayout getPrintedTypeGrid(User user) {
+        var header = createHeaderLine(user);
+
+        var printedTypes = printedTypeService.getAll();
+
+        Grid<PrintedType> printedTypeGrid = new Grid<>();
+        printedTypeGrid.setHeightFull();
+        printedTypeGrid.addColumn(PrintedType::getName)
+                .setHeader("Adı")
+                .setSortable(true)
+                .setFlexGrow(10);
+
+
+        if (permissionsCheck.needEditor(user)) {
+            var editAndDeleteButtons = printedTypeGrid.addComponentColumn(printedType -> {
+                Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> editDialog(printedType));
+                Button deleteButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), () -> deleteHandler(printedType));
+
+                return new HorizontalLayout(editButton, deleteButton);
+            });
+
+            editAndDeleteButtons.setWidth("75px");
+            editAndDeleteButtons.setFlexGrow(1);
+        }
+
+        printedTypeGrid.setItems(printedTypes);
+
+        var verticalLayout = new VerticalLayout(header, printedTypeGrid);
+        verticalLayout.setHeightFull();
+
+        return verticalLayout;
+    }
+
+    private void deleteHandler(PrintedType printedType) {
+        designTools.showConfirmationDialog(() -> {
+            printedTypeService.delete(printedType);
+            navigationTools.reloadPage();
+        });
+
+    }
+
+    private void editDialog(PrintedType printedType) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("75%");
+        dialog.setMaxWidth("600px");
+
+        TextField textField = designTools.createTextField("Çap növü", "^.*$", "");
+        textField.setValue(printedType.getName());
+
+        Button addButton = new Button("Yenilə");
+        addButton.addClickListener(buttonClickEvent -> {
+            if (!textField.getValue().isEmpty()) {
+                try {
+                    printedType.setName(textField.getValue());
+                    printedTypeService.update(printedType);
+                    dialog.close();
+                    navigationTools.reloadPage();
+                } catch (Exception e) {
+                    textField.setErrorMessage("Bu adnan çap növü artıq mövcutdur");
+                    textField.setInvalid(true);
+                }
+            } else {
+                textField.setErrorMessage("Boş ola bilməz");
+                textField.setInvalid(true);
+            }
+        });
+
+        Button cancelButton = new Button("Ləğv et");
+        cancelButton.addClickListener(event -> dialog.close());
+
+        HorizontalLayout buttonsLayout = new HorizontalLayout(addButton, cancelButton);
+        buttonsLayout.addClassName("small-button");
+
+        VerticalLayout verticalLayout = new VerticalLayout(textField, buttonsLayout);
+        verticalLayout.setHeightFull();
+
+        dialog.add(verticalLayout);
+
+        dialog.open();
+    }
+
+    private HorizontalLayout createHeaderLine(User user) {
+        var header = new H4("Çap növləri");
+        HorizontalLayout horizontalLayout = new HorizontalLayout(header);
+        horizontalLayout.setWidthFull();
+        horizontalLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        if (permissionsCheck.needEditor(user)) {
+            var newPrintedTypeNameField = designTools.createTextField("", "^.*$", "");
+            newPrintedTypeNameField.setVisible(false);
+            newPrintedTypeNameField.setWidthFull();
+            var addButton = designTools.getNewIconButton(VaadinIcon.PLUS.create(), () -> {
+            });
+            addButton.addClickListener(event -> changeVisible(addButton, newPrintedTypeNameField));
+
+            newPrintedTypeNameField.addKeyDownListener(Key.ENTER, keyDownEvent -> {
+                addNewPrintedType(newPrintedTypeNameField);
+                changeVisible(newPrintedTypeNameField, addButton);
+            });
+            newPrintedTypeNameField.addBlurListener(textFieldBlurEvent -> {
+                addNewPrintedType(newPrintedTypeNameField);
+                changeVisible(newPrintedTypeNameField, addButton);
+            });
+            newPrintedTypeNameField.addKeyDownListener(Key.ESCAPE, keyDownEvent -> changeVisible(newPrintedTypeNameField, addButton));
+
+            horizontalLayout.add(newPrintedTypeNameField, addButton);
+        }
+
+        return horizontalLayout;
+    }
+
+    private void addNewPrintedType(TextField textField) {
+        if (!textField.getValue().isEmpty()) {
+            try {
+                var printedType = PrintedType.builder().name(textField.getValue()).build();
+                printedTypeService.create(printedType);
+                navigationTools.reloadPage();
+            } catch (Exception e) {
+                log.error("Error addin new PrintedType. Dublicate value");
+            }
+        }
+    }
+
+    private void changeVisible(Component invisibleComponent, Component visibleComponent) {
+        invisibleComponent.setVisible(false);
+        visibleComponent.setVisible(true);
+    }
+}

@@ -39,4 +39,8 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
     public void delete(OrderPosition entity) {
         orderPositionRepository.delete(entity);
     }
+
+    public void saveAll(List<OrderPosition> orderPositions) {
+        orderPositionRepository.saveAll(orderPositions);
+    }
 }

@@ -21,19 +21,22 @@ import java.time.LocalDateTime;
 public class OrderPosition extends AbstractEntity {
 
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(nullable = false)
     private Order order;
 
     @ManyToOne
-    @Column(nullable = false)
+    @JoinColumn(nullable = false)
     private Product product;
 
     private LocalDateTime positionCompletedDateTime;
 
+    @ManyToOne
+    private PrintedType printedType;
+
     @Enumerated(EnumType.STRING)
     private OrderStatusEnum status;
 
-    private Integer count;
+    private String count;
 
     @Column(columnDefinition="TEXT")
     private String comment;

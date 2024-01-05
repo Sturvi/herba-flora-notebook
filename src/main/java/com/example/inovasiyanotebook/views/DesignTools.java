@@ -170,7 +170,11 @@ public class DesignTools {
             textArea.setPattern(pattern);
             textArea.setErrorMessage(errorMessage);
         }
-        textArea.setValue(value);
+
+        if (value != null) {
+            textArea.setValue(value);
+        }
+
         return textArea;
     }
 

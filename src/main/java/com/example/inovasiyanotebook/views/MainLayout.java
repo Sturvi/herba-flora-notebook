@@ -8,8 +8,8 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
-import com.example.inovasiyanotebook.views.about.AboutView;
 import com.example.inovasiyanotebook.views.category.CategoryView;
+import com.example.inovasiyanotebook.views.order.OrderView;
 import com.example.inovasiyanotebook.views.product.ProductView;
 import com.example.inovasiyanotebook.views.user.UserView;
 import com.vaadin.flow.component.Component;
@@ -93,6 +93,7 @@ public class MainLayout extends AppLayout{
                 header,
                 new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
                 new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
+                new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 permissionsCheck.isAdminOrHigher(user) ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 designTools.addEmptySpace(),
                 addTitle("Şirkətlər"),
