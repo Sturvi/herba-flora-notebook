@@ -82,6 +82,23 @@ public class PrintedTypeGrid {
         TextField textField = designTools.createTextField("Çap növü", "^.*$", "");
         textField.setValue(printedType.getName());
 
+        Button addButton = getButton(printedType, textField, dialog);
+
+        Button cancelButton = new Button("Ləğv et");
+        cancelButton.addClickListener(event -> dialog.close());
+
+        HorizontalLayout buttonsLayout = new HorizontalLayout(addButton, cancelButton);
+        buttonsLayout.addClassName("small-button");
+
+        VerticalLayout verticalLayout = new VerticalLayout(textField, buttonsLayout);
+        verticalLayout.setHeightFull();
+
+        dialog.add(verticalLayout);
+
+        dialog.open();
+    }
+
+    private Button getButton(PrintedType printedType, TextField textField, Dialog dialog) {
         Button addButton = new Button("Yenilə");
         addButton.addClickListener(buttonClickEvent -> {
             if (!textField.getValue().isEmpty()) {
@@ -99,25 +116,13 @@ public class PrintedTypeGrid {
                 textField.setInvalid(true);
             }
         });
-
-        Button cancelButton = new Button("Ləğv et");
-        cancelButton.addClickListener(event -> dialog.close());
-
-        HorizontalLayout buttonsLayout = new HorizontalLayout(addButton, cancelButton);
-        buttonsLayout.addClassName("small-button");
-
-        VerticalLayout verticalLayout = new VerticalLayout(textField, buttonsLayout);
-        verticalLayout.setHeightFull();
-
-        dialog.add(verticalLayout);
-
-        dialog.open();
+        return addButton;
     }
 
     private HorizontalLayout createHeaderLine(User user) {
         var header = new H4("Çap növləri");
+        header.setWidthFull();
         HorizontalLayout horizontalLayout = new HorizontalLayout(header);
-        horizontalLayout.setWidthFull();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         if (permissionsCheck.needEditor(user)) {
@@ -126,7 +131,10 @@ public class PrintedTypeGrid {
             newPrintedTypeNameField.setWidthFull();
             var addButton = designTools.getNewIconButton(VaadinIcon.PLUS.create(), () -> {
             });
-            addButton.addClickListener(event -> changeVisible(addButton, newPrintedTypeNameField));
+            addButton.addClickListener(event -> {
+                changeVisible(addButton, newPrintedTypeNameField);
+                newPrintedTypeNameField.focus();
+            });
 
             newPrintedTypeNameField.addKeyDownListener(Key.ENTER, keyDownEvent -> {
                 addNewPrintedType(newPrintedTypeNameField);

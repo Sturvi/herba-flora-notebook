@@ -1,8 +1,17 @@
 package com.example.inovasiyanotebook.model.order;
 
+import lombok.Getter;
+
+@Getter
 public enum OrderStatusEnum {
 
-    OPEN,
-    WAITING,
-    COMPLETE
+    OPEN ("Açıq"),
+    WAITING ("Gözləmədə"),
+    COMPLETE ("Bitti");
+
+    private final String name;
+
+    OrderStatusEnum(String name) {
+        this.name = name;
+    }
 }

@@ -119,7 +119,7 @@ public class ProductsGridService {
 
         // Создание объекта TextField для фильтрации
         TextField textField = new TextField();
-        textField.setPlaceholder("Search...");
+        textField.setPlaceholder("Axtarış...");
         textField.setWidthFull();
         textField.addValueChangeListener(event -> dataView.refreshAll());
 
