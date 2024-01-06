@@ -6,6 +6,8 @@ import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -24,7 +26,7 @@ public class OrdersGrid {
     private final DesignTools designTools;
 
 
-    public VerticalLayout getAllOrdersGrid (User user) {
+    public VerticalLayout getAllOrdersGrid(User user) {
         var orders = orderService.getAll();
         return createGridComponent(orders, user, newOrderDialog::openNewDialog, true);
     }
@@ -88,6 +90,10 @@ public class OrdersGrid {
                 .setFlexGrow(2)
                 .setSortable(true)
                 .setKey("status");
+
+        orderGrid.addComponentColumn(order -> new HorizontalLayout(
+                designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> newOrderDialog.openNewDialog(order)))
+        );
 
         GridListDataView<Order> dataView = orderGrid.setItems(orders);
 

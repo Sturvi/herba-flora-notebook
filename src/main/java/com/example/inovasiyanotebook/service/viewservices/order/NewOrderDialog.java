@@ -3,7 +3,6 @@ package com.example.inovasiyanotebook.service.viewservices.order;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
-import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.model.order.PrintedType;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
@@ -12,20 +11,15 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -40,35 +34,54 @@ public class NewOrderDialog {
     private final OrderPositionService orderPositionService;
     private final NavigationTools navigationTools;
 
+    private List<Product> products;
+    private List<PrintedType> printedTypes;
 
     public void openNewDialog() {
+        openNewDialog(null);
+    }
+
+    public void openNewDialog(Order order) {
         Dialog dialog = new Dialog();
         VerticalLayout dialogLayout = new VerticalLayout();
+        dialogLayout.setSpacing(false);
+        dialogLayout.setPadding(false);
 
-        var orderNoField = designTools.createTextField("Sifariş nömrəsi",
-                "\\d+",
-                "Yalnız rəqəmlərdən ibarət ola bilər");
+        OrderComponents orderComponents = order == null ? new OrderComponents(designTools) : new OrderComponents(designTools, order);
 
-        var orderReceivedDateTime = new DateTimePicker("Şifarişin şöbəyə göndərilən tarix");
-        orderReceivedDateTime.setValue(LocalDateTime.now());
+        dialogLayout.add(orderComponents.getLayout());
 
-        var orderCommentField = designTools.createTextArea("Not", "^.*$", "");
-        orderCommentField.setMinHeight("100px");
+        if (products == null) {
+            products = productService.getAll();
+        }
+        if (printedTypes == null) {
+            printedTypes = printedTypeService.getAll();
+        }
 
-        dialogLayout.add(new HorizontalLayout(orderNoField, orderReceivedDateTime), orderCommentField);
-
-        var products = productService.getAll();
-        var printedTypes = printedTypeService.getAll();
-        List<OrderPositionLineComponents> positionLineComponents = new ArrayList<>();
         VerticalLayout positionsLayout = new VerticalLayout();
-        Button lastButton = designTools.getNewIconButton(
-                VaadinIcon.PLUS.create(),
-                () -> addNewPositionLine(products, positionLineComponents, positionsLayout, printedTypes));
+        LinkedList<OrderPositionLineComponents> positionLineComponents = new LinkedList<>();
+        Runnable runnable = () -> addNewPositionLine(products, positionLineComponents, positionsLayout, printedTypes);
 
-        positionLineComponents.add(new OrderPositionLineComponents(designTools, 1, products, printedTypes, lastButton));
-
-        positionsLayout.add(positionLineComponents.get(0).getLine());
-
+        if (order == null) {
+            positionLineComponents.add(new OrderPositionLineComponents(
+                    designTools,
+                    1,
+                    products,
+                    printedTypes,
+                    runnable));
+            positionsLayout.add(positionLineComponents.get(0).getLine());
+        } else {
+            OrderPositionLineComponents.addNewLinesComponentsToList(
+                    designTools,
+                    order,
+                    positionLineComponents,
+                    products,
+                    printedTypes,
+                    runnable
+            );
+            positionLineComponents.forEach(components ->positionsLayout.add(components.getLine()));
+        }
+        positionLineComponents.getLast().nextButtonVisible(true);
 
         dialogLayout.add(positionsLayout);
         dialogLayout.setHeightFull();
@@ -76,9 +89,7 @@ public class NewOrderDialog {
 
         Button saveButton = new Button("Əlavə et");
         saveButton.addClickListener(buttonClickEvent -> saveOrder(
-                orderNoField,
-                orderReceivedDateTime,
-                orderCommentField,
+                orderComponents,
                 positionLineComponents,
                 positionsLayout,
                 dialog));
@@ -91,14 +102,15 @@ public class NewOrderDialog {
         dialog.open();
     }
 
-    private void saveOrder(TextField orderNoField,
-                           DateTimePicker orderReceivedDateTime,
-                           TextArea orderCommentField,
+
+    private void saveOrder(OrderComponents orderComponents,
                            List<OrderPositionLineComponents> orderPositionComponents,
                            VerticalLayout positionsLayout,
                            Dialog dialog) {
 
-        if (!checkValidation(orderNoField, orderReceivedDateTime, orderCommentField, orderPositionComponents)) {
+        var orderOpt = orderComponents.getEntity();
+
+        if (!checkValidation(orderPositionComponents) || orderOpt.isEmpty()) {
             positionsLayout.removeAll();
             int count = 1;
 
@@ -115,14 +127,8 @@ public class NewOrderDialog {
             return;
         }
 
-        var order = Order.builder()
-                .orderNo(Integer.parseInt(orderNoField.getValue()))
-                .orderReceivedDateTime(orderReceivedDateTime.getValue())
-                .comment(orderCommentField.getValue())
-                .status(OrderStatusEnum.OPEN)
-                .build();
-
-        orderService.create(order);
+        Order order = orderOpt.get();
+        orderService.create(orderOpt.get());
 
         List<OrderPosition> orderPositions = orderPositionComponents.stream()
                 .map(orderPositionLineComponents -> orderPositionLineComponents.toEntity(order))
@@ -133,54 +139,46 @@ public class NewOrderDialog {
         navigationTools.reloadPage();
     }
 
-    private boolean checkValidation(TextField orderNoField,
-                                    DateTimePicker orderReceivedDateTime,
-                                    TextArea orderCommentField,
-                                    List<OrderPositionLineComponents> orderPositionComponents) {
+    private boolean checkValidation(List<OrderPositionLineComponents> orderPositionComponents) {
         boolean result = true;
 
-        if (orderNoField.getValue() == null || !orderNoField.getValue().matches(orderNoField.getPattern())) {
-            orderNoField.setInvalid(true);
-            result = false;
-        }
-
-        if (orderReceivedDateTime.getValue() == null) {
-            orderNoField.setErrorMessage("Tarix seçilməlidir");
-            orderNoField.setInvalid(true);
-            result = false;
-        }
-
         Iterator<OrderPositionLineComponents> iterator = orderPositionComponents.iterator();
+        OrderPositionLineComponents lastLine = null;
         while (iterator.hasNext()) {
             OrderPositionLineComponents components = iterator.next();
+            lastLine = components;
             try {
                 if (!components.isValid()) {
                     result = false;
                 }
             } catch (EmptyOrderPositionException e) {
-                iterator.remove();
+                    iterator.remove();
             }
         }
 
+        if (orderPositionComponents.isEmpty()) {
+            orderPositionComponents.add(lastLine);
+        }
         return result;
     }
 
     private void addNewPositionLine(List<Product> products,
-                                    List<OrderPositionLineComponents> positionLineComponents,
+                                    LinkedList<OrderPositionLineComponents> positionLineComponents,
                                     VerticalLayout positionsLayout,
                                     List<PrintedType> printedTypes) {
-        positionLineComponents.get(positionLineComponents.size() - 1).nextButtonVisible(false);
+        positionLineComponents.getLast().nextButtonVisible(false);
 
-        Button addNextPositionButton = designTools.getNewIconButton(
-                VaadinIcon.PLUS.create(), () ->
-                        addNewPositionLine(products, positionLineComponents, positionsLayout, printedTypes));
+        Runnable runnable = () ->
+                        addNewPositionLine(products, positionLineComponents, positionsLayout, printedTypes);
 
         var newOrderPositionLineComponents = new OrderPositionLineComponents(
                 designTools,
                 positionLineComponents.size() + 1,
-                products, printedTypes,
-                addNextPositionButton);
+                products,
+                printedTypes,
+                runnable);
 
+        newOrderPositionLineComponents.nextButtonVisible(true);
         positionLineComponents.add(newOrderPositionLineComponents);
 
         positionsLayout.add(newOrderPositionLineComponents.getLine());

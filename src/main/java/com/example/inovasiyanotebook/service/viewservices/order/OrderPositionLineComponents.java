@@ -10,13 +10,12 @@ import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -31,10 +30,16 @@ class OrderPositionLineComponents {
     private final TextField orderCount;
     private final TextField note;
     private final Button addNextButton;
+    private final ComboBox<OrderStatusEnum> statusComboBox;
 
     private HorizontalLayout lineLayout;
+    private OrderPosition entity;
 
-    public OrderPositionLineComponents(DesignTools designTools, Integer currentLineNo, List<Product> products, List<PrintedType> productTypes, Button addNextButton) {
+    public OrderPositionLineComponents(DesignTools designTools,
+                                       Integer currentLineNo,
+                                       List<Product> products,
+                                       List<PrintedType> productTypes,
+                                       Runnable buttonFunction) {
         this.designTools = designTools;
         currentLine = new H3(currentLineNo.toString());
 
@@ -42,7 +47,27 @@ class OrderPositionLineComponents {
         printedTypeComboBox = designTools.creatComboBox("Çap növü", productTypes, PrintedType::getName);
         orderCount = designTools.createTextField("Say", "^\\d+(\\s+.*|)$", "Ya təkcə rəqəmlər ve ya rəqəmlərdən sonra boşluq buraxılaraq yazılar");
         note = designTools.createTextField("Not", ".*", null);
-        this.addNextButton = addNextButton;
+        this.addNextButton = designTools.getNewIconButton(VaadinIcon.PLUS.create(), buttonFunction);
+        addNextButton.setVisible(false);
+        this.statusComboBox = null;
+    }
+
+    public static void addNewLinesComponentsToList(DesignTools designTools,
+                                                   Order order,
+                                                   List<OrderPositionLineComponents> orderPositionComponents,
+                                                   List<Product> products,
+                                                   List<PrintedType> productTypes,
+                                                   Runnable newButtonFunction) {
+        for (int i = 0; i < order.getOrderPositions().size(); i++) {
+            OrderPosition orderPosition = order.getOrderPositions().get(i);
+            OrderPositionLineComponents components = new OrderPositionLineComponents(designTools, i + 1, products, productTypes, newButtonFunction);
+            components.entity = orderPosition;
+            components.productComboBox.setValue(orderPosition.getProduct());
+            components.printedTypeComboBox.setValue(orderPosition.getPrintedType());
+            components.orderCount.setValue(orderPosition.getCount());
+            components.note.setValue(orderPosition.getComment());
+            orderPositionComponents.add(components);
+        }
     }
 
     public HorizontalLayout getLine() {
@@ -99,14 +124,23 @@ class OrderPositionLineComponents {
             throw new RuntimeException("Invalid order position");
         }
 
-        return OrderPosition.builder()
-                .order(order)
-                .product(productComboBox.getValue())
-                .printedType(printedTypeComboBox.getValue())
-                .count(orderCount.getValue())
-                .comment(note.getValue())
-                .status(OrderStatusEnum.OPEN)
-                .build();
+        if (entity == null) {
+            entity = new OrderPosition();
+        }
+
+        entity.setOrder(order);
+        entity.setProduct(productComboBox.getValue());
+        entity.setPrintedType(printedTypeComboBox.getValue());
+        entity.setCount(orderCount.getValue());
+        entity.setComment(note.getValue());
+
+        if (statusComboBox == null) {
+            entity.setStatus(OrderStatusEnum.OPEN);
+        } else {
+            entity.setStatus(statusComboBox.getValue());
+        }
+
+        return entity;
     }
 
     public void setLineCount (int count) {
