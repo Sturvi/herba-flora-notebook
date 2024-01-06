@@ -1,23 +1,21 @@
 package com.example.inovasiyanotebook.views;
 
+import lombok.Getter;
+
+@Getter
 public enum ViewsEnum {
     LOGIN("login"),
-    ABOUT("about"),
-    HELLO("hello"),
     CATEGORY("category"),
     PRODUCT("product"),
     REGISTRATION("registration"),
-    CLIENT ("/client"),
+    CLIENT ("client"),
+    ORDER ("order"),
     PAGE404("404");
 
     private String view;
 
     ViewsEnum(String view) {
         this.view = view;
-    }
-
-    public String getView() {
-        return view;
     }
 
     public String getViewWithParameter(String parameter) {

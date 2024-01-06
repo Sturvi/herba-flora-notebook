@@ -7,6 +7,7 @@ import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.interfaces.Noteable;
+import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
@@ -106,6 +107,8 @@ public class NoteGridService {
                 notesPage = noteService.getAllByCategoryWithPagination((Category) entity, currentPade);
             } else if (entity instanceof Product) {
                 notesPage = noteService.getAllByProductWithPagination((Product) entity, currentPade);
+            } else if (entity instanceof Order) {
+                notesPage = noteService.getAllByOrderWithPagination((Order) entity, currentPade);
             }
 
             assert notesPage != null;

@@ -2,6 +2,7 @@ package com.example.inovasiyanotebook.model.order;
 
 import com.example.inovasiyanotebook.model.AbstractEntity;
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,7 +11,6 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,7 +22,7 @@ import java.util.TreeSet;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class Order extends AbstractEntity {
+public class Order extends AbstractEntity implements Noteable {
 
     private Integer orderNo;
 
@@ -40,7 +40,7 @@ public class Order extends AbstractEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<OrderPosition> orderPositions;
 
-    public String getProducts() {
+    public String getProductsString() {
         Set<String> uniqueProductNames = new TreeSet<>();
 
         for (OrderPosition position : orderPositions) {
@@ -48,6 +48,13 @@ public class Order extends AbstractEntity {
         }
 
         return String.join(", ", uniqueProductNames);
+    }
+
+    public List<Product> getProducts() {
+        return orderPositions.stream()
+                .map(OrderPosition::getProduct)
+                .distinct()
+                .toList();
     }
 
 }

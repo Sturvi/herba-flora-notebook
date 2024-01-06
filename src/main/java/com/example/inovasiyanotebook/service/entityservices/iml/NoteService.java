@@ -4,6 +4,7 @@ import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
+import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.repository.NoteRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -51,14 +51,14 @@ public class NoteService implements CRUDService<Note> {
 
     public Page<Note> getAllByClientWithPagination(Client client, int pageNumber) {
         // Здесь '10' - это размер страницы
-        return noteRepository.findAllByClientWithPaginationAndSorting(client, PageRequest.of(pageNumber, 10));
+        return noteRepository.getNotesByClient(client, PageRequest.of(pageNumber, 10));
     }
 
     public Page<Note> getAllByCategoryWithPagination(Category category, int pageNumber) {
         if (category.hasParent()){
-            return noteRepository.findByCategoriesWithPaginationAndSorting(PageRequest.of(pageNumber, 10), category, category.getParentCategory());
+            return noteRepository.getNotesByCategories(PageRequest.of(pageNumber, 10), category, category.getParentCategory());
         } else {
-            return noteRepository.findByCategoriesWithPaginationAndSorting(PageRequest.of(pageNumber, 10), category);
+            return noteRepository.getNotesByCategories(PageRequest.of(pageNumber, 10), category);
         }
     }
 
@@ -67,6 +67,27 @@ public class NoteService implements CRUDService<Note> {
         if (product.getCategory() != null) categoriesList.add(product.getCategory());
         if (product.getCategory() != null && product.getCategory().getParent() != null) categoriesList.add(product.getCategory().getParentCategory());
 
-        return noteRepository.findByProductClientAndCategoriesWithPaginationAndSorting(product, product.getClient(), categoriesList,PageRequest.of(pageNumber, 10));
+        return noteRepository.getNotesByProductClientCategories(product, product.getClient(), categoriesList,PageRequest.of(pageNumber, 10));
     }
+
+    public Page<Note> getAllByOrderWithPagination(Order order, int pageNumber) {
+        var products = order.getProducts();
+        var clients = products
+                .stream()
+                .map(Product::getClient)
+                .distinct()
+                .toList();
+        var categories = products.stream()
+                .flatMap(product -> {
+                    Category category = product.getCategory();
+                    return category.getParent() != null
+                            ? Stream.of(category, (Category) category.getParent())
+                            : Stream.of(category);
+                })
+                .distinct()
+                .toList();
+
+        return noteRepository.getNotesByProductsClientsCategories(products, clients, categories, PageRequest.of(pageNumber, 10));
+    }
+
 }

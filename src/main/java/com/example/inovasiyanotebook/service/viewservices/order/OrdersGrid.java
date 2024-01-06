@@ -1,9 +1,11 @@
-package com.example.inovasiyanotebook.model.order;
+package com.example.inovasiyanotebook.service.viewservices.order;
 
+import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
-import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
+import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -24,6 +26,7 @@ public class OrdersGrid {
     private final OrderService orderService;
     private final NewOrderDialog newOrderDialog;
     private final DesignTools designTools;
+    private final NavigationTools navigationTools;
 
 
     public VerticalLayout getAllOrdersGrid(User user) {
@@ -61,7 +64,7 @@ public class OrdersGrid {
                 .setFlexGrow(2)
                 .setKey("number");
 
-        orderGrid.addColumn(Order::getProducts)
+        orderGrid.addColumn(Order::getProductsString)
                 .setHeader("Məhsullar")
                 .setSortable(false)
                 .setFlexGrow(10)
@@ -91,6 +94,8 @@ public class OrdersGrid {
                 .setSortable(true)
                 .setKey("status");
 
+        orderGrid.addItemClickListener(orderLine -> navigationTools.navigateTo(ViewsEnum.ORDER, orderLine.getItem().getId().toString()));
+
         orderGrid.addComponentColumn(order -> new HorizontalLayout(
                 designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> newOrderDialog.openNewDialog(order)))
         );
@@ -104,7 +109,7 @@ public class OrdersGrid {
             String searchTerm = searchField.getValue().trim().toLowerCase();
             if (searchTerm.isEmpty()) return true;
             boolean matchesName = matchesTerm(order.getOrderNo().toString(), searchTerm);
-            boolean matchesProducts = matchesTerm(order.getProducts(), searchTerm);
+            boolean matchesProducts = matchesTerm(order.getProductsString(), searchTerm);
             boolean matchesStatus = matchesTerm(order.getStatus().getName(), searchTerm);
             return matchesName || matchesProducts || matchesStatus;
         });

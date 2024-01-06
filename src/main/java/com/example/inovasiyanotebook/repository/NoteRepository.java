@@ -18,12 +18,26 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findAllByClient(Client client);
 
     @Query("SELECT n FROM Note n WHERE n.client = :client ORDER BY n.isPinned DESC, n.createdAt DESC")
-    Page<Note> findAllByClientWithPaginationAndSorting(Client client, Pageable pageable);
+    Page<Note> getNotesByClient(Client client, Pageable pageable);
 
     @Query("SELECT n FROM Note n WHERE n.category IN :categories ORDER BY n.isPinned DESC, n.createdAt DESC")
-    Page<Note> findByCategoriesWithPaginationAndSorting(Pageable pageable, Category... categories);
+    Page<Note> getNotesByCategories(Pageable pageable, Category... categories);
 
-    @Query("SELECT n FROM Note n WHERE n.product = :product OR (n.client = :client AND n.category = null) OR (n.category IN :categories AND n.client = null ) OR (n.client = :client AND n.category IN :categories)ORDER BY n.isPinned DESC, n.createdAt DESC")
-    Page<Note> findByProductClientAndCategoriesWithPaginationAndSorting(Product product, Client client, Collection<Category> categories, Pageable pageable);
+    @Query("SELECT n " +
+            "FROM Note n " +
+            "WHERE n.product = :product " +
+            "OR (n.client = :client AND n.category = null) " +
+            "OR (n.category IN :categories AND n.client = null ) " +
+            "OR (n.client = :client AND n.category IN :categories)" +
+            "ORDER BY n.isPinned DESC, n.createdAt DESC")
+    Page<Note> getNotesByProductClientCategories(Product product, Client client, Collection<Category> categories, Pageable pageable);
 
+    @Query("SELECT n " +
+            "FROM Note n " +
+            "WHERE n.product IN :products " +
+            "OR (n.client IN :clients AND n.category = null) " +
+            "OR (n.category IN :categories AND n.client = null ) " +
+            "OR (n.client IN :clients AND n.category IN :categories)" +
+            "ORDER BY n.isPinned DESC, n.createdAt DESC")
+    Page<Note> getNotesByProductsClientsCategories(Collection<Product> products, Collection<Client> clients, Collection<Category> categories, Pageable pageable);
 }
