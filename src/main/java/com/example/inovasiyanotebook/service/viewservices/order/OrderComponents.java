@@ -112,7 +112,7 @@ public class OrderComponents {
             result = false;
         }
 
-        log.info("completedDataTime: " + completedDataTime.getValue());
+        //log.info("completedDataTime: " + completedDataTime.getValue());
         if (completedDataTime != null &&
                 completedDataTime.getValue() == null &&
                 statusField.getValue() == OrderStatusEnum.COMPLETE) {
