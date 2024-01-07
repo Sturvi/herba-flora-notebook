@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -43,6 +44,8 @@ public class CategoryViewService {
     private final NavigationTools navigationTools;
 
     private Dialog addCategoryDialog;
+
+    private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
 
 
     public VerticalLayout getCategoryName(Category category, User user) {
@@ -79,6 +82,7 @@ public class CategoryViewService {
         if (permissionsCheck.needEditor(user)) {
             // Добавление кнопки удаления
             var deleteColumn = categoriesGrid.addComponentColumn(category -> {
+                buttonClicked.set(true);
                 Button deleteButton = new Button(new Icon(VaadinIcon.TRASH));
                 deleteButton.setClassName("small-button");
                 deleteButton.addClickListener(click -> designTools.showConfirmationDialog(() -> deleteCategory(categoriesList, category, updateGridItems, currentSearchTerm)));
@@ -93,8 +97,11 @@ public class CategoryViewService {
         }
 
         categoriesGrid.addItemClickListener(event -> {
-            String categoryId = event.getItem().getId().toString();
-            navigationTools.navigateTo(ViewsEnum.CATEGORY, categoryId);
+            if (!buttonClicked.get()){
+                String categoryId = event.getItem().getId().toString();
+                navigationTools.navigateTo(ViewsEnum.CATEGORY, categoryId);
+            }
+            buttonClicked.set(false);
         });
 
         return getVerticalLayout(currentSearchTerm, updateGridItems, categoriesGrid);

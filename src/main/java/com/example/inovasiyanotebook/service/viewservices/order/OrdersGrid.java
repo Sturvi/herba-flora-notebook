@@ -2,6 +2,7 @@ package com.example.inovasiyanotebook.service.viewservices.order;
 
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,9 @@ public class OrdersGrid {
     private final NewOrderDialog newOrderDialog;
     private final DesignTools designTools;
     private final NavigationTools navigationTools;
+    private final PermissionsCheck permissionsCheck;
+
+    private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
 
 
     public VerticalLayout getAllOrdersGrid(User user) {
@@ -94,11 +99,21 @@ public class OrdersGrid {
                 .setSortable(true)
                 .setKey("status");
 
-        orderGrid.addItemClickListener(orderLine -> navigationTools.navigateTo(ViewsEnum.ORDER, orderLine.getItem().getId().toString()));
+        orderGrid.addItemClickListener(orderLine -> {
+            if (!buttonClicked.get()) {
+                navigationTools.navigateTo(ViewsEnum.ORDER, orderLine.getItem().getId().toString());
+            }
+            buttonClicked.set(false);
+        });
 
-        orderGrid.addComponentColumn(order -> new HorizontalLayout(
-                designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> newOrderDialog.openNewDialog(order)))
-        );
+        if (permissionsCheck.needEditor(user)) {
+            orderGrid.addComponentColumn(order -> new HorizontalLayout(
+                    designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
+                        buttonClicked.set(true);
+                        newOrderDialog.openNewDialog(order);
+                    }))
+            );
+        }
 
         GridListDataView<Order> dataView = orderGrid.setItems(orders);
 
