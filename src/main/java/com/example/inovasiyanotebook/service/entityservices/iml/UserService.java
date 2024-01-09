@@ -47,4 +47,8 @@ public class UserService implements CRUDService<User> {
     public User findByUsername(String username) {
        return userRepository.findByUsername(username);
     }
+
+    public boolean hasUser () {
+        return userRepository.count() > 0;
+    }
 }

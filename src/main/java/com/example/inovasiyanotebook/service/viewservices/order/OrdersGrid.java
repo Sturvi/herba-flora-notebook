@@ -7,7 +7,9 @@ import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -16,6 +18,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -30,6 +33,7 @@ public class OrdersGrid {
     private final DesignTools designTools;
     private final NavigationTools navigationTools;
     private final PermissionsCheck permissionsCheck;
+    private final PrintedTypeGrid printedTypeGrid;
 
     private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
 
@@ -50,8 +54,20 @@ public class OrdersGrid {
         searchField.setPlaceholder("Axtarış...");
         searchField.setWidthFull();
 
+
+
         if (hasTitle) {
             var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
+
+            Button printedTypeButton;
+            if (permissionsCheck.needEditor(user)) {
+                printedTypeButton = new Button("Çap növləri");
+                printedTypeButton.addClickListener(buttonClickEvent -> {
+                    printedTypeGrid.openDialog(user);
+                });
+                ordersPageHeaderLine.add(printedTypeButton);
+            }
+
             ordersPageHeaderLine.add(searchField);
             ordersPageHeaderLine.setWidthFull();
             layout.add(ordersPageHeaderLine);
@@ -63,11 +79,13 @@ public class OrdersGrid {
         orderGrid.setHeightFull();
         orderGrid.setWidthFull();
 
-        orderGrid.addColumn(Order::getOrderNo)
+        Grid.Column<Order> orderNumberColumn = orderGrid.addColumn(Order::getOrderNo)
                 .setHeader("Sifariş nömrəsi")
                 .setSortable(true)
                 .setFlexGrow(2)
                 .setKey("number");
+
+        orderGrid.sort(GridSortOrder.desc(orderNumberColumn).build());
 
         orderGrid.addColumn(Order::getProductsString)
                 .setHeader("Məhsullar")
@@ -80,7 +98,7 @@ public class OrdersGrid {
         orderGrid.addColumn(order ->
                         order.getOrderReceivedDateTime() != null ?
                                 order.getOrderReceivedDateTime().format(formatter) : "")
-                .setHeader("Sifarişin gəldi")
+                .setHeader("Sifariş gəldi")
                 .setSortable(true)
                 .setFlexGrow(2)
                 .setKey("incoming_date");
@@ -88,7 +106,7 @@ public class OrdersGrid {
         orderGrid.addColumn(order ->
                         order.getOrderCompletedDateTime() != null ?
                                 order.getOrderCompletedDateTime().format(formatter) : "")
-                .setHeader("Sifarişin bitdi")
+                .setHeader("Sifariş bitdi")
                 .setSortable(true)
                 .setFlexGrow(2)
                 .setKey("complete_date");

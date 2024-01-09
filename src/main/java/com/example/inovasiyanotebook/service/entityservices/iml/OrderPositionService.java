@@ -35,9 +35,17 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
         return orderPositionRepository.save(entity);
     }
 
-    @Override
+/*    @Override
     public void delete(OrderPosition entity) {
         orderPositionRepository.delete(entity);
+    }*/
+
+    public void deleteAll(List<OrderPosition> entities) {
+        orderPositionRepository.deleteAllInBatch(entities);
+    }
+
+    public void delete(OrderPosition entity) {
+        orderPositionRepository.deleteAllInBatch(List.of(entity));
     }
 
     public void saveAll(List<OrderPosition> orderPositions) {

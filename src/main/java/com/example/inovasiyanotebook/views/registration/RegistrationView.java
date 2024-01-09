@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.views.registration;
 
+import com.example.inovasiyanotebook.model.user.RoleEnum;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -57,30 +58,34 @@ public class RegistrationView extends VerticalLayout {
         this.navigationTools = navigationTools;
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        setSizeFull();
-        setAlignItems(Alignment.CENTER);
-        setJustifyContentMode(JustifyContentMode.CENTER);
+
+        if (!userService.hasUser()) {
+            setSizeFull();
+            setAlignItems(Alignment.CENTER);
+            setJustifyContentMode(JustifyContentMode.CENTER);
 
 
-        user = new User();
-        save.addClickListener(event -> {
-            bindFields();
-            if (binder.writeBeanIfValid(user)) {
-                String hashedPassword = passwordEncoder.encode(user.getPassword());
-                user.setPassword(hashedPassword);
+            user = new User();
+            save.addClickListener(event -> {
+                bindFields();
+                if (binder.writeBeanIfValid(user)) {
+                    String hashedPassword = passwordEncoder.encode(user.getPassword());
+                    user.setPassword(hashedPassword);
+                    user.setRole(RoleEnum.ADMIN);
 
-                userService.create(user);
+                    userService.create(user);
 
-                navigationTools.navigateTo(ViewsEnum.LOGIN);
-            } else {
-                showError();
-            }
-        });
+                    navigationTools.navigateTo(ViewsEnum.LOGIN);
+                } else {
+                    showError();
+                }
+            });
 
-        // Configure FormLayout
-        formLayout.add(usernameField, passwordField, firstNameField, lastNameField, emailField, save);
+            // Configure FormLayout
+            formLayout.add(usernameField, passwordField, firstNameField, lastNameField, emailField, save);
 
-        add(new H1("User Registration"), formLayout);
+            add(new H1("User Registration"), formLayout);
+        }
     }
 
     private void showError() {

@@ -9,11 +9,15 @@ import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -32,18 +36,39 @@ public class PrintedTypeGrid {
     private final PrintedTypeService printedTypeService;
     private final NavigationTools navigationTools;
 
+    private Grid<PrintedType> printedTypeGrid;
+    private GridListDataView<PrintedType> dataList;
 
-    public VerticalLayout getPrintedTypeGrid(User user) {
+    public void openDialog(User user) {
+        Dialog dialog = new Dialog();
+        dialog.setHeightFull();
+        dialog.setMinWidth("500px");
+        dialog.setDraggable(true);
+        dialog.setResizable(true);
+        dialog.setCloseOnEsc(true);
+        dialog.setCloseOnOutsideClick(true);
+
+        Button closeButton = designTools.getNewIconButton(new Icon("lumo", "cross"), dialog::close);
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+        // Создаем заголовок для диалога
         var header = createHeaderLine(user);
+
+        FlexLayout headerLayout = new FlexLayout();
+        headerLayout.setWidthFull();
+        headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        headerLayout.add(header, closeButton); // Добавляем заголовок и кнопку закрытия
+
+        dialog.getHeader().add(headerLayout);
 
         var printedTypes = printedTypeService.getAll();
 
-        Grid<PrintedType> printedTypeGrid = new Grid<>();
+        printedTypeGrid = new Grid<>();
         printedTypeGrid.setHeightFull();
         printedTypeGrid.addColumn(PrintedType::getName)
                 .setHeader("Adı")
                 .setSortable(true)
-                .setFlexGrow(10);
+                .setFlexGrow(5);
 
 
         if (permissionsCheck.needEditor(user)) {
@@ -58,18 +83,23 @@ public class PrintedTypeGrid {
             editAndDeleteButtons.setFlexGrow(1);
         }
 
-        printedTypeGrid.setItems(printedTypes);
+        GridListDataView<PrintedType> dataList = printedTypeGrid.setItems(printedTypes);
 
-        var verticalLayout = new VerticalLayout(header, printedTypeGrid);
+        var verticalLayout = new VerticalLayout(printedTypeGrid);
         verticalLayout.setHeightFull();
+        dialog.add(verticalLayout);
+        dialog.open();
+    }
 
-        return verticalLayout;
+    private void refreshData() {
+        var printedTypes = printedTypeService.getAll();
+        printedTypeGrid.setItems(printedTypes);
     }
 
     private void deleteHandler(PrintedType printedType) {
         designTools.showConfirmationDialog(() -> {
             printedTypeService.delete(printedType);
-            navigationTools.reloadPage();
+            refreshData();
         });
 
     }
@@ -106,7 +136,7 @@ public class PrintedTypeGrid {
                     printedType.setName(textField.getValue());
                     printedTypeService.update(printedType);
                     dialog.close();
-                    navigationTools.reloadPage();
+                    refreshData();
                 } catch (Exception e) {
                     textField.setErrorMessage("Bu adnan çap növü artıq mövcutdur");
                     textField.setInvalid(true);
@@ -157,7 +187,7 @@ public class PrintedTypeGrid {
             try {
                 var printedType = PrintedType.builder().name(textField.getValue()).build();
                 printedTypeService.create(printedType);
-                navigationTools.reloadPage();
+                refreshData();
             } catch (Exception e) {
                 log.error("Error addin new PrintedType. Dublicate value");
             }

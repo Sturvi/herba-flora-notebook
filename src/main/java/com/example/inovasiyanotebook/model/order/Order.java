@@ -37,7 +37,7 @@ public class Order extends AbstractEntity implements Noteable {
     @Column(columnDefinition="TEXT")
     private String comment;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<OrderPosition> orderPositions;
 
     public String getProductsString() {

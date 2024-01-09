@@ -4,8 +4,10 @@ import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -35,15 +37,27 @@ public class LoginView extends VerticalLayout {
         var login = new LoginForm();
         login.setAction("login");
 
-        Button registerButton = new Button("Register", event -> {
-            navigationTools.navigateTo(ViewsEnum.REGISTRATION);
-        });
+        LoginI18n i18n = LoginI18n.createDefault();
+        i18n.getForm().setTitle("Giriş");
+        i18n.getForm().setUsername("İstifadəçi adı");
+        i18n.getForm().setPassword("Şifrə");
+        i18n.getForm().setSubmit("Daxil ol");
+        i18n.getForm().setForgotPassword("");
+
+        LoginI18n.ErrorMessage i18nErrorMessage = i18n.getErrorMessage();
+        i18nErrorMessage.setTitle("İstifadəçi adı və ya şifrə doğru deyil");
+        i18nErrorMessage.setMessage(
+                "İstifadəçi adınızın və şifrənizin doğru olduğunu yoxlayın və yenidən cəhd edin.");
+        i18n.setErrorMessage(i18nErrorMessage);
+
+
+        login.setI18n(i18n);
+
 
         HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.add(new H4("Don`t have account?"), registerButton);
         horizontalLayout.setAlignItems(Alignment.CENTER);
         horizontalLayout.setJustifyContentMode(JustifyContentMode.CENTER);
 
-        add(new H1("Todo app"), login, horizontalLayout );
+        add(new H1("Herba Flora"), new H3("İnovasiya və təhlil"), login, horizontalLayout );
     }
 }

@@ -33,9 +33,7 @@ public class NewOrderDialog {
     private final OrderService orderService;
     private final OrderPositionService orderPositionService;
     private final NavigationTools navigationTools;
-
-    private List<Product> products;
-    private List<PrintedType> printedTypes;
+    private final OrderComponentsFactory orderComponentsFactory;
 
     public void openNewDialog() {
         openNewDialog(null);
@@ -47,52 +45,24 @@ public class NewOrderDialog {
         dialogLayout.setSpacing(false);
         dialogLayout.setPadding(false);
 
-        OrderComponents orderComponents = order == null ? new OrderComponents(designTools) : new OrderComponents(designTools, order);
+        OrderComponents orderComponents = orderComponentsFactory.getNewBean();
+
+        if (order != null) {
+            orderComponents.setOrder(order);
+        }
 
         dialogLayout.add(orderComponents.getLayout());
 
-        if (products == null) {
-            products = productService.getAll();
-        }
-        if (printedTypes == null) {
-            printedTypes = printedTypeService.getAll();
-        }
-
-        VerticalLayout positionsLayout = new VerticalLayout();
-        LinkedList<OrderPositionLineComponents> positionLineComponents = new LinkedList<>();
-        Runnable runnable = () -> addNewPositionLine(products, positionLineComponents, positionsLayout, printedTypes);
-
-        if (order == null) {
-            positionLineComponents.add(new OrderPositionLineComponents(
-                    designTools,
-                    1,
-                    products,
-                    printedTypes,
-                    runnable));
-            positionsLayout.add(positionLineComponents.get(0).getLine());
-        } else {
-            OrderPositionLineComponents.addNewLinesComponentsToList(
-                    designTools,
-                    order,
-                    positionLineComponents,
-                    products,
-                    printedTypes,
-                    runnable
-            );
-            positionLineComponents.forEach(components ->positionsLayout.add(components.getLine()));
-        }
-        positionLineComponents.getLast().nextButtonVisible(true);
-
-        dialogLayout.add(positionsLayout);
         dialogLayout.setHeightFull();
         dialogLayout.setSpacing(false);
 
         Button saveButton = new Button("Əlavə et");
-        saveButton.addClickListener(buttonClickEvent -> saveOrder(
-                orderComponents,
-                positionLineComponents,
-                positionsLayout,
-                dialog));
+        saveButton.addClickListener(buttonClickEvent -> {
+            boolean entitySaved = orderComponents.save();
+            if (entitySaved) {
+                navigationTools.reloadPage();
+            }
+        });
         Button cancelButton = new Button("Ləğv et");
         cancelButton.addClickListener(buttonClickEvent -> dialog.close());
 
@@ -103,86 +73,7 @@ public class NewOrderDialog {
     }
 
 
-    private void saveOrder(OrderComponents orderComponents,
-                           List<OrderPositionLineComponents> orderPositionComponents,
-                           VerticalLayout positionsLayout,
-                           Dialog dialog) {
 
-        var orderOpt = orderComponents.getEntity();
-
-        if (!checkValidation(orderPositionComponents) || orderOpt.isEmpty()) {
-            positionsLayout.removeAll();
-            int count = 1;
-
-            for (int i = 0; i < orderPositionComponents.size(); i++) {
-                orderPositionComponents.get(i).setLineCount(i + 1);
-                orderPositionComponents.get(i).nextButtonVisible(false);
-
-                positionsLayout.add(orderPositionComponents.get(i).getLine());
-                if (i == orderPositionComponents.size() - 1) {
-                    orderPositionComponents.get(i).nextButtonVisible(true);
-                }
-            }
-
-            return;
-        }
-
-        Order order = orderOpt.get();
-        orderService.create(orderOpt.get());
-
-        List<OrderPosition> orderPositions = orderPositionComponents.stream()
-                .map(orderPositionLineComponents -> orderPositionLineComponents.toEntity(order))
-                .toList();
-
-        orderPositionService.saveAll(orderPositions);
-        dialog.close();
-        navigationTools.reloadPage();
-    }
-
-    private boolean checkValidation(List<OrderPositionLineComponents> orderPositionComponents) {
-        boolean result = true;
-
-        Iterator<OrderPositionLineComponents> iterator = orderPositionComponents.iterator();
-        OrderPositionLineComponents lastLine = null;
-        while (iterator.hasNext()) {
-            OrderPositionLineComponents components = iterator.next();
-            lastLine = components;
-            try {
-                if (!components.isValid()) {
-                    result = false;
-                }
-            } catch (EmptyOrderPositionException e) {
-                    iterator.remove();
-            }
-        }
-
-        if (orderPositionComponents.isEmpty()) {
-            orderPositionComponents.add(lastLine);
-        }
-        return result;
-    }
-
-    private void addNewPositionLine(List<Product> products,
-                                    LinkedList<OrderPositionLineComponents> positionLineComponents,
-                                    VerticalLayout positionsLayout,
-                                    List<PrintedType> printedTypes) {
-        positionLineComponents.getLast().nextButtonVisible(false);
-
-        Runnable runnable = () ->
-                        addNewPositionLine(products, positionLineComponents, positionsLayout, printedTypes);
-
-        var newOrderPositionLineComponents = new OrderPositionLineComponents(
-                designTools,
-                positionLineComponents.size() + 1,
-                products,
-                printedTypes,
-                runnable);
-
-        newOrderPositionLineComponents.nextButtonVisible(true);
-        positionLineComponents.add(newOrderPositionLineComponents);
-
-        positionsLayout.add(newOrderPositionLineComponents.getLine());
-    }
 
 
 }
