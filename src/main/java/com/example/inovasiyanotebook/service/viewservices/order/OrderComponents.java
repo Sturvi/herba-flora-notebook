@@ -227,6 +227,8 @@ public class OrderComponents {
             return false;
         }
 
+        orderPositionComponents.getLast().nextButtonVisible(true);
+
         return result;
     }
 

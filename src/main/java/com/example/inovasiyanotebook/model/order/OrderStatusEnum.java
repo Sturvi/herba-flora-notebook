@@ -7,7 +7,7 @@ public enum OrderStatusEnum {
 
     OPEN ("Açıq"),
     WAITING ("Gözləmədə"),
-    COMPLETE ("Bitti");
+    COMPLETE ("Bitdi");
 
     private final String name;
 
