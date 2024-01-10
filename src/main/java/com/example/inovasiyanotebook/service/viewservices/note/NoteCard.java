@@ -63,7 +63,7 @@ public class NoteCard extends VerticalLayout {
         pinIcon.setClassName("small-button");
         pinIcon.setColor(note.isPinned() ? "#FF6666" : "gray");
         header.add(pinIcon);
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.isContributorOrHigher(user)) {
             pinIcon.addClickListener(click -> {
                 note.setPinned(!note.isPinned());
                 note.setUpdatedBy(user);

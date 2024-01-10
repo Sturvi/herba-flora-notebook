@@ -52,6 +52,7 @@ public class ProductInfoViewService {
             designTools.addEditableField(product, verticalLayout, "TŞ (və ya ГОСТ):", product.getTs(), "^.*$", "", this::updateTs);
             designTools.addEditableField(product, verticalLayout, "Barkod:", product.getBarcode(), "^\\d*$", "Yalnız rəqəmlərdən ibarət ola bilər.", this::updateBarcode);
             designTools.addEditableField(product, verticalLayout, "Çəkisi:", product.getWeight(), "^.*$", "", this::updateWeight);
+            designTools.addEditableField(product, verticalLayout, "Saxlama müddəti:", product.getShelfLife(), "^.*$", "", this::updateShelfLife);
 
             var categories = categoryService.getAllSortingByParent();
             var categoriesComboBox = designTools.creatComboBox("Kateqoriyalar", categories, Category::getFullName);
@@ -82,6 +83,11 @@ public class ProductInfoViewService {
         }
 
         return verticalLayout;
+    }
+
+    private void updateShelfLife(NamedEntity entity, String s) {
+        Product product = (Product) entity;
+        update(product, s, product::setShelfLife);
     }
 
     private void updateTs(NamedEntity entity, String newTs) {

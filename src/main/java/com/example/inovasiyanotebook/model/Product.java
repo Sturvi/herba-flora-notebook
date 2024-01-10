@@ -34,6 +34,8 @@ public class Product extends AbstractEntity implements ParentEntity, NamedEntity
 
     private String weight;
 
+    private String shelfLife = "";
+
     @ManyToOne
     private Client client;
 
