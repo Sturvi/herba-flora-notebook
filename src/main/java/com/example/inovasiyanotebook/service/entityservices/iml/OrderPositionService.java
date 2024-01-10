@@ -1,19 +1,47 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.order.OrderPosition;
+import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.repository.OrderPositionRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
+import com.vaadin.flow.component.combobox.ComboBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.*;
 
 @Service
 @RequiredArgsConstructor
 public class OrderPositionService implements CRUDService<OrderPosition> {
 
     private final OrderPositionRepository orderPositionRepository;
+
+    public void setOrderPositionStatus(OrderPosition orderPosition, ComboBox<OrderStatusEnum> statusComboBox) {
+        switch (statusComboBox.getValue()) {
+            case WAITING -> {
+                orderPosition.setStatus(WAITING);
+                if (orderPosition.getPositionCompletedDateTime() != null) {
+                    orderPosition.setPositionCompletedDateTime(null);
+                }
+            }
+            case COMPLETE -> {
+                orderPosition.setStatus(COMPLETE);
+                if (orderPosition.getPositionCompletedDateTime() == null) {
+                    orderPosition.setPositionCompletedDateTime(LocalDateTime.now());
+                }
+            }
+            default -> {
+                orderPosition.setStatus(OPEN);
+                if (orderPosition.getPositionCompletedDateTime() != null) {
+                    orderPosition.setPositionCompletedDateTime(null);
+                }
+            }
+        }
+    }
 
     @Override
     public OrderPosition create(OrderPosition entity) {

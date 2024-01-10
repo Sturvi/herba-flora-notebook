@@ -83,7 +83,7 @@ public class MainLayout extends AppLayout{
 
     private void addDrawerContent() {
         H1 appName = new H1("Herba flora".toUpperCase());
-        H1 appName2 = new H1("İNOVASİYA VƏ TƏHLİL");
+        H1 appName2 = new H1("İNNOVASİYA VƏ TƏHLİL");
         VerticalLayout headerLayout = new VerticalLayout(appName, appName2);
         appName.addClassNames(LumoUtility.FontSize.XLARGE, LumoUtility.Margin.NONE);
         appName2.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.Margin.NONE);

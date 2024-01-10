@@ -137,7 +137,7 @@ color: var(--lumo-error-color); // Цвет текста - красный
   display: inline-block; /* или block в зависимости от вашего макета */
   max-width: 900px; /* пример ширины, задайте свою */
   margin: 0px; /* пространство вокруг карточки */
-  padding: 0px 0px 0px 20px; /* внутренние отступы карточки */
+  padding: 0px 20px 20px 20px; /* внутренние отступы карточки */
   box-sizing: border-box;
 
   /* Шрифты и текст */

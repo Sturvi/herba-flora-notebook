@@ -58,6 +58,6 @@ public class LoginView extends VerticalLayout {
         horizontalLayout.setAlignItems(Alignment.CENTER);
         horizontalLayout.setJustifyContentMode(JustifyContentMode.CENTER);
 
-        add(new H1("Herba Flora"), new H3("İnovasiya və təhlil"), login, horizontalLayout );
+        add(new H1("Herba Flora"), new H3("İnnovasiya və təhlil"), login, horizontalLayout );
     }
 }
