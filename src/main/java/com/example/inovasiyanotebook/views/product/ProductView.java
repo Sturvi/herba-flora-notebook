@@ -105,7 +105,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         );
     }
 
-    private void openInstructionDialog (Product product, User user) {
+    private void openInstructionDialog(Product product, User user) {
         Dialog dialog = new Dialog();
         dialog.setHeightFull();
         dialog.setMinWidth("500px");
@@ -130,16 +130,20 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         buttonsLayout.setWidthFull(); // Задаем ширину на всю доступную ширину
         buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Выравнивание содержимого справа
 
-        Button saveButton = designTools.getNewIconButton(new Icon("lumo", "edit"), () -> {
-            instruction.setText(textArea.getValue());
-            saveInstuction(instruction);
-            dialog.close();
-        });
-        saveButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        if (permissionsCheck.needEditor(user)) {
+            Button saveButton = designTools.getNewIconButton(new Icon("lumo", "edit"), () -> {
+                instruction.setText(textArea.getValue());
+                saveInstuction(instruction);
+                dialog.close();
+            });
+            saveButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            buttonsLayout.add(saveButton);
+        }
+
         Button closeButton = designTools.getNewIconButton(new Icon("lumo", "cross"), dialog::close);
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         // Добавляем кнопки к layout
-        buttonsLayout.add(saveButton, closeButton);
+        buttonsLayout.add(closeButton);
         dialog.getHeader().add(buttonsLayout);
 
         dialog.add(textArea);
@@ -147,7 +151,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         dialog.open();
     }
 
-    private void saveInstuction (Instruction instruction) {
+    private void saveInstuction(Instruction instruction) {
         instructionService.update(instruction);
     }
 
