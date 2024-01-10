@@ -1,28 +1,38 @@
 package com.example.inovasiyanotebook.service.viewservices.order;
 
+import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
+import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
+import com.example.inovasiyanotebook.model.order.PrintedType;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
+import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
+import com.example.inovasiyanotebook.service.entityservices.iml.PrintedTypeService;
+import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HtmlContainer;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +42,10 @@ public class OrderInformation {
     private final OrderService orderService;
     private final NewOrderDialog newOrderDialog;
     private final PermissionsCheck permissionsCheck;
+    private final OrderPositionService orderPositionService;
+    private final ProductService productService;
+    private final PrintedTypeService printedTypeService;
+    private final NavigationTools navigationTools;
 
     private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
@@ -75,7 +89,7 @@ public class OrderInformation {
         scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
         //scroller.addClassName("no-padding-margin");
 
-        var ordersComponents = getOrdersComponents(order.getOrderPositions());
+        var ordersComponents = getOrdersComponents(order.getOrderPositions(), user);
 
         scroller.setContent(ordersComponents);
         verticalLayout.add(scroller);
@@ -83,27 +97,65 @@ public class OrderInformation {
         return verticalLayout;
     }
 
-    private VerticalLayout getOrdersComponents (List<OrderPosition> orderPositions) {
+    private VerticalLayout getOrdersComponents (List<OrderPosition> orderPositions, User user) {
+        var products = productService.getAll();
+        var printedTypes = printedTypeService.getAll();
+
 
         VerticalLayout ordersComponents = new VerticalLayout();
         for (OrderPosition orderPosition : orderPositions) {
-            StringBuilder componentText = new StringBuilder();
 
-            componentText.append("Məhsul: ").append( orderPosition.getProduct().getName()).append("\t");
-            componentText.append("Çap növü: ").append(orderPosition.getPrintedType().getName()).append("\n");
-            componentText.append("Say: ").append(orderPosition.getCount()).append("\t\t");
-            if (orderPosition.getStatus() != null) {
-                componentText.append("Status: ").append(orderPosition.getStatus().getName()).append("\n");
+            TextField productComboBox = new TextField("Məhsul");
+            productComboBox.setValue(orderPosition.getProduct().getName());
+            productComboBox.setReadOnly(true);
+
+
+            TextField printedTypeComboBox =new TextField("Çap növü");
+            printedTypeComboBox.setValue(orderPosition.getPrintedType().getName());
+            printedTypeComboBox.setReadOnly(true);
+
+            TextField orderCountField = new TextField("Say");
+            orderCountField.setValue(orderPosition.getCount());
+            orderCountField.setReadOnly(true);
+
+            ComboBox<OrderStatusEnum> statusComboBox = designTools.creatComboBox("Status", List.of(values()), OrderStatusEnum::getName);
+            statusComboBox.setValue(orderPosition.getStatus());
+            if (permissionsCheck.needEditor(user)) {
+                statusComboBox.addValueChangeListener(event -> {
+                    orderPositionService.setOrderPositionStatus(orderPosition, statusComboBox);
+
+                    orderPositionService.update(orderPosition);
+                    navigationTools.reloadPage();
+                });
+            } else {
+                statusComboBox.setReadOnly(true);
             }
-            if (!orderPosition.getComment().isEmpty()) {
-                componentText.append("Not: ").append(orderPosition.getComment()).append("\n");
+
+            DateTimePicker positionCompleteDateTimeField = new DateTimePicker();
+            positionCompleteDateTimeField.setLabel("Bitmə tarixi");
+            positionCompleteDateTimeField.setValue(orderPosition.getPositionCompletedDateTime());
+            positionCompleteDateTimeField.setReadOnly(true);
+
+            TextField noteField = new TextField("Koment");
+            noteField.setValue(orderPosition.getComment());
+            noteField.setReadOnly(true);
+            noteField.setWidthFull();
+
+            HorizontalLayout firstLine = new HorizontalLayout(productComboBox, orderCountField, printedTypeComboBox);
+            HorizontalLayout secondLine = new HorizontalLayout(positionCompleteDateTimeField, statusComboBox);
+            HorizontalLayout thirdLine = new HorizontalLayout(noteField);
+            firstLine.setHeightFull();
+            secondLine.setHeightFull();
+            thirdLine.setHeightFull();
+/*
+            orderCountField.setMaxWidth("80px");
+            statusComboBox.setMaxWidth("140px");
+            positionCompleteDateTimeField.setMaxWidth("230px");*/
+
+            VerticalLayout orderPositionLayout = new VerticalLayout(firstLine, secondLine);
+            if (orderPosition.getComment() != null && !orderPosition.getComment().isEmpty()){
+                orderPositionLayout.add(thirdLine);
             }
-
-
-            Pre text = new Pre(componentText.toString());
-            text.setClassName("pretext-component");
-
-            VerticalLayout orderPositionLayout = new VerticalLayout(text);
             orderPositionLayout.addClassName("order-card");
 
             ordersComponents.add(orderPositionLayout);
@@ -112,4 +164,5 @@ public class OrderInformation {
         return ordersComponents;
 
     }
+
 }

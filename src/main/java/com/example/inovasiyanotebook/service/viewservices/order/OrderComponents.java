@@ -31,6 +31,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.*;
+
 @Slf4j
 @Component
 @Scope("prototype")
@@ -48,7 +50,6 @@ public class OrderComponents {
     private DateTimePicker completedDataTime;
     private TextArea orderCommentField;
     private ComboBox<OrderStatusEnum> statusField;
-
     private Order order;
     private VerticalLayout positionsLayout;
     private VerticalLayout orderLayout;
@@ -58,6 +59,12 @@ public class OrderComponents {
     private List<PrintedType> printedTypes;
 
 
+
+    /**
+     * Initializes the class instance.
+     * This method is annotated with @PostConstruct, and it is automatically called after the class is constructed.
+     * It initializes the fields and components used in the class.
+     */
     @PostConstruct
     public void init() {
         this.orderNoField = designTools.createTextField("Sifariş nömrəsi",
@@ -72,8 +79,8 @@ public class OrderComponents {
         this.orderCommentField = designTools.createTextArea("Not", "^.*$", "");
         orderCommentField.setMinHeight("100px");
 
-        this.statusField = designTools.creatComboBox("Status", List.of(OrderStatusEnum.values()), OrderStatusEnum::getName);
-        statusField.setValue(OrderStatusEnum.OPEN);
+        this.statusField = designTools.creatComboBox("Status", List.of(values()), OrderStatusEnum::getName);
+        statusField.setValue(OPEN);
 
 
         products = productService.getAll();
@@ -88,6 +95,11 @@ public class OrderComponents {
         positionsForRemoved = new ArrayList<>();
     }
 
+    /**
+     * Sets the order data and updates the corresponding UI components.
+     *
+     * @param order The order object to set.
+     */
     public void setOrder(Order order) {
         this.order = order;
         positionsLayout.removeAll();
@@ -113,6 +125,31 @@ public class OrderComponents {
         orderPositionComponents.getLast().nextButtonVisible(true);
     }
 
+    /**
+     * Sets the read-only mode for the form.
+     *
+     * @param isReadOnly true to make the form read-only, false otherwise
+     */
+    public void readOnly(boolean isReadOnly) {
+        orderNoField.setReadOnly(isReadOnly);
+        receivedDateTimePicker.setReadOnly(isReadOnly);
+        completedDataTime.setReadOnly(isReadOnly);
+        orderCommentField.setReadOnly(isReadOnly);
+        statusField.setReadOnly(isReadOnly);
+        orderPositionComponents.forEach(components -> components.setReadOnly(isReadOnly));
+    }
+
+    /**
+     * Adds a new position line to the order.
+     * If the list of order position components is not empty,
+     * hides the next button of the last order position component.
+     * Creates a new button with an icon for adding a new position line,
+     * and sets its click listener to this method for recursively adding another line.
+     * Creates a new instance of {@link OrderPositionComponents} with an incremented line number
+     * and the newly created button.
+     * Adds the new order position components to the list of order position components.
+     * Adds the line component of the new order position components to the positions layout.
+     */
     private void addNewPositionLine() {
         if (!orderPositionComponents.isEmpty()) {
             orderPositionComponents.getLast().nextButtonVisible(false);
@@ -138,9 +175,9 @@ public class OrderComponents {
             order.setOrderReceivedDateTime(receivedDateTimePicker.getValue());
             order.setComment(orderCommentField.getValue());
             if (statusField.getValue() == null || completedDataTime.getValue() == null) {
-                order.setStatus(OrderStatusEnum.OPEN);
+                order.setStatus(OPEN);
             } else if (completedDataTime.getValue() != null) {
-                order.setStatus(OrderStatusEnum.COMPLETE);
+                order.setStatus(COMPLETE);
                 order.setOrderCompletedDateTime(completedDataTime.getValue());
             }
 
@@ -188,7 +225,7 @@ public class OrderComponents {
         //log.info("completedDataTime: " + completedDataTime.getValue());
         if (completedDataTime != null &&
                 completedDataTime.getValue() == null &&
-                statusField.getValue() == OrderStatusEnum.COMPLETE) {
+                statusField.getValue() == COMPLETE) {
             completedDataTime.setErrorMessage("Bitmiş sifarişlərin bitmə tarixi boş ola bilməz");
             completedDataTime.setInvalid(true);
             result = false;
@@ -211,14 +248,14 @@ public class OrderComponents {
         }
 
         for (int i = 0; i < orderPositionComponents.size(); i++) {
-            orderPositionComponents.get(i).setCurrentLineNumber(i);
+            orderPositionComponents.get(i).setCurrentLineNumber(i + 1);
             positionsLayout.add(orderPositionComponents.get(i).getLine());
         }
 
         if (completedDataTime != null &&
                 completedDataTime.getValue() != null &&
-                statusField.getValue() == OrderStatusEnum.COMPLETE) {
-            orderPositionComponents.forEach(position -> position.setStatus(OrderStatusEnum.COMPLETE));
+                statusField.getValue() == COMPLETE) {
+            orderPositionComponents.forEach(position -> position.setStatus(COMPLETE));
         }
 
         if (orderPositionComponents.isEmpty()) {
@@ -254,11 +291,11 @@ public class OrderComponents {
     private class OrderPositionComponents {
         private HtmlContainer currentLine;
         private ComboBox<Product> productComboBox;
-
         private ComboBox<PrintedType> printedTypeComboBox;
         private TextField orderCount;
         private TextField note;
         private ComboBox<OrderStatusEnum> statusComboBox;
+        private DateTimePicker positionCompleteDateTimeField;
         private Button nextButton;
         private Button deletePositionButton;
 
@@ -282,6 +319,7 @@ public class OrderComponents {
             this.orderCount.setValue(entity.getCount());
             this.note.setValue(entity.getComment());
             this.statusComboBox.setValue(entity.getStatus());
+            this.positionCompleteDateTimeField.setValue(entity.getPositionCompletedDateTime());
         }
 
         private void initializeCommonComponents(Integer currentLineNo) {
@@ -290,9 +328,15 @@ public class OrderComponents {
             this.printedTypeComboBox = designTools.creatComboBox("Çap növü", printedTypes, PrintedType::getName);
             this.orderCount = designTools.createTextField("Say", "^\\d+(\\s+.*|)$", "Ya təkcə rəqəmlər ve ya rəqəmlərdən sonra boşluq buraxılaraq yazılar");
             this.note = designTools.createTextField("Not", ".*", null);
-            this.statusComboBox = designTools.creatComboBox("Status", List.of(OrderStatusEnum.values()), OrderStatusEnum::getName);
+            this.statusComboBox = designTools.creatComboBox("Status", List.of(values()), OrderStatusEnum::getName);
             this.deletePositionButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), this::deleteLine);
-            this.statusComboBox.setValue(OrderStatusEnum.OPEN);
+            this.statusComboBox.setValue(OPEN);
+            this.positionCompleteDateTimeField = new DateTimePicker();
+            this.positionCompleteDateTimeField.setLabel("Bitmə tarixi");
+
+            this.orderCount.setMaxWidth("80px");
+            this.statusComboBox.setMaxWidth("140px");
+            this.positionCompleteDateTimeField.setMaxWidth("230px");
         }
 
         private void deleteLine() {
@@ -319,7 +363,7 @@ public class OrderComponents {
 
         private HorizontalLayout createNewLineLayout() {
             lineLayout = new HorizontalLayout();
-            lineLayout.add(currentLine, productComboBox, printedTypeComboBox, orderCount, note, statusComboBox, deletePositionButton, nextButton);
+            lineLayout.add(currentLine, productComboBox, printedTypeComboBox, orderCount, note, positionCompleteDateTimeField, statusComboBox, deletePositionButton, nextButton);
 
             lineLayout.setWidthFull();
             lineLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
@@ -376,11 +420,18 @@ public class OrderComponents {
             entity.setPrintedType(printedTypeComboBox.getValue());
             entity.setCount(orderCount.getValue());
             entity.setComment(note.getValue());
+            entity.setPositionCompletedDateTime(positionCompleteDateTimeField.getValue());
+
+            orderPositionService.setOrderPositionStatus(entity, statusComboBox);
 
             if (statusComboBox == null || statusComboBox.getValue() == null) {
-                entity.setStatus(OrderStatusEnum.OPEN);
+                entity.setStatus(OPEN);
             } else {
                 entity.setStatus(statusComboBox.getValue());
+
+                if (statusComboBox.getValue() == COMPLETE && entity.getPositionCompletedDateTime() == null) {
+                    entity.setPositionCompletedDateTime(LocalDateTime.now());
+                }
             }
 
             if (entity.getId() == null) {
@@ -390,10 +441,6 @@ public class OrderComponents {
             }
         }
 
-/*        public void delete() {
-            orderPositionService.deleteById(entity.getId());
-        }*/
-
         public void setStatus (OrderStatusEnum status) {
             statusComboBox.setValue(status);
         }
@@ -402,5 +449,15 @@ public class OrderComponents {
             nextButton.setVisible(isVisible);
         }
 
+        public void setReadOnly(boolean isReadOnly) {
+            productComboBox.setReadOnly(isReadOnly);
+            printedTypeComboBox.setReadOnly(isReadOnly);
+            orderCount.setReadOnly(isReadOnly);
+            note.setReadOnly(isReadOnly);
+            statusComboBox.setReadOnly(isReadOnly);
+            deletePositionButton.setVisible(false);
+            nextButtonVisible(false);
+            positionCompleteDateTimeField.setReadOnly(isReadOnly);
+        }
     }
 }

@@ -55,7 +55,6 @@ public class OrdersGrid {
         searchField.setWidthFull();
 
 
-
         if (hasTitle) {
             var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
 
@@ -124,14 +123,27 @@ public class OrdersGrid {
             buttonClicked.set(false);
         });
 
-        if (permissionsCheck.needEditor(user)) {
-            orderGrid.addComponentColumn(order -> new HorizontalLayout(
-                    designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
+        orderGrid.addComponentColumn(order -> {
+                    HorizontalLayout componentsColumn = new HorizontalLayout();
+                    Button previewButton = designTools.getNewIconButton(VaadinIcon.PRESENTATION.create(), () -> {
                         buttonClicked.set(true);
-                        newOrderDialog.openNewDialog(order);
-                    }))
-            );
-        }
+                        newOrderDialog.openReadOnlyDialog(order);
+                    });
+                    componentsColumn.add(previewButton);
+
+                    if (permissionsCheck.needEditor(user)) {
+                        Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
+                            buttonClicked.set(true);
+                            newOrderDialog.openNewDialog(order);
+                        });
+
+                        componentsColumn.add(editButton);
+                    }
+
+                    return componentsColumn;
+                }
+        );
+
 
         GridListDataView<Order> dataView = orderGrid.setItems(orders);
 
