@@ -83,11 +83,21 @@ public class MainLayout extends AppLayout{
 
     private void addDrawerContent() {
         H1 appName = new H1("Herba flora".toUpperCase());
-        H1 appName2 = new H1("İNNOVASİYA VƏ TƏHLİL");
-        VerticalLayout headerLayout = new VerticalLayout(appName, appName2);
+        //H1 appName2 = new H1("İNNOVASİYA VƏ TƏHLİL");
+
+        Image logo = new Image("images/inovasiya_logo.svg", "Innovasiya ve Tehlil");
+
+        logo.setWidthFull(); // Задайте ширину
+        logo.setHeight("auto"); // Высота будет изменяться автоматически
+
+        VerticalLayout headerLayout = new VerticalLayout(logo, appName);
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
         appName.addClassNames(LumoUtility.FontSize.XLARGE, LumoUtility.Margin.NONE);
-        appName2.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.Margin.NONE);
+        //appName2.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.Margin.NONE);
         Header header = new Header(headerLayout);
+
+
 
         addToDrawer(
                 header,

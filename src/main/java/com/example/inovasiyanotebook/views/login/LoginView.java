@@ -6,12 +6,15 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 
 
 /**
@@ -54,10 +57,22 @@ public class LoginView extends VerticalLayout {
         login.setI18n(i18n);
 
 
-        HorizontalLayout horizontalLayout = new HorizontalLayout();
-        horizontalLayout.setAlignItems(Alignment.CENTER);
-        horizontalLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+        H1 appName = new H1("Herba flora".toUpperCase());
+        //H1 appName2 = new H1("İNNOVASİYA VƏ TƏHLİL");
 
-        add(new H1("Herba Flora"), new H3("İnnovasiya və təhlil"), login, horizontalLayout );
+        Image logo = new Image("images/inovasiya_logo.svg", "Innovasiya ve Tehlil");
+
+        logo.setWidth("300px"); // Задайте ширину
+        logo.setHeight("auto"); // Высота будет изменяться автоматически
+
+        VerticalLayout headerLayout = new VerticalLayout(logo);
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerLayout.setJustifyContentMode(JustifyContentMode.CENTER);
+
+        appName.addClassNames(LumoUtility.FontSize.XLARGE, LumoUtility.Margin.NONE);
+        //appName2.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.Margin.NONE);
+
+
+        add(headerLayout, login );
     }
 }
