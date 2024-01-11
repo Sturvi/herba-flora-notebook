@@ -406,10 +406,6 @@ public class OrderComponents {
                 orderCount.setInvalid(true);
             }
 
-            if (statusField.getValue() == COMPLETE && positionStatusComboBox.getValue() != COMPLETE) {
-                positionStatusComboBox.setInvalid(true);
-                result = false;
-            }
 
             return result;
         }
