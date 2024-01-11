@@ -111,6 +111,8 @@ public class AddNewProductViewService {
         componentList.add(productBarcode);
         TextField productWeight = designTools.createTextField("Çəkisi:", null, null);
         componentList.add(productWeight);
+        TextField productShelfLife = designTools.createTextField("Saxlama müddəti:", null, null);
+        componentList.add(productShelfLife);
 
         ComboBox<Client> productClient = designTools.creatComboBox("Müştəri:", clients, Client::getName);
         if (clients.size() == 1) {

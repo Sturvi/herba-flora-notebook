@@ -48,6 +48,11 @@ public class ProductInfoViewService {
     public Component getProductInformation(Product product, User user) {
         VerticalLayout verticalLayout = new VerticalLayout();
 
+        if (product.getShelfLife() == null) {
+            product.setShelfLife("");
+            productService.update(product);
+        }
+
         if (permissionsCheck.needEditor(user)) {
             designTools.addEditableField(product, verticalLayout, "TŞ (və ya ГОСТ):", product.getTs(), "^.*$", "", this::updateTs);
             designTools.addEditableField(product, verticalLayout, "Barkod:", product.getBarcode(), "^\\d*$", "Yalnız rəqəmlərdən ibarət ola bilər.", this::updateBarcode);
@@ -77,6 +82,7 @@ public class ProductInfoViewService {
                     new H4("TŞ (və ya ГОСТ): " + product.getTs()),
                     new H4("Barkod: " + product.getBarcode()),
                     new H4("Çəkisi: " + product.getWeight()),
+                    new H4("Saxlama müddəti: " + product.getShelfLife()),
                     new H4("Kateqoriya: " + product.getCategory().getFullName()),
                     new H4("Müştəri: " + product.getClient().getName())
             );
