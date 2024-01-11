@@ -176,7 +176,14 @@ public class OrderComponents {
             order.setComment(orderCommentField.getValue());
             if (statusField.getValue() == null || completedDataTime.getValue() == null) {
                 order.setStatus(OPEN);
-            } else if (completedDataTime.getValue() != null) {
+                order.setOrderCompletedDateTime(null);
+            } else if (statusField.getValue() != COMPLETE) {
+                order.setStatus(statusField.getValue());
+                order.setOrderCompletedDateTime(null);
+            } else if (statusField.getValue() == COMPLETE && completedDataTime.getValue() == null) {
+                order.setStatus(COMPLETE);
+                order.setOrderCompletedDateTime(LocalDateTime.now());
+            } else if (statusField.getValue() == COMPLETE && completedDataTime.getValue() != null) {
                 order.setStatus(COMPLETE);
                 order.setOrderCompletedDateTime(completedDataTime.getValue());
             }
@@ -194,6 +201,7 @@ public class OrderComponents {
                             .stream()
                             .map(OrderPositionComponents::getEntity)
                             .toList());
+
 
             return true;
         }
@@ -252,12 +260,6 @@ public class OrderComponents {
             positionsLayout.add(orderPositionComponents.get(i).getLine());
         }
 
-        if (completedDataTime != null &&
-                completedDataTime.getValue() != null &&
-                statusField.getValue() == COMPLETE) {
-            result = false;
-            orderPositionComponents.forEach(position -> position.setStatusInvaled(true));
-        }
 
         if (orderPositionComponents.isEmpty()) {
             orderPositionComponents.add(new OrderPositionComponents(1, designTools.getNewIconButton(VaadinIcon.PLUS.create(), this::addNewPositionLine)));
@@ -402,6 +404,11 @@ public class OrderComponents {
             if (orderCount.getValue() == null || !orderCount.getValue().matches(orderCount.getPattern())) {
                 result = false;
                 orderCount.setInvalid(true);
+            }
+
+            if (statusField.getValue() == COMPLETE && positionStatusComboBox.getValue() != COMPLETE) {
+                positionStatusComboBox.setInvalid(true);
+                result = false;
             }
 
             return result;
