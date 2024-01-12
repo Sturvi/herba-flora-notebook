@@ -29,7 +29,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.*;
 
@@ -170,76 +173,88 @@ public class OrderComponents {
             order = new Order();
         }
 
-        if (checkValidation()) {
-            order.setOrderNo(Integer.parseInt(orderNoField.getValue()));
-            order.setOrderReceivedDateTime(receivedDateTimePicker.getValue());
-            order.setComment(orderCommentField.getValue());
-            if (statusField.getValue() == null || completedDataTime.getValue() == null) {
-                order.setStatus(OPEN);
-                order.setOrderCompletedDateTime(null);
-            } else if (statusField.getValue() != COMPLETE) {
-                order.setStatus(statusField.getValue());
-                order.setOrderCompletedDateTime(null);
-            } else if (statusField.getValue() == COMPLETE && completedDataTime.getValue() == null) {
-                order.setStatus(COMPLETE);
-                order.setOrderCompletedDateTime(LocalDateTime.now());
-            } else if (statusField.getValue() == COMPLETE && completedDataTime.getValue() != null) {
-                order.setStatus(COMPLETE);
-                order.setOrderCompletedDateTime(completedDataTime.getValue());
-            }
-
-            if (order.getId() == null) {
-                orderService.create(order);
-            } else {
-                orderService.update(order);
-            }
-
-            orderPositionComponents.forEach(OrderPositionComponents::save);
-
-            orderPositionService.deleteAll(
-                    positionsForRemoved
-                            .stream()
-                            .map(OrderPositionComponents::getEntity)
-                            .toList());
-
-
-            return true;
+        if (!checkValidation()) {
+            return false;
         }
 
-        return false;
+        setOrderDetails();
+        processOrderStatusAndCompletionTime();
+        saveOrUpdateOrder();
+        handleOrderPositions();
+
+        return true;
+    }
+
+    private void handleOrderPositions() {
+        orderPositionComponents.forEach(OrderPositionComponents::save);
+
+        orderPositionService.deleteAll(
+                positionsForRemoved.stream()
+                        .map(OrderPositionComponents::getEntity)
+                        .toList());
+    }
+
+    private void saveOrUpdateOrder() {
+        if (order.getId() == null) {
+            orderService.create(order);
+        } else {
+            orderService.update(order);
+        }
+    }
+
+    private void processOrderStatusAndCompletionTime() {
+        if (statusField.getValue() != COMPLETE) {
+            order.setStatus(statusField.getValue() == null ? OPEN : statusField.getValue());
+            order.setOrderCompletedDateTime(null);
+        } else {
+            order.setStatus(COMPLETE);
+            order.setOrderCompletedDateTime(completedDataTime.getValue() == null ? LocalDateTime.now() : completedDataTime.getValue());
+        }
+    }
+
+    private void setOrderDetails() {
+        order.setOrderNo(Integer.parseInt(orderNoField.getValue()));
+        order.setOrderReceivedDateTime(receivedDateTimePicker.getValue());
+        order.setComment(orderCommentField.getValue());
     }
 
     private boolean checkValidation() {
         boolean result = true;
 
-        if (orderNoField.getValue() == null || !orderNoField.getValue().matches(orderNoField.getPattern())) {
-            orderNoField.setInvalid(true);
-            result = false;
-        }
-
-        if (receivedDateTimePicker.getValue() == null) {
-            receivedDateTimePicker.setErrorMessage("Tarix seçilməlidir");
-            receivedDateTimePicker.setInvalid(true);
-            result = false;
-        }
-
-        if (statusField != null &&
-                statusField.getValue() == null) {
-            statusField.setErrorMessage("Boş ola bilməz");
-            statusField.setInvalid(true);
-            result = false;
-        }
-
-        //log.info("completedDataTime: " + completedDataTime.getValue());
-        if (completedDataTime != null &&
-                completedDataTime.getValue() == null &&
-                statusField.getValue() == COMPLETE) {
-            completedDataTime.setErrorMessage("Bitmiş sifarişlərin bitmə tarixi boş ola bilməz");
-            completedDataTime.setInvalid(true);
-            result = false;
-        }
+        result = isOrderNoValid(result);
+        result = isReceivedDateValid(result);
+        result = isStatusValid(result);
+        
         positionsLayout.removeAll();
 
+        result = areOrderPositionsValid(result);
+
+        updatePositionsNumber();
+
+        if (handleIfPositionsEmpty()) return false;
+
+        orderPositionComponents.getLast().nextButtonVisible(true);
+
+        return result;
+    }
+
+    private boolean handleIfPositionsEmpty() {
+        if (orderPositionComponents.isEmpty()) {
+            orderPositionComponents.add(new OrderPositionComponents(1, designTools.getNewIconButton(VaadinIcon.PLUS.create(), this::addNewPositionLine)));
+            positionsLayout.add(orderPositionComponents.getFirst().getLine());
+            return true;
+        }
+        return false;
+    }
+
+    private void updatePositionsNumber() {
+        for (int i = 0; i < orderPositionComponents.size(); i++) {
+            orderPositionComponents.get(i).setCurrentLineNumber(i + 1);
+            positionsLayout.add(orderPositionComponents.get(i).getLine());
+        }
+    }
+
+    private boolean areOrderPositionsValid(boolean result) {
         Iterator<OrderPositionComponents> iterator = orderPositionComponents.iterator();
         while (iterator.hasNext()) {
             OrderPositionComponents components = iterator.next();
@@ -254,21 +269,33 @@ public class OrderComponents {
                 iterator.remove();
             }
         }
+        return result;
+    }
 
-        for (int i = 0; i < orderPositionComponents.size(); i++) {
-            orderPositionComponents.get(i).setCurrentLineNumber(i + 1);
-            positionsLayout.add(orderPositionComponents.get(i).getLine());
+    private boolean isStatusValid(boolean result) {
+        if (statusField != null &&
+                statusField.getValue() == null) {
+            statusField.setErrorMessage("Boş ola bilməz");
+            statusField.setInvalid(true);
+            result = false;
         }
+        return result;
+    }
 
-
-        if (orderPositionComponents.isEmpty()) {
-            orderPositionComponents.add(new OrderPositionComponents(1, designTools.getNewIconButton(VaadinIcon.PLUS.create(), this::addNewPositionLine)));
-            positionsLayout.add(orderPositionComponents.getFirst().getLine());
-            return false;
+    private boolean isReceivedDateValid(boolean result) {
+        if (receivedDateTimePicker.getValue() == null) {
+            receivedDateTimePicker.setErrorMessage("Tarix seçilməlidir");
+            receivedDateTimePicker.setInvalid(true);
+            result = false;
         }
+        return result;
+    }
 
-        orderPositionComponents.getLast().nextButtonVisible(true);
-
+    private boolean isOrderNoValid(boolean result) {
+        if (orderNoField.getValue() == null || !orderNoField.getValue().matches(orderNoField.getPattern())) {
+            orderNoField.setInvalid(true);
+            result = false;
+        }
         return result;
     }
 
@@ -378,38 +405,6 @@ public class OrderComponents {
             currentLine.setText(i.toString());
         }
 
-        public boolean isValid() throws EmptyOrderPositionException {
-
-            if (productComboBox.getValue() == null &&
-                    printedTypeComboBox.getValue() == null &&
-                    (orderCount.getValue() == null || orderCount.getValue().isEmpty()) &&
-                    (note.getValue() == null || note.getValue().isEmpty())) {
-                throw new EmptyOrderPositionException();
-            }
-
-            boolean result = true;
-
-            if (productComboBox.getValue() == null) {
-                result = false;
-                productComboBox.setErrorMessage("Məhsul boş ola bilməz");
-                productComboBox.setInvalid(true);
-            }
-
-            if (printedTypeComboBox.getValue() == null) {
-                result = false;
-                printedTypeComboBox.setErrorMessage("Çap növü boş ola bilməz");
-                printedTypeComboBox.setInvalid(true);
-            }
-
-            if (orderCount.getValue() == null || !orderCount.getValue().matches(orderCount.getPattern())) {
-                result = false;
-                orderCount.setInvalid(true);
-            }
-
-
-            return result;
-        }
-
         public void save() {
             if (!isValid()) {
                 throw new RuntimeException("Invalid order position");
@@ -419,12 +414,7 @@ public class OrderComponents {
                 entity = new OrderPosition();
             }
 
-            entity.setOrder(order);
-            entity.setProduct(productComboBox.getValue());
-            entity.setPrintedType(printedTypeComboBox.getValue());
-            entity.setCount(orderCount.getValue());
-            entity.setComment(note.getValue());
-            entity.setPositionCompletedDateTime(positionCompleteDateTimeField.getValue());
+            setOrderPositionDetails();
 
             orderPositionService.setOrderPositionStatus(entity, positionStatusComboBox);
 
@@ -444,6 +434,75 @@ public class OrderComponents {
                 orderPositionService.update(entity);
             }
         }
+
+        private void setOrderPositionDetails() {
+            entity.setOrder(order);
+            entity.setProduct(productComboBox.getValue());
+            entity.setPrintedType(printedTypeComboBox.getValue());
+            entity.setCount(orderCount.getValue());
+            entity.setComment(note.getValue());
+            entity.setPositionCompletedDateTime(positionCompleteDateTimeField.getValue());
+        }
+
+        public boolean isValid() throws EmptyOrderPositionException {
+            isPositionLineEmpty();
+
+            boolean result = true;
+
+            result = isProductSelected(result);
+            result = isPrintedTypeSelected(result);
+            result = isOrderCountValid(result);
+            result = isPositionStatusValidate(result);
+
+            return result;
+        }
+
+        private boolean isPositionStatusValidate(boolean result) {
+            if (positionStatusComboBox.getValue() != COMPLETE && statusField.getValue() == COMPLETE) {
+                positionStatusComboBox.setErrorMessage("Bitməmiş iş");
+                positionStatusComboBox.setInvalid(true);
+                statusField.setErrorMessage("Bitməmiş işlər qalıb");
+                statusField.setInvalid(true);
+                result = false;
+            }
+            return result;
+        }
+
+        private boolean isOrderCountValid(boolean result) {
+            if (orderCount.getValue() == null || !orderCount.getValue().matches(orderCount.getPattern())) {
+                result = false;
+                orderCount.setInvalid(true);
+            }
+            return result;
+        }
+
+        private boolean isPrintedTypeSelected(boolean result) {
+            if (printedTypeComboBox.getValue() == null) {
+                result = false;
+                printedTypeComboBox.setErrorMessage("Çap növü boş ola bilməz");
+                printedTypeComboBox.setInvalid(true);
+            }
+            return result;
+        }
+
+        private boolean isProductSelected(boolean result) {
+            if (productComboBox.getValue() == null) {
+                result = false;
+                productComboBox.setErrorMessage("Məhsul boş ola bilməz");
+                productComboBox.setInvalid(true);
+            }
+            return result;
+        }
+
+        private void isPositionLineEmpty() {
+            if (productComboBox.getValue() == null &&
+                    printedTypeComboBox.getValue() == null &&
+                    (orderCount.getValue() == null || orderCount.getValue().isEmpty()) &&
+                    (note.getValue() == null || note.getValue().isEmpty())) {
+                throw new EmptyOrderPositionException();
+            }
+        }
+
 
         public void setStatusInvaled(boolean isInvaled) {
             positionStatusComboBox.setInvalid(isInvaled);

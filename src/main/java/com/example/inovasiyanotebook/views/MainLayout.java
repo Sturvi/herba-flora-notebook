@@ -82,35 +82,24 @@ public class MainLayout extends AppLayout{
     }
 
     private void addDrawerContent() {
-        H1 appName = new H1("Herba flora".toUpperCase());
-        //H1 appName2 = new H1("İNNOVASİYA VƏ TƏHLİL");
-
-        Image logo = new Image("images/inovasiya_logo.svg", "Innovasiya ve Tehlil");
-
-        logo.setWidthFull(); // Задайте ширину
-        logo.setHeight("auto"); // Высота будет изменяться автоматически
-
-        VerticalLayout headerLayout = new VerticalLayout(logo, appName);
-        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-
-        appName.addClassNames(LumoUtility.FontSize.XLARGE, LumoUtility.Margin.NONE);
-        //appName2.addClassNames(LumoUtility.FontSize.SMALL, LumoUtility.Margin.NONE);
-        Header header = new Header(headerLayout);
-
-
-
         addToDrawer(
-                header,
+                getHeader(),
                 new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
                 new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
                 new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 permissionsCheck.isAdminOrHigher(user) ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 designTools.addEmptySpace(),
-                addTitle("Şirkətlər"),
+                addTitle("Müştərilər"),
                 newClientButton(user),
                 new Scroller(clientsNav),
                 getIsFunctionalityEnabledButton(),
                 createFooter());
+    }
+
+    private static Header getHeader() {
+        Image logo = new Image("images/inovasiya_logo.svg", "Innovasiya ve Tehlil");
+        logo.setWidthFull(); // Задайте ширину
+        return new Header(logo);
     }
 
 
@@ -120,69 +109,71 @@ public class MainLayout extends AppLayout{
 
         clientService.fetchAllClients().stream()
                 .sorted(Comparator.comparing((Client::getSortOrder), Comparator.nullsLast(Integer::compareTo)))
-                .forEach(client -> {
-                    Anchor link = new Anchor(
-                            ViewsEnum.CLIENT.getViewWithParameter(client.getId().toString()),
-                            client.getName());
-                    link.addClassNames("text");
+                .forEach(this::extracted);
+    }
 
-                    if (permissionsCheck.needEditor(user)) {
-                        Span dragHandle = new Span(LineAwesomeIcon.BARS_SOLID.create());
-                        dragHandle.addClassNames("drag-handle");
+    private void extracted(Client client) {
+        Anchor link = new Anchor(
+                ViewsEnum.CLIENT.getViewWithParameter(client.getId().toString()),
+                client.getName());
+        link.addClassNames("text");
 
-                        HorizontalLayout itemLayout = new HorizontalLayout(dragHandle, link);
-                        itemLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-                        itemLayout.setSpacing(true);
+        if (permissionsCheck.needEditor(user)) {
+            Span dragHandle = new Span(LineAwesomeIcon.BARS_SOLID.create());
+            dragHandle.addClassNames("drag-handle");
 
-                        Div itemContainer = new Div(itemLayout);
-                        itemContainer.addClassName("project-item");
-                        itemContainer.setId("project-" + client.getId());
+            HorizontalLayout itemLayout = new HorizontalLayout(dragHandle, link);
+            itemLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+            itemLayout.setSpacing(true);
 
-                        // Устанавливаем dragHandle как источник для перетаскивания
-                        DragSource<Span> dragSource = DragSource.create(dragHandle);
-                        dragSource.setDraggable(true); // Указываем, что именно dragHandle можно перетаскивать
+            Div itemContainer = new Div(itemLayout);
+            itemContainer.addClassName("project-item");
+            itemContainer.setId("project-" + client.getId());
 
-                        dragSource.addDragStartListener(e -> {
-                            // Сохраняем идентификатор перетаскиваемого проекта в сессии
-                            VaadinSession.getCurrent().setAttribute("draggedClientId", client.getId());
-                        });
+            // Устанавливаем dragHandle как источник для перетаскивания
+            DragSource<Span> dragSource = DragSource.create(dragHandle);
+            dragSource.setDraggable(true); // Указываем, что именно dragHandle можно перетаскивать
 
-                        // Настройка обработчика событий Drop
-                        DropTarget<Div> dropTarget = DropTarget.create(itemContainer);
-                        dropTarget.addDropListener(e -> {
-                            Long draggedClientId = (Long) VaadinSession.getCurrent().getAttribute("draggedClientId");
-                            var draggedClientOpt = clientService.findById(draggedClientId);
+            dragSource.addDragStartListener(e -> {
+                // Сохраняем идентификатор перетаскиваемого проекта в сессии
+                VaadinSession.getCurrent().setAttribute("draggedClientId", client.getId());
+            });
 
-                            draggedClientOpt.ifPresent(draggedClient -> {
-                                // Определяем проекты до точки сброса
-                                Client previousClient = null;
+            // Настройка обработчика событий Drop
+            DropTarget<Div> dropTarget = DropTarget.create(itemContainer);
+            dropTarget.addDropListener(e -> {
+                Long draggedClientId = (Long) VaadinSession.getCurrent().getAttribute("draggedClientId");
+                var draggedClientOpt = clientService.findById(draggedClientId);
 
-                                List<Client> clients = clientService.fetchAllClients().stream()
-                                        .sorted(Comparator.comparing(Client::getSortOrder))
-                                        .toList();
+                draggedClientOpt.ifPresent(draggedClient -> {
+                    // Определяем проекты до точки сброса
+                    Client previousClient = null;
 
-                                for (int i = 0; i < clients.size(); i++) {
-                                    Client selectedClient = clients.get(i);
-                                    if (selectedClient.getId().equals(client.getId())) {
-                                        if (i > 0) previousClient = clients.get(i - 1);
-                                        break;
-                                    }
-                                }
+                    List<Client> clients = clientService.fetchAllClients().stream()
+                            .sorted(Comparator.comparing(Client::getSortOrder))
+                            .toList();
 
-                                clientService.updateClientPosition(previousClient, draggedClient);
-
-                                updateClientNav();
-                            });
-                        });
-                        clientsNav.add(itemContainer);
-                    } else {
-                        Div itemContainer = new Div(link);
-                        itemContainer.addClassName("project-item");
-                        itemContainer.setId("project-" + client.getId());
-
-                        clientsNav.add(itemContainer);
+                    for (int i = 0; i < clients.size(); i++) {
+                        Client selectedClient = clients.get(i);
+                        if (selectedClient.getId().equals(client.getId())) {
+                            if (i > 0) previousClient = clients.get(i - 1);
+                            break;
+                        }
                     }
+
+                    clientService.updateClientPosition(previousClient, draggedClient);
+
+                    updateClientNav();
                 });
+            });
+            clientsNav.add(itemContainer);
+        } else {
+            Div itemContainer = new Div(link);
+            itemContainer.addClassName("project-item");
+            itemContainer.setId("project-" + client.getId());
+
+            clientsNav.add(itemContainer);
+        }
     }
 
     private void addHeaderContent() {
