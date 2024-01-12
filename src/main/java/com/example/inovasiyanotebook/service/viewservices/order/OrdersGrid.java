@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.service.viewservices.order;
 
+import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
@@ -43,6 +44,10 @@ public class OrdersGrid {
         return createGridComponent(orders, user, newOrderDialog::openNewDialog, true);
     }
 
+    public VerticalLayout getOrderGrid(User user, Product product) {
+        var orders = orderService.getAllByProduct(product);
+        return createGridComponent(orders.stream().toList(), user, null, false);
+    }
 
     private VerticalLayout createGridComponent(List<Order> orders, User user, Runnable addButtonAction, boolean hasTitle) {
 

@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.repository.OrderRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -37,5 +39,9 @@ public class OrderService implements CRUDService<Order> {
     @Override
     public void delete(Order entity) {
         orderRepository.delete(entity);
+    }
+
+    public Set<Order> getAllByProduct(Product product){
+        return orderRepository.findAllByProducts(product);
     }
 }

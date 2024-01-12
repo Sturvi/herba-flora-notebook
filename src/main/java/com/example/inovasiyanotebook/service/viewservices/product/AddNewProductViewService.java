@@ -129,7 +129,7 @@ public class AddNewProductViewService {
         }
 
         Button addButton = new Button("Əlavə et");
-        addButton.addClickListener(click -> processNewProduct(productName, productTs, productBarcode, productWeight, productClient, productCategory));
+        addButton.addClickListener(click -> processNewProduct(productName, productTs, productBarcode, productWeight, productClient, productCategory, productShelfLife));
 
         Button cancelButton = new Button("Ləğv et");
         cancelButton.addClickListener(event -> addClientDialog.close());
@@ -155,7 +155,8 @@ public class AddNewProductViewService {
                                    TextField productBarcode,
                                    TextField productWeight,
                                    ComboBox<Client> clientComboBox,
-                                   ComboBox<Category> categoryComboBox) {
+                                   ComboBox<Category> categoryComboBox,
+                                   TextField productShelfLife) {
 
         if (productName.getValue().trim().isEmpty()) {
             productName.setInvalid(true);
@@ -180,6 +181,7 @@ public class AddNewProductViewService {
                 .weight(productWeight.getValue().trim())
                 .client(client)
                 .category(category)
+                .shelfLife(productShelfLife.getValue())
                 .build();
 
         productService.create(product);

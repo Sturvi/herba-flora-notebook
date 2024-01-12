@@ -9,6 +9,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.InstructionServi
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
+import com.example.inovasiyanotebook.service.viewservices.order.OrdersGrid;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductInfoViewService;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductsGridService;
 import com.example.inovasiyanotebook.views.DesignTools;
@@ -38,6 +39,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private final ProductInfoViewService infoViewService;
     private final UserService userService;
     private final DesignTools designTools;
+    private final OrdersGrid ordersGrid;
     private final PermissionsCheck permissionsCheck;
     private final InstructionService instructionService;
     private final NavigationTools navigationTools;
@@ -47,11 +49,12 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private Product product;
     private User user;
 
-    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, DesignTools designTools, PermissionsCheck permissionsCheck, InstructionService instructionService, NavigationTools navigationTools, NoteGridService noteGridService, ProductsGridService productsGridService) {
+    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, DesignTools designTools, OrdersGrid ordersGrid, PermissionsCheck permissionsCheck, InstructionService instructionService, NavigationTools navigationTools, NoteGridService noteGridService, ProductsGridService productsGridService) {
         this.productService = productService;
         this.infoViewService = infoViewService;
         this.userService = userService;
         this.designTools = designTools;
+        this.ordersGrid = ordersGrid;
         this.permissionsCheck = permissionsCheck;
         this.instructionService = instructionService;
         this.navigationTools = navigationTools;
@@ -90,7 +93,8 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
 
         VerticalLayout verticalLayout = new VerticalLayout(
                 hasProductNameLine,
-                infoViewService.getProductInformation(product, user)
+                infoViewService.getProductInformation(product, user),
+                ordersGrid.getOrderGrid(user, product)
         );
         verticalLayout.setWidthFull();
 
