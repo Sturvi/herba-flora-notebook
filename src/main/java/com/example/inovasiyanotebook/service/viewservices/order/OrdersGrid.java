@@ -5,6 +5,7 @@ import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
+import com.example.inovasiyanotebook.service.viewservices.note.NoteDialog;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
@@ -19,7 +20,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,8 +35,10 @@ public class OrdersGrid {
     private final NavigationTools navigationTools;
     private final PermissionsCheck permissionsCheck;
     private final PrintedTypeGrid printedTypeGrid;
+    private final NoteDialog noteDialog;
 
     private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
+    private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
 
     public VerticalLayout getAllOrdersGrid(User user) {
@@ -60,6 +62,49 @@ public class OrdersGrid {
         searchField.setWidthFull();
 
 
+        displayOrdersGridHeader(user, addButtonAction, hasTitle, searchField, layout);
+
+        Grid<Order> orderGrid = new Grid<>();
+        orderGrid.setHeightFull();
+        orderGrid.setWidthFull();
+
+        addGridColumns(user, orderGrid);
+
+        orderGrid.addItemClickListener(orderLine -> {
+            if (!buttonClicked.get()) {
+                navigationTools.navigateTo(ViewsEnum.ORDER, orderLine.getItem().getId().toString());
+            }
+            buttonClicked.set(false);
+        });
+
+        GridListDataView<Order> dataView = orderGrid.setItems(orders);
+
+        searchField.addValueChangeListener(event -> dataView.refreshAll());
+
+        dataView.addFilter(order -> {
+            String searchTerm = searchField.getValue().trim().toLowerCase();
+            if (searchTerm.isEmpty()) return true;
+            boolean matchesName = matchesTerm(order.getOrderNo().toString(), searchTerm);
+            boolean matchesProducts = matchesTerm(order.getProductsString(), searchTerm);
+            boolean matchesStatus = matchesTerm(order.getStatus().getName(), searchTerm);
+            return matchesName || matchesProducts || matchesStatus;
+        });
+
+        layout.add(orderGrid);
+
+        return layout;
+    }
+
+    private void addGridColumns(User user, Grid<Order> orderGrid) {
+        addOrderNoColumn(orderGrid);
+        addProductsNameColumn(orderGrid);
+        addOrderReceivedDateTimeColum(orderGrid);
+        addOrderCompletedDateTimeColumn(orderGrid);
+        addStatusColumn(orderGrid);
+        addButtonsColumn(user, orderGrid);
+    }
+
+    private void displayOrdersGridHeader(User user, Runnable addButtonAction, boolean hasTitle, TextField searchField, VerticalLayout layout) {
         if (hasTitle) {
             var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
 
@@ -78,56 +123,9 @@ public class OrdersGrid {
         } else {
             layout.add(searchField);
         }
+    }
 
-        Grid<Order> orderGrid = new Grid<>();
-        orderGrid.setHeightFull();
-        orderGrid.setWidthFull();
-
-        Grid.Column<Order> orderNumberColumn = orderGrid.addColumn(Order::getOrderNo)
-                .setHeader("Sifariş nömrəsi")
-                .setSortable(true)
-                .setFlexGrow(2)
-                .setKey("number");
-
-        orderGrid.sort(GridSortOrder.desc(orderNumberColumn).build());
-
-        orderGrid.addColumn(Order::getProductsString)
-                .setHeader("Məhsullar")
-                .setSortable(false)
-                .setFlexGrow(10)
-                .setKey("products");
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
-        orderGrid.addColumn(order ->
-                        order.getOrderReceivedDateTime() != null ?
-                                order.getOrderReceivedDateTime().format(formatter) : "")
-                .setHeader("Sifariş gəldi")
-                .setSortable(true)
-                .setFlexGrow(2)
-                .setKey("incoming_date");
-
-        orderGrid.addColumn(order ->
-                        order.getOrderCompletedDateTime() != null ?
-                                order.getOrderCompletedDateTime().format(formatter) : "")
-                .setHeader("Sifariş bitdi")
-                .setSortable(true)
-                .setFlexGrow(2)
-                .setKey("complete_date");
-
-        orderGrid.addColumn(order -> order.getStatus().getName())
-                .setHeader("Status")
-                .setFlexGrow(2)
-                .setSortable(true)
-                .setKey("status");
-
-        orderGrid.addItemClickListener(orderLine -> {
-            if (!buttonClicked.get()) {
-                navigationTools.navigateTo(ViewsEnum.ORDER, orderLine.getItem().getId().toString());
-            }
-            buttonClicked.set(false);
-        });
-
+    private void addButtonsColumn(User user, Grid<Order> orderGrid) {
         orderGrid.addComponentColumn(order -> {
                     HorizontalLayout componentsColumn = new HorizontalLayout();
                     Button previewButton = designTools.getNewIconButton(VaadinIcon.PRESENTATION.create(), () -> {
@@ -135,6 +133,12 @@ public class OrdersGrid {
                         newOrderDialog.openReadOnlyDialog(order);
                     });
                     componentsColumn.add(previewButton);
+
+                    Button notesDialogButton = designTools.getNewIconButton(VaadinIcon.NOTEBOOK.create(), () -> {
+                        buttonClicked.set(true);
+                        noteDialog.openDialog(order, user);
+                    });
+                    componentsColumn.add(notesDialogButton);
 
                     if (permissionsCheck.needEditor(user)) {
                         Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
@@ -147,26 +151,53 @@ public class OrdersGrid {
 
                     return componentsColumn;
                 }
-        );
+        ).setFlexGrow(2);
+    }
 
+    private static void addStatusColumn(Grid<Order> orderGrid) {
+        orderGrid.addColumn(order -> order.getStatus().getName())
+                .setHeader("Status")
+                .setFlexGrow(2)
+                .setSortable(true)
+                .setKey("status");
+    }
 
-        GridListDataView<Order> dataView = orderGrid.setItems(orders);
+    private void addOrderCompletedDateTimeColumn(Grid<Order> orderGrid) {
+        orderGrid.addColumn(order ->
+                        order.getOrderCompletedDateTime() != null ?
+                                order.getOrderCompletedDateTime().format(DATE_FORMATTER) : "")
+                .setHeader("Sifariş bitdi")
+                .setSortable(true)
+                .setFlexGrow(2)
+                .setKey("complete_date");
+    }
 
+    private void addOrderReceivedDateTimeColum(Grid<Order> orderGrid) {
+        Grid.Column<Order> orderReceivedDateTimeColumn = orderGrid.addColumn(order ->
+                        order.getOrderReceivedDateTime() != null ?
+                                order.getOrderReceivedDateTime().format(DATE_FORMATTER) : "")
+                .setHeader("Sifariş gəldi")
+                .setSortable(true)
+                .setFlexGrow(2)
+                .setKey("incoming_date");
 
-        searchField.addValueChangeListener(event -> dataView.refreshAll());
+        orderGrid.sort(GridSortOrder.desc(orderReceivedDateTimeColumn).build());
+    }
 
-        dataView.addFilter(order -> {
-            String searchTerm = searchField.getValue().trim().toLowerCase();
-            if (searchTerm.isEmpty()) return true;
-            boolean matchesName = matchesTerm(order.getOrderNo().toString(), searchTerm);
-            boolean matchesProducts = matchesTerm(order.getProductsString(), searchTerm);
-            boolean matchesStatus = matchesTerm(order.getStatus().getName(), searchTerm);
-            return matchesName || matchesProducts || matchesStatus;
-        });
+    private static void addProductsNameColumn(Grid<Order> orderGrid) {
+        orderGrid.addColumn(Order::getProductsString)
+                .setHeader("Məhsullar")
+                .setSortable(false)
+                .setFlexGrow(10)
+                .setKey("products");
+    }
 
-        layout.add(orderGrid);
-
-        return layout;
+    private static void addOrderNoColumn(Grid<Order> orderGrid) {
+        orderGrid.addColumn(Order::getOrderNo)
+                .setHeader("Sifariş nömrəsi")
+                .setSortable(true)
+                .setFlexGrow(2)
+                .setKey("number");
     }
 
     private boolean matchesTerm(String value, String searchTerm) {

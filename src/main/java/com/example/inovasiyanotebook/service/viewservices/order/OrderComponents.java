@@ -458,7 +458,8 @@ public class OrderComponents {
         }
 
         private boolean isPositionStatusValidate(boolean result) {
-            if (positionStatusComboBox.getValue() != COMPLETE && statusField.getValue() == COMPLETE) {
+            if ((positionStatusComboBox.getValue() != COMPLETE && positionStatusComboBox.getValue() != CANCELED)
+                    && statusField.getValue() == COMPLETE) {
                 positionStatusComboBox.setErrorMessage("Bitməmiş iş");
                 positionStatusComboBox.setInvalid(true);
                 statusField.setErrorMessage("Bitməmiş işlər qalıb");
