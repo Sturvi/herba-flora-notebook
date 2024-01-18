@@ -138,8 +138,7 @@ public class OrdersGrid {
             ordersPageHeaderLine.setWidthFull();
             layout.add(ordersPageHeaderLine);
         } else {
-            statusComboBox.setValue(StatusWrapper.ALL);
-            layout.add(new HorizontalLayout(searchField));
+            layout.add(new HorizontalLayout(statusComboBox, searchField));
         }
     }
 
