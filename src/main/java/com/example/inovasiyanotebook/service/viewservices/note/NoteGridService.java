@@ -43,7 +43,7 @@ public class NoteGridService {
     private boolean allDataLoaded = false;
 
 
-    public Component getNoteGrid (Noteable entity, User user) {
+    public VerticalLayout getNoteGrid (Noteable entity, User user) {
         allDataLoaded = false;
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
         if (permissionsCheck.isContributorOrHigher(user)) {

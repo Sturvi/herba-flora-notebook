@@ -5,10 +5,12 @@ import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.model.order.PrintedType;
+import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
 import com.example.inovasiyanotebook.service.entityservices.iml.PrintedTypeService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
+import com.example.inovasiyanotebook.service.viewservices.note.NoteDialog;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.button.Button;
@@ -47,6 +49,7 @@ public class OrderComponents {
     private final OrderService orderService;
     private final PrintedTypeService printedTypeService;
     private final OrderPositionService orderPositionService;
+    private final NoteDialog noteDialog;
 
     private TextField orderNoField;
     private DateTimePicker receivedDateTimePicker;
@@ -60,6 +63,7 @@ public class OrderComponents {
     private List<OrderPositionComponents> positionsForRemoved;
     private List<Product> products;
     private List<PrintedType> printedTypes;
+    private Button notesDialogButton;
 
 
 
@@ -140,6 +144,15 @@ public class OrderComponents {
         orderCommentField.setReadOnly(isReadOnly);
         statusField.setReadOnly(isReadOnly);
         orderPositionComponents.forEach(components -> components.setReadOnly(isReadOnly));
+    }
+
+    public void addNotesButton (User user) {
+        if (order.getId() != null) {
+            this.notesDialogButton = designTools.getNewIconButton(VaadinIcon.NOTEBOOK.create(), () -> {
+                noteDialog.openDialog(order, user);
+            });
+
+        }
     }
 
     /**
@@ -304,9 +317,22 @@ public class OrderComponents {
             return orderLayout;
         }
 
-        orderLayout = new VerticalLayout();
+        return refreshLayout();
+    }
+
+    private VerticalLayout refreshLayout() {
+        if (orderLayout == null) {
+            orderLayout = new VerticalLayout();
+        } else {
+            orderLayout.removeAll();
+        }
+
         HorizontalLayout firstLine = new HorizontalLayout(orderNoField, receivedDateTimePicker, completedDataTime, statusField);
+        if (notesDialogButton != null) {
+            firstLine.add(notesDialogButton);
+        }
         firstLine.setWidthFull();
+        firstLine.setAlignItems(FlexComponent.Alignment.BASELINE);
         orderLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
         orderLayout.add(firstLine);
 

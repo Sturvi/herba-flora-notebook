@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.viewservices.order;
 
 import com.example.inovasiyanotebook.model.order.Order;
+import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -51,7 +52,7 @@ public class NewOrderDialog {
         dialog.open();
     }
 
-    public void openReadOnlyDialog(Order order) {
+    public void openReadOnlyDialog(Order order, User user) {
         Dialog dialog = createDialog();
         VerticalLayout dialogLayout = createDialogLayout();
 
@@ -60,6 +61,7 @@ public class NewOrderDialog {
         if (order != null) {
             orderComponents.setOrder(order);
             orderComponents.readOnly(true);
+            orderComponents.addNotesButton(user);
         }
 
         dialogLayout.add(orderComponents.getLayout());

@@ -2,6 +2,7 @@ package com.example.inovasiyanotebook.service.viewservices.order;
 
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
+import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
@@ -10,6 +11,7 @@ import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
@@ -18,10 +20,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -61,8 +65,14 @@ public class OrdersGrid {
         searchField.setPlaceholder("Axtarış...");
         searchField.setWidthFull();
 
+        ComboBox<StatusWrapper> statusComboBox = new ComboBox<>();
+        statusComboBox.setItems(StatusWrapper.getAllStatuses());
+        statusComboBox.setItemLabelGenerator(StatusWrapper::getLabel);
+        statusComboBox.setValue(StatusWrapper.OPEN);
+        statusComboBox.setPlaceholder("Status");
 
-        displayOrdersGridHeader(user, addButtonAction, hasTitle, searchField, layout);
+
+        displayOrdersGridHeader(user, addButtonAction, hasTitle, statusComboBox, searchField, layout);
 
         Grid<Order> orderGrid = new Grid<>();
         orderGrid.setHeightFull();
@@ -79,9 +89,15 @@ public class OrdersGrid {
 
         GridListDataView<Order> dataView = orderGrid.setItems(orders);
 
+        statusComboBox.addValueChangeListener(event -> dataView.refreshAll());
+
         searchField.addValueChangeListener(event -> dataView.refreshAll());
 
         dataView.addFilter(order -> {
+            if (statusComboBox.getValue() != StatusWrapper.ALL && statusComboBox.getValue().status != order.getStatus()) {
+                return false;
+            }
+
             String searchTerm = searchField.getValue().trim().toLowerCase();
             if (searchTerm.isEmpty()) return true;
             boolean matchesName = matchesTerm(order.getOrderNo().toString(), searchTerm);
@@ -104,7 +120,7 @@ public class OrdersGrid {
         addButtonsColumn(user, orderGrid);
     }
 
-    private void displayOrdersGridHeader(User user, Runnable addButtonAction, boolean hasTitle, TextField searchField, VerticalLayout layout) {
+    private void displayOrdersGridHeader(User user, Runnable addButtonAction, boolean hasTitle, ComboBox<StatusWrapper> statusComboBox, TextField searchField, VerticalLayout layout) {
         if (hasTitle) {
             var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
 
@@ -117,11 +133,12 @@ public class OrdersGrid {
                 ordersPageHeaderLine.add(printedTypeButton);
             }
 
+            ordersPageHeaderLine.add(statusComboBox);
             ordersPageHeaderLine.add(searchField);
             ordersPageHeaderLine.setWidthFull();
             layout.add(ordersPageHeaderLine);
         } else {
-            layout.add(searchField);
+            layout.add(new HorizontalLayout(statusComboBox, searchField));
         }
     }
 
@@ -130,7 +147,7 @@ public class OrdersGrid {
                     HorizontalLayout componentsColumn = new HorizontalLayout();
                     Button previewButton = designTools.getNewIconButton(VaadinIcon.PRESENTATION.create(), () -> {
                         buttonClicked.set(true);
-                        newOrderDialog.openReadOnlyDialog(order);
+                        newOrderDialog.openReadOnlyDialog(order, user);
                     });
                     componentsColumn.add(previewButton);
 
@@ -203,4 +220,28 @@ public class OrdersGrid {
     private boolean matchesTerm(String value, String searchTerm) {
         return value != null && value.trim().toLowerCase().contains(searchTerm);
     }
+
+    public enum StatusWrapper {
+        OPEN(OrderStatusEnum.OPEN, "Açıq"),
+        WAITING(OrderStatusEnum.WAITING, "Gözləmədə"),
+        COMPLETE(OrderStatusEnum.COMPLETE, "Bitdi"),
+        CANCELED(OrderStatusEnum.CANCELED, "Ləğv edildi"),
+        ALL(null, "Hamısı"); // Дополнительный элемент для "всех статусов"
+
+        @Getter
+        private final OrderStatusEnum status;
+        @Getter
+        private final String label;
+
+        StatusWrapper(OrderStatusEnum status, String label) {
+            this.status = status;
+            this.label = label;
+        }
+
+        public static List<StatusWrapper> getAllStatuses() {
+            return Arrays.asList(StatusWrapper.values());
+        }
+    }
+
+
 }

@@ -8,6 +8,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ public class NoteDialog {
         buttonsLayout.add(closeButton);
         dialog.getHeader().add(buttonsLayout);
 
+        notesLayout.getStyle().set("margin-left", "0px");
         dialog.add(notesLayout);
         dialog.setHeightFull();
         dialog.open();
