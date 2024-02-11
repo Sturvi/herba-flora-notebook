@@ -116,7 +116,7 @@ public class OrderComponents {
         this.completedDataTime = new DateTimePicker("Şifarişin bitmə tarixi");
         completedDataTime.setValue(order.getOrderCompletedDateTime());
         statusField.setValue(order.getStatus());
-        orderCommentField.setValue(order.getComment());
+        orderCommentField.setValue(order.getComment() != null ? order.getComment() : "");
 
         this.orderPositionComponents.clear();
         int i = 1;

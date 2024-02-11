@@ -49,4 +49,9 @@ public class Product extends AbstractEntity implements ParentEntity, NamedEntity
     public ViewsEnum getViewEnum() {
         return ViewsEnum.PRODUCT;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }
