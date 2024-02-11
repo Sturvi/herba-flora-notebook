@@ -7,6 +7,7 @@ import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
 import com.example.inovasiyanotebook.service.viewservices.note.NoteDialog;
+import com.example.inovasiyanotebook.service.viewservices.order.worddocument.UploadComponentCreator;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
@@ -40,6 +41,7 @@ public class OrdersGrid {
     private final PermissionsCheck permissionsCheck;
     private final PrintedTypeGrid printedTypeGrid;
     private final NoteDialog noteDialog;
+    private final UploadComponentCreator uploadComponentCreator;
 
     private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
     private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
@@ -61,15 +63,9 @@ public class OrdersGrid {
         layout.setHeightFull();
         layout.setWidthFull();
 
-        TextField searchField = new TextField();
-        searchField.setPlaceholder("Axtarış...");
-        searchField.setWidthFull();
+        TextField searchField = getSearchField();
 
-        ComboBox<StatusWrapper> statusComboBox = new ComboBox<>();
-        statusComboBox.setItems(StatusWrapper.getAllStatuses());
-        statusComboBox.setItemLabelGenerator(StatusWrapper::getLabel);
-        statusComboBox.setValue(StatusWrapper.OPEN);
-        statusComboBox.setPlaceholder("Status");
+        ComboBox<StatusWrapper> statusComboBox = getStatusWrapperComboBox();
 
 
         displayOrdersGridHeader(user, addButtonAction, hasTitle, statusComboBox, searchField, layout);
@@ -90,9 +86,16 @@ public class OrdersGrid {
         GridListDataView<Order> dataView = orderGrid.setItems(orders);
 
         statusComboBox.addValueChangeListener(event -> dataView.refreshAll());
-
         searchField.addValueChangeListener(event -> dataView.refreshAll());
 
+        applySearchAndStatusFilters(dataView, statusComboBox, searchField);
+
+        layout.add(orderGrid);
+
+        return layout;
+    }
+
+    private void applySearchAndStatusFilters(GridListDataView<Order> dataView, ComboBox<StatusWrapper> statusComboBox, TextField searchField) {
         dataView.addFilter(order -> {
             if (statusComboBox.getValue() != StatusWrapper.ALL && statusComboBox.getValue().status != order.getStatus()) {
                 return false;
@@ -105,10 +108,22 @@ public class OrdersGrid {
             boolean matchesStatus = matchesTerm(order.getStatus().getName(), searchTerm);
             return matchesName || matchesProducts || matchesStatus;
         });
+    }
 
-        layout.add(orderGrid);
+    private static TextField getSearchField() {
+        TextField searchField = new TextField();
+        searchField.setPlaceholder("Axtarış...");
+        searchField.setWidthFull();
+        return searchField;
+    }
 
-        return layout;
+    private static ComboBox<StatusWrapper> getStatusWrapperComboBox() {
+        ComboBox<StatusWrapper> statusComboBox = new ComboBox<>();
+        statusComboBox.setItems(StatusWrapper.getAllStatuses());
+        statusComboBox.setItemLabelGenerator(StatusWrapper::getLabel);
+        statusComboBox.setValue(StatusWrapper.OPEN);
+        statusComboBox.setPlaceholder("Status");
+        return statusComboBox;
     }
 
     private void addGridColumns(User user, Grid<Order> orderGrid) {
@@ -126,6 +141,8 @@ public class OrdersGrid {
 
             Button printedTypeButton;
             if (permissionsCheck.needEditor(user)) {
+                ordersPageHeaderLine.add(uploadComponentCreator.getUpload());
+
                 printedTypeButton = new Button("Çap növləri");
                 printedTypeButton.addClickListener(buttonClickEvent -> {
                     printedTypeGrid.openDialog(user);

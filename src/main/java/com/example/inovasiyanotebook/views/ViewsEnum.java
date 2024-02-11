@@ -8,8 +8,9 @@ public enum ViewsEnum {
     CATEGORY("category"),
     PRODUCT("product"),
     REGISTRATION("registration"),
-    CLIENT ("client"),
-    ORDER ("order"),
+    CLIENT("client"),
+    ORDER("order"),
+    PRODUCT_MAPPING("productmapping"),
     PAGE404("404");
 
     private String view;

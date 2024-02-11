@@ -2,6 +2,7 @@ package com.example.inovasiyanotebook.service.viewservices.order;
 
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.service.PrototypeComponentsFactory;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class NewOrderDialog {
 
     private final NavigationTools navigationTools;
-    private final OrderComponentsFactory orderComponentsFactory;
+    private final PrototypeComponentsFactory prototypeComponentsFactory;
 
     public void openNewDialog() {
         openNewDialog(null);
@@ -27,7 +28,7 @@ public class NewOrderDialog {
         Dialog dialog = createDialog();
         VerticalLayout dialogLayout = createDialogLayout();
 
-        OrderComponents orderComponents = orderComponentsFactory.getNewBean();
+        OrderComponents orderComponents = prototypeComponentsFactory.getOrderComponents();
 
         if (order != null) {
             orderComponents.setOrder(order);
@@ -56,7 +57,7 @@ public class NewOrderDialog {
         Dialog dialog = createDialog();
         VerticalLayout dialogLayout = createDialogLayout();
 
-        OrderComponents orderComponents = orderComponentsFactory.getNewBean();
+        OrderComponents orderComponents = prototypeComponentsFactory.getOrderComponents();
 
         if (order != null) {
             orderComponents.setOrder(order);
