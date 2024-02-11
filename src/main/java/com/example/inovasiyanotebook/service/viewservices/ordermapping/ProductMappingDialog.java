@@ -7,6 +7,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.PrintedTypeServi
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -30,13 +31,14 @@ public class ProductMappingDialog {
     private final ProductService productService;
     private final PrintedTypeService printedTypeService;
     private final ProductMappingService productMappingService;
+    private final NavigationTools navigationTools;
 
     private TextField incomingNameField;
     private ComboBox<Product> productComboBox;
     private ComboBox<PrintedType> printedTypeComboBox;
     private TextField commentTextField;
     private Button saveButton;
-    private Button cancellButton;
+    private Button cancelButton;
 
     private Dialog dialog;
     private ProductMapping productMapping;
@@ -55,11 +57,11 @@ public class ProductMappingDialog {
 
         saveButton = new Button("Yadda saxla");
         saveButton.addClickListener(this::save);
-        cancellButton = new Button("Ləğv et");
-        cancellButton.addClickListener(buttonClickEvent -> dialog.close());
+        cancelButton = new Button("Ləğv et");
+        cancelButton.addClickListener(buttonClickEvent -> dialog.close());
 
 
-        dialog.add(new VerticalLayout(incomingNameField, productComboBox, printedTypeComboBox, commentTextField, new HorizontalLayout(saveButton, cancellButton)));
+        dialog.add(new VerticalLayout(incomingNameField, productComboBox, printedTypeComboBox, commentTextField, new HorizontalLayout(saveButton, cancelButton)));
     }
 
     public void setProductMappingAndOpenDialog (ProductMapping productMapping) {
@@ -83,6 +85,7 @@ public class ProductMappingDialog {
             productMapping.setComment(commentTextField.getValue());
             productMappingService.update(productMapping);
             dialog.close();
+            navigationTools.reloadPage();
         }
     }
 

@@ -4,8 +4,8 @@ import com.example.inovasiyanotebook.model.ProductMapping;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.PrototypeComponentsFactory;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingService;
+import com.example.inovasiyanotebook.service.viewservices.product.AddNewProductViewService;
 import com.example.inovasiyanotebook.views.DesignTools;
-import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -20,6 +20,7 @@ public class ProductMappingGridService {
     private final ProductMappingService productMappingService;
     private final PrototypeComponentsFactory prototypeComponentsFactory;
     private final DesignTools designTools;
+    private final AddNewProductViewService addNewProductViewService;
 
     public VerticalLayout getOrderMappingGridLayout (User user) {
 
@@ -43,14 +44,17 @@ public class ProductMappingGridService {
         createProductColumn(productMappingGrid);
         createPrintedTypeColumn(productMappingGrid);
         createCommentColumn(productMappingGrid);
+        createEditButtonColumn(productMappingGrid);
 
+        setProductMappings(productMappingGrid);
+    }
+
+    private void createEditButtonColumn(Grid<ProductMapping> productMappingGrid) {
         productMappingGrid.addComponentColumn(productMapping -> designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
             var dialog = prototypeComponentsFactory.getProductMappingDialogComponent();
             dialog.setProductMappingAndOpenDialog(productMapping);
         }))
                 .setFlexGrow(1);
-
-        setProductMappings(productMappingGrid);
     }
 
     private void setProductMappings(Grid<ProductMapping> productMappingGrid) {
