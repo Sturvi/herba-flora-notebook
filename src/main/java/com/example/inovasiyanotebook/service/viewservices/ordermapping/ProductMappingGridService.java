@@ -13,6 +13,9 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @UIScope
@@ -58,7 +61,17 @@ public class ProductMappingGridService {
     }
 
     private void setProductMappings(Grid<ProductMapping> productMappingGrid) {
-        var allProductMappings = productMappingService.getAll();
+        List<ProductMapping> allProductMappings = productMappingService.getAll();
+
+        // Создаем компаратор, который сортирует null значения в начало
+        Comparator<ProductMapping> byProductNullFirst = Comparator.comparing(
+                productMapping -> productMapping.getProduct() == null ? "" : productMapping.getProduct().toString(),
+                Comparator.nullsFirst(String::compareTo)
+        );
+
+        // Применяем компаратор к списку
+        allProductMappings.sort(byProductNullFirst);
+
         productMappingGrid.setItems(allProductMappings);
     }
 
