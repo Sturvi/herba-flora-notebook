@@ -159,7 +159,7 @@ public class DocumentParser {
                         .printedType(productMapping.getPrintedType())
                         .status(OrderStatusEnum.OPEN)
                         .count(documentOrderPosition.getQuantity().toString())
-                        .comment(productMapping.getComment() + " " + documentOrderPosition.getComment())
+                        .comment(productMapping.getComment() + " " + documentOrderPosition.shelfLife + " " + documentOrderPosition.getComment())
                         .build());
     }
 
@@ -186,10 +186,11 @@ public class DocumentParser {
             String name = cells.get(2).getText();
             String quantity = cells.get(3).getText().replaceAll("\\s","").replaceAll("\u00A0","");
             String comment = cells.get(6).getText();
+            String shelfLife = cells.get(5).getText();
 
             try {
                 int quantityInt = Integer.parseInt(quantity);
-                return Optional.of(new DocumentOrderPosition(name, quantityInt, comment));
+                return Optional.of(new DocumentOrderPosition(name, quantityInt, comment, shelfLife));
             } catch (NumberFormatException e) {
                 log.error("Ошибка при парсинге количества: " + e.getMessage());
                 return Optional.empty();
@@ -218,6 +219,7 @@ public class DocumentParser {
         private final String name;
         private final Integer quantity;
         private final String comment;
+        private final String shelfLife;
     }
 
     @AllArgsConstructor
