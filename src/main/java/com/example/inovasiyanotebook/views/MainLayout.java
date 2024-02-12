@@ -8,6 +8,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
+import com.example.inovasiyanotebook.service.viewservices.order.worddocument.UploadComponentCreator;
 import com.example.inovasiyanotebook.views.category.CategoryView;
 import com.example.inovasiyanotebook.views.order.OrderView;
 import com.example.inovasiyanotebook.views.ordermapping.ProductMappingView;
@@ -56,12 +57,14 @@ public class MainLayout extends AppLayout{
     private final ClientService clientService;
     private final AddNewClientMenuService addNewClientMenuService;
     private final VerticalLayout clientsNav;
+    private final UploadComponentCreator uploadComponentCreator;
     private final User user;
 
     private H2 viewTitle;
 
-    public MainLayout(UserService userService, PermissionsCheck permissionsCheck, DesignTools designTools, NavigationTools navigationTools, ClientMapper clientMapper, ClientService clientService, AddNewClientMenuService addNewClientMenuService) {
+    public MainLayout(UserService userService, PermissionsCheck permissionsCheck, DesignTools designTools, NavigationTools navigationTools, ClientMapper clientMapper, ClientService clientService, AddNewClientMenuService addNewClientMenuService, UploadComponentCreator uploadComponentCreator) {
         this.userService = userService;
+        this.uploadComponentCreator = uploadComponentCreator;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
         this.permissionsCheck = permissionsCheck;
         this.designTools = designTools;
@@ -225,6 +228,10 @@ public class MainLayout extends AppLayout{
 
 
     private Component getIsFunctionalityEnabledButton() {
+        var upload = uploadComponentCreator.getUpload();
+        upload.setDropAllowed(true);
+
+
         if (permissionsCheck.isEditorOrHigher(user)) {
             Checkbox toggleButton = new Checkbox("Admin funksiyaları");
             toggleButton.setValue(user.isFunctionalityEnabled());
@@ -236,7 +243,7 @@ public class MainLayout extends AppLayout{
                 navigationTools.reloadPage();
             });
 
-            return toggleButton;
+            return new VerticalLayout(upload, toggleButton);
         }
 
         return null;
