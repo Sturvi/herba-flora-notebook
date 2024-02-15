@@ -92,7 +92,7 @@ public class MainLayout extends AppLayout{
                 new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
                 new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 permissionsCheck.isAdminOrHigher(user) ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
-                permissionsCheck.isAdminOrHigher(user) ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
+                permissionsCheck.isEditorOrHigher(user) ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
                 designTools.addEmptySpace(),
                 addTitle("Müştərilər"),
                 newClientButton(user),
@@ -228,11 +228,9 @@ public class MainLayout extends AppLayout{
 
 
     private Component getIsFunctionalityEnabledButton() {
-        var upload = uploadComponentCreator.getUpload();
-        upload.setDropAllowed(true);
-
-
         if (permissionsCheck.isEditorOrHigher(user)) {
+            var upload = uploadComponentCreator.getUpload();
+            upload.setDropAllowed(true);
             Checkbox toggleButton = new Checkbox("Admin funksiyaları");
             toggleButton.setValue(user.isFunctionalityEnabled());
             toggleButton.addClassName("custom-checkbox"); // Добавление кастомного класса

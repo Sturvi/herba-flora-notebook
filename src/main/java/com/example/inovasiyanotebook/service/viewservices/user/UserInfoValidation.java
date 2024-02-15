@@ -5,6 +5,7 @@ import com.example.inovasiyanotebook.model.user.RoleEnum;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -25,6 +26,7 @@ public class UserInfoValidation {
     private final DesignTools designTools;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final NavigationTools navigationTools;
 
 
     public List<Component> getNewComponents (Dialog dialog) {
@@ -105,6 +107,7 @@ public class UserInfoValidation {
 
                 userService.create(newUser);
                 dialog.close();
+                navigationTools.reloadPage();
             }
         });
 

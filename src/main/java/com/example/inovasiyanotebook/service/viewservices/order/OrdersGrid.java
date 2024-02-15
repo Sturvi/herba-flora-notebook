@@ -141,7 +141,7 @@ public class OrdersGrid {
             var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
 
             Button printedTypeButton;
-            if (permissionsCheck.needEditor(user)) {
+            if (permissionsCheck.isEditorOrHigher(user)) {
                 ordersPageHeaderLine.add(uploadComponentCreator.getUpload());
 
                 printedTypeButton = new Button("Çap növləri");
