@@ -205,7 +205,7 @@ public class OrdersGrid {
                 .setHeader("Sifariş bitdi")
                 .setSortable(true)
                 .setComparator(order ->
-                        order.getOrderReceivedDateTime() != null ? order.getOrderReceivedDateTime() : LocalDateTime.MIN)
+                        order.getOrderCompletedDateTime() != null ? order.getOrderCompletedDateTime() : LocalDateTime.MIN)
                 .setFlexGrow(2)
                 .setKey("complete_date");
     }
