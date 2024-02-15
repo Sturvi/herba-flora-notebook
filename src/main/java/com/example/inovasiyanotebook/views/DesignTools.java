@@ -278,7 +278,7 @@ public class DesignTools {
         var headerName = new H1(headerText);
         horizontalLayout.add(headerName);
 
-        if (permissionsCheck.needEditor(user) && addFunction != null) {
+        if (permissionsCheck.isEditorOrHigher(user) && addFunction != null) {
             var addButton = getAddButton(addFunction);
             horizontalLayout.add(addButton);
         }

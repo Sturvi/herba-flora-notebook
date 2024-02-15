@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -140,7 +141,7 @@ public class OrdersGrid {
             var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
 
             Button printedTypeButton;
-            if (permissionsCheck.needEditor(user)) {
+            if (permissionsCheck.isEditorOrHigher(user)) {
                 ordersPageHeaderLine.add(uploadComponentCreator.getUpload());
 
                 printedTypeButton = new Button("Çap növləri");
@@ -203,6 +204,8 @@ public class OrdersGrid {
                                 order.getOrderCompletedDateTime().format(DATE_FORMATTER) : "")
                 .setHeader("Sifariş bitdi")
                 .setSortable(true)
+                .setComparator(order ->
+                        order.getOrderCompletedDateTime() != null ? order.getOrderCompletedDateTime() : LocalDateTime.MIN)
                 .setFlexGrow(2)
                 .setKey("complete_date");
     }
@@ -212,12 +215,14 @@ public class OrdersGrid {
                         order.getOrderReceivedDateTime() != null ?
                                 order.getOrderReceivedDateTime().format(DATE_FORMATTER) : "")
                 .setHeader("Sifariş gəldi")
-                .setSortable(true)
+                .setComparator(order ->
+                        order.getOrderReceivedDateTime() != null ? order.getOrderReceivedDateTime() : LocalDateTime.MIN)
                 .setFlexGrow(2)
                 .setKey("incoming_date");
 
         orderGrid.sort(GridSortOrder.desc(orderReceivedDateTimeColumn).build());
     }
+
 
     private static void addProductsNameColumn(Grid<Order> orderGrid) {
         orderGrid.addColumn(Order::getProductsString)
