@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.model.order;
 
 import com.example.inovasiyanotebook.model.AbstractEntity;
+import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -17,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor
-public class PrintedType extends AbstractEntity {
+public class PrintedType extends AbstractEntity implements NamedEntity {
 
     @Column(unique = true)
     private String name;

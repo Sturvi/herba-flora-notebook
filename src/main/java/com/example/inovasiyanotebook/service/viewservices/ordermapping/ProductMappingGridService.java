@@ -1,15 +1,19 @@
 package com.example.inovasiyanotebook.service.viewservices.ordermapping;
 
 import com.example.inovasiyanotebook.model.ProductMapping;
+import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.PrototypeComponentsFactory;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingService;
 import com.example.inovasiyanotebook.service.viewservices.product.AddNewProductViewService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,21 +29,87 @@ public class ProductMappingGridService {
     private final DesignTools designTools;
     private final AddNewProductViewService addNewProductViewService;
 
-    public VerticalLayout getOrderMappingGridLayout (User user) {
+    private Grid<ProductMapping> productMappingGrid;
+    private VerticalLayout gridLayout;
+    private GridListDataView<ProductMapping> dataView;
+    private OrderMappingStatusEnum status;
+    private String searchTerm;
 
-        VerticalLayout layout = new VerticalLayout();
-        layout.setWidthFull();
-        layout.setHeightFull();
+    @PostConstruct
+    private void init () {
+        gridLayout = new VerticalLayout();
+        gridLayout.setWidthFull();
+        gridLayout.setHeightFull();
 
-        Grid<ProductMapping> productMappingGrid = new Grid<>();
+        productMappingGrid = new Grid<>();
         productMappingGrid.setHeightFull();
         productMappingGrid.setWidthFull();
 
+        status = OrderMappingStatusEnum.ALREADY_MAPPED;
+        searchTerm = "";
+
         initializeOrderMappingGrid(productMappingGrid);
 
-        layout.add(productMappingGrid);
+        gridLayout.add(productMappingGrid);
+    }
 
-        return layout;
+    public VerticalLayout getOrderMappingGridLayout (User user) {
+        return gridLayout;
+    }
+
+    public void setFilter (OrderMappingStatusEnum status) {
+        this.status = status;
+        dataView.refreshAll();
+    }
+
+    public void setSearchTerm (String searchTerm){
+        this.searchTerm = searchTerm.toLowerCase().trim();
+        dataView.refreshAll();
+    }
+
+    private void gridFilters() {
+        dataView.addFilter(productMapping -> {
+            if (isSearchTermNonMatching(productMapping)) {
+                return false;
+            }
+            return filterByStatus(productMapping);
+        });
+    }
+
+    private boolean isSearchTermNonMatching(ProductMapping productMapping) {
+        if (searchTerm.isEmpty()) return false;
+
+        boolean matches1CNames = matchesTerm(productMapping.getIncomingOrderPositionName(), searchTerm);
+        boolean matchesProducts = matchesTermOptional(productMapping.getProduct(), searchTerm);
+        boolean matchesPrintedTypes = matchesTermOptional(productMapping.getPrintedType(), searchTerm);
+
+        return !(matches1CNames || matchesProducts || matchesPrintedTypes);
+    }
+
+    private boolean matchesTermOptional(NamedEntity entity, String term) {
+        return entity != null && matchesTerm(entity.getName(), term);
+    }
+
+    private boolean filterByStatus(ProductMapping productMapping) {
+        switch (status) {
+            case TO_BE_MAPPED -> {
+                return productMapping.getProduct() == null || productMapping.getPrintedType() == null;
+            }
+            case ALREADY_MAPPED -> {
+                return productMapping.getProduct() != null && productMapping.getPrintedType() != null;
+            }
+            case ALL -> {
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+
+
+    private boolean matchesTerm(String value, String searchTerm) {
+        return value != null && value.trim().toLowerCase().contains(searchTerm);
     }
 
     private void initializeOrderMappingGrid(Grid<ProductMapping> productMappingGrid) {
@@ -72,7 +142,8 @@ public class ProductMappingGridService {
         // Применяем компаратор к списку
         allProductMappings.sort(byProductNullFirst);
 
-        productMappingGrid.setItems(allProductMappings);
+        dataView = productMappingGrid.setItems(allProductMappings);
+        gridFilters();
     }
 
     private void createCommentColumn(Grid<ProductMapping> productMappingGrid) {
@@ -106,5 +177,6 @@ public class ProductMappingGridService {
                 .setFlexGrow(10)
                 .setKey("incomingOrderPositionName");
     }
+
 
 }

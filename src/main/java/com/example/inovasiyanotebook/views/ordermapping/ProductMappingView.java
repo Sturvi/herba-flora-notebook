@@ -2,13 +2,16 @@ package com.example.inovasiyanotebook.views.ordermapping;
 
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
+import com.example.inovasiyanotebook.service.viewservices.ordermapping.OrderMappingStatusEnum;
 import com.example.inovasiyanotebook.service.viewservices.ordermapping.ProductMappingGridService;
 import com.example.inovasiyanotebook.service.viewservices.product.AddNewProductViewService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.MainLayout;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.PostConstruct;
@@ -35,10 +38,17 @@ public class ProductMappingView extends VerticalLayout {
         setHeightFull();
         setWidthFull();
 
-        var productMappingPageHeaderLine = designTools.getAllCommonViewHeader(user, "1C eyniləşdirmə", null);
+        var productMappingPageHeaderLine = designTools.getAllCommonViewHeader(user, "Eyniləşdirmə", null);
+        productMappingPageHeaderLine.setWidthFull();
         productMappingPageHeaderLine.add(addNewProductButtonOnClick(addNewProductViewService));
+        productMappingPageHeaderLine.add(getStatusComboBox());
 
         var productMappingGrid = productMappingGridService.getOrderMappingGridLayout(user);
+
+        var searchField = getSearchField();
+        searchField.addValueChangeListener(event -> productMappingGridService.setSearchTerm(searchField.getValue()));
+
+        productMappingPageHeaderLine.add(searchField);
 
         add(productMappingPageHeaderLine, productMappingGrid);
     }
@@ -47,5 +57,21 @@ public class ProductMappingView extends VerticalLayout {
         Button button = new Button("Məhsul əlavə et");
         button.addClickListener(buttonClickEvent -> addNewProductViewService.creatNewProductDialog());
         return button;
+    }
+
+    private ComboBox<OrderMappingStatusEnum> getStatusComboBox () {
+        ComboBox<OrderMappingStatusEnum> comboBox = new ComboBox<>();
+        comboBox.setItems(OrderMappingStatusEnum.values());
+        comboBox.setItemLabelGenerator(OrderMappingStatusEnum::getDisplayName);
+        comboBox.addValueChangeListener(event -> productMappingGridService.setFilter(event.getValue()));
+        comboBox.setValue(OrderMappingStatusEnum.TO_BE_MAPPED);
+        return comboBox;
+    }
+
+    private TextField getSearchField() {
+        TextField searchField = new TextField();
+        searchField.setPlaceholder("Axtarış...");
+        searchField.setWidthFull();
+        return searchField;
     }
 }
