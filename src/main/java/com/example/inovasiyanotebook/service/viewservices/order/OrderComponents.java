@@ -23,6 +23,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.dom.Element;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,6 @@ public class OrderComponents {
     private List<Product> products;
     private List<PrintedType> printedTypes;
     private Button notesDialogButton;
-
 
 
     /**
@@ -146,7 +146,7 @@ public class OrderComponents {
         orderPositionComponents.forEach(components -> components.setReadOnly(isReadOnly));
     }
 
-    public void addNotesButton (User user) {
+    public void addNotesButton(User user) {
         if (order.getId() != null) {
             this.notesDialogButton = designTools.getNewIconButton(VaadinIcon.NOTEBOOK.create(), () -> {
                 noteDialog.openDialog(order, user);
@@ -237,7 +237,7 @@ public class OrderComponents {
         result = isOrderNoValid(result);
         result = isReceivedDateValid(result);
         result = isStatusValid(result);
-        
+
         positionsLayout.removeAll();
 
         result = areOrderPositionsValid(result);
@@ -375,6 +375,7 @@ public class OrderComponents {
             this.orderCount.setValue(entity.getCount());
             this.note.setValue(entity.getComment());
             this.positionStatusComboBox.setValue(entity.getStatus());
+            setComboBoxColor(positionStatusComboBox, positionStatusComboBox.getValue());
             this.positionCompleteDateTimeField.setValue(entity.getPositionCompletedDateTime());
         }
 
@@ -394,6 +395,20 @@ public class OrderComponents {
             this.positionStatusComboBox.setMaxWidth("140px");
             this.positionCompleteDateTimeField.setMaxWidth("230px");
         }
+
+        private <T> void setComboBoxColor(ComboBox<T> comboBox, OrderStatusEnum status) {
+            String color = switch (status) {
+                case OPEN -> "red";
+                case WAITING -> "darkgoldenrod";
+                case COMPLETE, CANCELED -> "green";
+            };
+
+            // Изменение стиля input-field через JavaScript
+            comboBox.getElement().executeJs(
+                    "this.shadowRoot.querySelector('[part=\"input-field\"]').style.backgroundColor = $0", color
+            );
+        }
+
 
         private void deleteLine() {
             positionsForRemoved.add(this);

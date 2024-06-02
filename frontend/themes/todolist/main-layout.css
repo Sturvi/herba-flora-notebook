@@ -54,6 +54,22 @@ border: none; // Убираем границу
 color: var(--lumo-error-color); // Цвет текста - красный
 }
 
+.combo-box-open .vaadin-combo-box-overlay {
+  background-color: red;
+}
+
+.combo-box-waiting .vaadin-combo-box-overlay {
+  background-color: yellow;
+}
+
+.combo-box-complete .vaadin-combo-box-overlay {
+  background-color: green;
+}
+
+.combo-box-canceled .vaadin-combo-box-overlay {
+  background-color: green;
+}
+
 
 .note-card {
   /* Стили контейнера */
