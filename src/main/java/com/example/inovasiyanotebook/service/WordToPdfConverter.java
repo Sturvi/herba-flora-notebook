@@ -32,9 +32,10 @@ public class WordToPdfConverter {
             CTPageSz pageSize = sectPr.getPgSz();
             if (pageSize == null) {
                 pageSize = sectPr.addNewPgSz();
-                pageSize.setW(11906);  // Default page width in twips (A4 size)
-                pageSize.setH(16838);  // Default page height in twips (A4 size)
+                // Set page size to A5 landscape
             }
+            pageSize.setW(11906);  // Width in twips for A5 landscape
+            pageSize.setH(8391);   // Height in twips for A5 landscape
 
             // Proceed with PDF conversion
             PdfOptions options = PdfOptions.create();
