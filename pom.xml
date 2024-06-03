@@ -95,11 +95,6 @@
             <version>1.18.30</version>
         </dependency>
         <dependency>
-            <groupId>com.example.inovasiyanotebook</groupId>
-            <artifactId>inovasiyanotebook</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.3</version>
