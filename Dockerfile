@@ -1,7 +1,14 @@
-FROM busybox AS network-check
+# Use Eclipse Temurin as the base image
+FROM eclipse-temurin:17-jre
+
+# Проверка соединения с google.com
 RUN ping -c 1 google.com
 
-FROM adoptopenjdk:17-jre-hotspot
+# Copy the JAR file to the container
 COPY target/*.jar app.jar
+
+# Expose the application port
 EXPOSE 8080
-CMD ["java", "-jar", "/app.jar"]
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
