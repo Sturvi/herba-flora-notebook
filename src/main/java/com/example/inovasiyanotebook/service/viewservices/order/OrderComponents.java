@@ -375,7 +375,7 @@ public class OrderComponents {
             this.orderCount.setValue(entity.getCount());
             this.note.setValue(entity.getComment());
             this.positionStatusComboBox.setValue(entity.getStatus());
-            setComboBoxColor(positionStatusComboBox, positionStatusComboBox.getValue());
+            setComboBoxColor(positionStatusComboBox);
             this.positionCompleteDateTimeField.setValue(entity.getPositionCompletedDateTime());
         }
 
@@ -386,6 +386,9 @@ public class OrderComponents {
             this.orderCount = designTools.createTextField("Say", "^\\d+(\\s+.*|)$", "Ya təkcə rəqəmlər ve ya rəqəmlərdən sonra boşluq buraxılaraq yazılar");
             this.note = designTools.createTextField("Not", ".*", null);
             this.positionStatusComboBox = designTools.creatComboBox("Status", List.of(values()), OrderStatusEnum::getName);
+            this.positionStatusComboBox.addValueChangeListener(status -> {
+                setComboBoxColor(positionStatusComboBox);
+            });
             this.deletePositionButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), this::deleteLine);
             this.positionStatusComboBox.setValue(OPEN);
             this.positionCompleteDateTimeField = new DateTimePicker();
@@ -396,8 +399,8 @@ public class OrderComponents {
             this.positionCompleteDateTimeField.setMaxWidth("230px");
         }
 
-        private <T> void setComboBoxColor(ComboBox<T> comboBox, OrderStatusEnum status) {
-            String color = switch (status) {
+        private void setComboBoxColor(ComboBox<OrderStatusEnum> comboBox) {
+            String color = switch (comboBox.getValue()) {
                 case OPEN -> "red";
                 case WAITING -> "darkgoldenrod";
                 case COMPLETE, CANCELED -> "green";

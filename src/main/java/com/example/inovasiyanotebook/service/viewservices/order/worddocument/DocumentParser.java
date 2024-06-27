@@ -67,7 +67,7 @@ public class DocumentParser {
             parseOrderFromFile(tempFile);
 
             // Открытие диалогового окна
-            showPrintDialog(tempFile);
+            //showPrintDialog(tempFile);
         } catch (InvalidFileTypeException e) {
             Notification.show("Ошибка: загрузка возможна только для файлов Word");
         } catch (Exception e) {
