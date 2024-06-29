@@ -1,11 +1,13 @@
 package com.example.inovasiyanotebook.service.viewservices.order.worddocument;
 
+import com.example.inovasiyanotebook.model.order.RawOrderData;
 import com.example.inovasiyanotebook.model.ProductMapping;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.service.WordToPdfConverter;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingService;
+import com.example.inovasiyanotebook.service.entityservices.iml.RawOrderDataService;
 import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
@@ -53,6 +55,7 @@ public class DocumentParser {
     private final NavigationTools navigationTools;
     private final NewOrderDialog newOrderDialog;
     private final WordToPdfConverter wordToPdfConverter;
+    private final RawOrderDataService rawOrderDataService;
 
     public void processDocument(String fileName, MemoryBuffer buffer) {
         try {
@@ -149,44 +152,47 @@ public class DocumentParser {
             throw new IllegalStateException("Таблица не содержит достаточно строк для обработки заказа");
         }
 
-        OrderInfFromWord orderInfFromWord = new OrderInfFromWord();
+        RawOrderData rawOrderData = new RawOrderData();
 
-        extractOrderInfoFromFirstRow(orderInfFromWord, table);
+        extractOrderInfoFromFirstRow(rawOrderData, table);
 
-        boolean hasUnknownPosition = extractAndProcessOrderPositions(table, orderInfFromWord);
+        boolean hasUnknownPosition = extractAndProcessOrderPositions(table, rawOrderData);
 
         if (hasUnknownPosition) {
             navigationTools.navigateTo(ViewsEnum.PRODUCT_MAPPING);
         } else {
-            createNewOrder(orderInfFromWord);
+            createNewOrder(rawOrderData);
+            rawOrderData.setIsProcessed(true);
         }
+
+        rawOrderDataService.create(rawOrderData);
     }
 
-    private void extractOrderInfoFromFirstRow(OrderInfFromWord orderInfFromWord, XWPFTable table) {
+    private void extractOrderInfoFromFirstRow(RawOrderData rawOrderData, XWPFTable table) {
         XWPFTableRow headerRow = table.getRow(0);
-        extractOrderInfoFromRow(orderInfFromWord, headerRow);
+        extractOrderInfoFromRow(rawOrderData, headerRow);
     }
 
-    private boolean extractAndProcessOrderPositions(XWPFTable table, OrderInfFromWord orderInfFromWord) {
+    private boolean extractAndProcessOrderPositions(XWPFTable table, RawOrderData rawOrderData) {
         for (int i = 1; i < table.getRows().size(); i++) {
             XWPFTableRow row = table.getRow(i);
             try {
-                Optional<OrderPositionInfFromWord> documentOrderPositionOptional = parseOrderItem(row);
+                Optional<RawPositionData> documentOrderPositionOptional = parseOrderItem(row);
                 if (documentOrderPositionOptional.isPresent()) {
-                    OrderPositionInfFromWord orderPosition = documentOrderPositionOptional.get();
-                    orderInfFromWord.addPosition(orderPosition);
+                    RawPositionData orderPosition = documentOrderPositionOptional.get();
+                    rawOrderData.addPosition(orderPosition);
                 }
             } catch (OrderPositionsExhaustedException e) {
-                if (orderInfFromWord.hasPosition()) break;
+                if (rawOrderData.hasPosition()) break;
             }
         }
-        return hasUnknownOrderPositions(orderInfFromWord.getPositions());
+        return hasUnknownOrderPositions(rawOrderData.getPositions());
     }
 
 
-    private void createNewOrder(OrderInfFromWord orderInfFromWord) {
-        Order order = createOrder(orderInfFromWord);
-        List<OrderPosition> orderPositions = createOrderPositions(orderInfFromWord.getPositions(), order);
+    private void createNewOrder(RawOrderData rawOrderData) {
+        Order order = createOrder(rawOrderData);
+        List<OrderPosition> orderPositions = createOrderPositions(rawOrderData.getPositions(), order);
 
         if (orderPositions.isEmpty()) {
             // Если нет позиций заказа, возможно, следует предпринять какие-то действия
@@ -198,21 +204,21 @@ public class DocumentParser {
         newOrderDialog.openNewDialog(order);
     }
 
-    private Order createOrder(OrderInfFromWord orderInfFromWord) {
+    private Order createOrder(RawOrderData rawOrderData) {
         Order order = new Order();
-        order.setOrderNo(order.getOrderNo());
-        order.setOrderReceivedDateTime(LocalDateTime.of(orderInfFromWord.getOrderDate(), LocalTime.now()));
+        order.setOrderNo(rawOrderData.getOrderNumber());
+        order.setOrderReceivedDateTime(LocalDateTime.of(rawOrderData.getOrderDate(), LocalTime.now()));
         order.setStatus(OrderStatusEnum.OPEN);
         return order;
     }
 
-    private List<OrderPosition> createOrderPositions(List<OrderPositionInfFromWord> documentOrderPositions, Order order) {
+    private List<OrderPosition> createOrderPositions(List<RawPositionData> documentOrderPositions, Order order) {
         return documentOrderPositions.stream()
                 .flatMap(documentOrderPosition -> toOrderPosition(documentOrderPosition, order).stream())
                 .toList();
     }
 
-    private Optional<OrderPosition> toOrderPosition(OrderPositionInfFromWord documentOrderPosition, Order order) {
+    private Optional<OrderPosition> toOrderPosition(RawPositionData documentOrderPosition, Order order) {
         return productMappingService.findByIncomingOrderPositionName(documentOrderPosition.getPositionName())
                 .map(productMapping -> OrderPosition.builder()
                         .order(order)
@@ -225,7 +231,7 @@ public class DocumentParser {
     }
 
 
-    private void extractOrderInfoFromRow(OrderInfFromWord orderInfFromWord, XWPFTableRow row) {
+    private void extractOrderInfoFromRow(RawOrderData rawOrderData, XWPFTableRow row) {
         Pattern pattern = Pattern.compile("İstehsal sifarişi № (\\d+) tarix (\\d{2}\\.\\d{2}\\.\\d{4})");
         for (XWPFTableCell cell : row.getTableCells()) {
             String cellText = cell.getText();
@@ -233,16 +239,16 @@ public class DocumentParser {
             if (matcher.find()) {
                 Integer orderNo = Integer.parseInt(matcher.group(1));
                 LocalDate orderDate = LocalDate.parse(matcher.group(2), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-                orderInfFromWord.setOrderNumber(orderNo);
-                orderInfFromWord.setOrderDate(orderDate);
-            } else {
-                throw new IllegalStateException("Не удалось извлечь информацию о заказе");
+                rawOrderData.setOrderNumber(orderNo);
+                rawOrderData.setOrderDate(orderDate);
+                return;
             }
         }
+        throw new IllegalStateException("Не удалось извлечь информацию о заказе");
     }
 
 
-    private Optional<OrderPositionInfFromWord> parseOrderItem(XWPFTableRow row) {
+    private Optional<RawPositionData> parseOrderItem(XWPFTableRow row) {
         List<XWPFTableCell> cells = row.getTableCells();
 
         if (cells.size() > 6 && cells.get(1).getText().matches("^\\d+$")) {
@@ -250,10 +256,10 @@ public class DocumentParser {
                 Integer orderNo = Integer.valueOf(cells.get(1).getText());
                 String name = cells.get(2).getText();
                 Integer quantity = Integer.valueOf(cells.get(3).getText().replaceAll("\\s", "").replaceAll("\u00A0", ""));
-                LocalDate shelfLife = LocalDate.parse(cells.get(5).getText(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                String shelfLife = cells.get(5).getText();
                 String comment = cells.get(6).getText();
 
-                return Optional.of(new OrderPositionInfFromWord(orderNo, name, quantity, shelfLife, comment));
+                return Optional.of(new RawPositionData(orderNo, name, quantity, shelfLife, comment));
             } catch (NumberFormatException e) {
                 log.error("Ошибка при парсинге количества: " + e.getMessage());
                 return Optional.empty();
@@ -262,9 +268,9 @@ public class DocumentParser {
             throw new OrderPositionsExhaustedException("Orders ended");
         }
     }
-    private boolean hasUnknownOrderPositions(List<OrderPositionInfFromWord> positions) {
+    private boolean hasUnknownOrderPositions(List<RawPositionData> positions) {
         boolean hasUnknownPosition = false;
-        for (OrderPositionInfFromWord orderPosition : positions) {
+        for (RawPositionData orderPosition : positions) {
             if (isUnknownOrderPosition(orderPosition)) {
                 hasUnknownPosition = true;
             }
@@ -272,7 +278,7 @@ public class DocumentParser {
         return hasUnknownPosition;
     }
 
-    private boolean isUnknownOrderPosition(OrderPositionInfFromWord orderPosition) {
+    private boolean isUnknownOrderPosition(RawPositionData orderPosition) {
         var productMappingOpt = productMappingService.findByIncomingOrderPositionName(orderPosition.getPositionName());
 
         if (productMappingOpt.isEmpty()) {
@@ -283,32 +289,13 @@ public class DocumentParser {
         }
     }
 
-    private void createProductMapping(OrderPositionInfFromWord orderPosition) {
+    private void createProductMapping(RawPositionData orderPosition) {
         var productMapping = ProductMapping.builder()
                 .incomingOrderPositionName(orderPosition.getPositionName())
                 .build();
         productMappingService.create(productMapping);
         System.out.println("Created new ProductMapping for position: " + orderPosition.getPositionName()); // logging
     }
-
-
-/*    @AllArgsConstructor
-    @Getter
-    @ToString
-    private static class DocumentOrderPosition {
-        private final String name;
-        private final Integer quantity;
-        private final String comment;
-        private final String shelfLife;
-    }
-
-    @AllArgsConstructor
-    @Getter
-    @ToString
-    private static class DocumentOrderInformation {
-        private final Integer orderNo;
-        private final LocalDate orderDate;
-    }*/
 
     public static class OrderPositionsExhaustedException extends RuntimeException {
         public OrderPositionsExhaustedException(String message) {

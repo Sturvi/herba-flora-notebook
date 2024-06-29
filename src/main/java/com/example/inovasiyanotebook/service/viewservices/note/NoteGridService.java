@@ -1,11 +1,9 @@
 package com.example.inovasiyanotebook.service.viewservices.note;
 
-import com.example.inovasiyanotebook.model.AbstractEntity;
 import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
-import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
 import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
@@ -13,7 +11,6 @@ import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
