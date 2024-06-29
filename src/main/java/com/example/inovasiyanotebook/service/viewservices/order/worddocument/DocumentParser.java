@@ -9,11 +9,9 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingSe
 import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -25,8 +23,6 @@ import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
@@ -43,10 +39,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,7 +100,6 @@ public class DocumentParser {
     }
 
 
-
     private void openPdfForPrinting(Path tempFile) {
         try {
             byte[] pdfContent = wordToPdfConverter.convertToPdf(Files.newInputStream(tempFile));
@@ -156,47 +149,44 @@ public class DocumentParser {
             throw new IllegalStateException("Таблица не содержит достаточно строк для обработки заказа");
         }
 
-        DocumentOrderInformation documentOrderInformation = extractOrderInfoFromFirstRow(table)
-                .orElseThrow(() -> new IllegalStateException("Не удалось извлечь информацию о заказе"));
+        OrderInfFromWord orderInfFromWord = new OrderInfFromWord();
 
-        List<DocumentOrderPosition> documentOrderPositions = new ArrayList<>();
-        boolean hasUnknownPosition = extractAndProcessOrderPositions(table, documentOrderPositions);
+        extractOrderInfoFromFirstRow(orderInfFromWord, table);
+
+        boolean hasUnknownPosition = extractAndProcessOrderPositions(table, orderInfFromWord);
 
         if (hasUnknownPosition) {
             navigationTools.navigateTo(ViewsEnum.PRODUCT_MAPPING);
         } else {
-            createNewOrder(documentOrderPositions, documentOrderInformation);
+            createNewOrder(orderInfFromWord);
         }
     }
 
-    private Optional<DocumentOrderInformation> extractOrderInfoFromFirstRow(XWPFTable table) {
+    private void extractOrderInfoFromFirstRow(OrderInfFromWord orderInfFromWord, XWPFTable table) {
         XWPFTableRow headerRow = table.getRow(0);
-        return extractOrderInfoFromRow(headerRow);
+        extractOrderInfoFromRow(orderInfFromWord, headerRow);
     }
 
-    private boolean extractAndProcessOrderPositions(XWPFTable table, List<DocumentOrderPosition> documentOrderPositions) {
-        boolean hasUnknownPosition = false;
+    private boolean extractAndProcessOrderPositions(XWPFTable table, OrderInfFromWord orderInfFromWord) {
         for (int i = 1; i < table.getRows().size(); i++) {
             XWPFTableRow row = table.getRow(i);
             try {
-                Optional<DocumentOrderPosition> documentOrderPositionOptional = parseOrderItem(row);
+                Optional<OrderPositionInfFromWord> documentOrderPositionOptional = parseOrderItem(row);
                 if (documentOrderPositionOptional.isPresent()) {
-                    DocumentOrderPosition orderPosition = documentOrderPositionOptional.get();
-                    hasUnknownPosition |= processOrderPosition(orderPosition);
-                    documentOrderPositions.add(orderPosition);
+                    OrderPositionInfFromWord orderPosition = documentOrderPositionOptional.get();
+                    orderInfFromWord.addPosition(orderPosition);
                 }
             } catch (OrderPositionsExhaustedException e) {
-                if (!documentOrderPositions.isEmpty()) break;
+                if (orderInfFromWord.hasPosition()) break;
             }
         }
-        return hasUnknownPosition;
+        return hasUnknownOrderPositions(orderInfFromWord.getPositions());
     }
 
 
-
-    private void createNewOrder(List<DocumentOrderPosition> documentOrderPositions, DocumentOrderInformation documentOrderInformation) {
-        Order order = createOrder(documentOrderInformation);
-        List<OrderPosition> orderPositions = createOrderPositions(documentOrderPositions, order);
+    private void createNewOrder(OrderInfFromWord orderInfFromWord) {
+        Order order = createOrder(orderInfFromWord);
+        List<OrderPosition> orderPositions = createOrderPositions(orderInfFromWord.getPositions(), order);
 
         if (orderPositions.isEmpty()) {
             // Если нет позиций заказа, возможно, следует предпринять какие-то действия
@@ -208,34 +198,34 @@ public class DocumentParser {
         newOrderDialog.openNewDialog(order);
     }
 
-    private Order createOrder(DocumentOrderInformation documentOrderInformation) {
+    private Order createOrder(OrderInfFromWord orderInfFromWord) {
         Order order = new Order();
-        order.setOrderNo(documentOrderInformation.getOrderNo());
-        order.setOrderReceivedDateTime(LocalDateTime.of(documentOrderInformation.getOrderDate(), LocalTime.now()));
+        order.setOrderNo(order.getOrderNo());
+        order.setOrderReceivedDateTime(LocalDateTime.of(orderInfFromWord.getOrderDate(), LocalTime.now()));
         order.setStatus(OrderStatusEnum.OPEN);
         return order;
     }
 
-    private List<OrderPosition> createOrderPositions(List<DocumentOrderPosition> documentOrderPositions, Order order) {
+    private List<OrderPosition> createOrderPositions(List<OrderPositionInfFromWord> documentOrderPositions, Order order) {
         return documentOrderPositions.stream()
                 .flatMap(documentOrderPosition -> toOrderPosition(documentOrderPosition, order).stream())
                 .toList();
     }
 
-    private Optional<OrderPosition> toOrderPosition(DocumentOrderPosition documentOrderPosition, Order order) {
-        return productMappingService.findByIncomingOrderPositionName(documentOrderPosition.getName())
+    private Optional<OrderPosition> toOrderPosition(OrderPositionInfFromWord documentOrderPosition, Order order) {
+        return productMappingService.findByIncomingOrderPositionName(documentOrderPosition.getPositionName())
                 .map(productMapping -> OrderPosition.builder()
                         .order(order)
                         .product(productMapping.getProduct())
                         .printedType(productMapping.getPrintedType())
                         .status(OrderStatusEnum.OPEN)
                         .count(documentOrderPosition.getQuantity().toString())
-                        .comment(productMapping.getComment() + " " + documentOrderPosition.shelfLife + " " + documentOrderPosition.getComment())
+                        .comment(productMapping.getComment() + " " + documentOrderPosition.getShelfLife() + " " + documentOrderPosition.getNote())
                         .build());
     }
 
 
-    private Optional<DocumentOrderInformation> extractOrderInfoFromRow(XWPFTableRow row) {
+    private void extractOrderInfoFromRow(OrderInfFromWord orderInfFromWord, XWPFTableRow row) {
         Pattern pattern = Pattern.compile("İstehsal sifarişi № (\\d+) tarix (\\d{2}\\.\\d{2}\\.\\d{4})");
         for (XWPFTableCell cell : row.getTableCells()) {
             String cellText = cell.getText();
@@ -243,25 +233,27 @@ public class DocumentParser {
             if (matcher.find()) {
                 Integer orderNo = Integer.parseInt(matcher.group(1));
                 LocalDate orderDate = LocalDate.parse(matcher.group(2), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
-                return Optional.of(new DocumentOrderInformation(orderNo, orderDate));
+                orderInfFromWord.setOrderNumber(orderNo);
+                orderInfFromWord.setOrderDate(orderDate);
+            } else {
+                throw new IllegalStateException("Не удалось извлечь информацию о заказе");
             }
         }
-        return Optional.empty();
     }
 
 
-    private Optional<DocumentOrderPosition> parseOrderItem(XWPFTableRow row) {
+    private Optional<OrderPositionInfFromWord> parseOrderItem(XWPFTableRow row) {
         List<XWPFTableCell> cells = row.getTableCells();
 
         if (cells.size() > 6 && cells.get(1).getText().matches("^\\d+$")) {
-            String name = cells.get(2).getText();
-            String quantity = cells.get(3).getText().replaceAll("\\s","").replaceAll("\u00A0","");
-            String comment = cells.get(6).getText();
-            String shelfLife = cells.get(5).getText();
-
             try {
-                int quantityInt = Integer.parseInt(quantity);
-                return Optional.of(new DocumentOrderPosition(name, quantityInt, comment, shelfLife));
+                Integer orderNo = Integer.valueOf(cells.get(1).getText());
+                String name = cells.get(2).getText();
+                Integer quantity = Integer.valueOf(cells.get(3).getText().replaceAll("\\s", "").replaceAll("\u00A0", ""));
+                LocalDate shelfLife = LocalDate.parse(cells.get(5).getText(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                String comment = cells.get(6).getText();
+
+                return Optional.of(new OrderPositionInfFromWord(orderNo, name, quantity, shelfLife, comment));
             } catch (NumberFormatException e) {
                 log.error("Ошибка при парсинге количества: " + e.getMessage());
                 return Optional.empty();
@@ -270,20 +262,37 @@ public class DocumentParser {
             throw new OrderPositionsExhaustedException("Orders ended");
         }
     }
-
-    private boolean processOrderPosition(DocumentOrderPosition orderPosition) {
-        var productMappingOpt = productMappingService.findByIncomingOrderPositionName(orderPosition.getName());
-
-        if (productMappingOpt.isEmpty()) {
-            var productMapping = ProductMapping.builder()
-                    .incomingOrderPositionName(orderPosition.getName())
-                    .build();
-            productMappingService.create(productMapping);
-            return true;
-        } else return productMappingOpt.get().getProduct() == null;
+    private boolean hasUnknownOrderPositions(List<OrderPositionInfFromWord> positions) {
+        boolean hasUnknownPosition = false;
+        for (OrderPositionInfFromWord orderPosition : positions) {
+            if (isUnknownOrderPosition(orderPosition)) {
+                hasUnknownPosition = true;
+            }
+        }
+        return hasUnknownPosition;
     }
 
-    @AllArgsConstructor
+    private boolean isUnknownOrderPosition(OrderPositionInfFromWord orderPosition) {
+        var productMappingOpt = productMappingService.findByIncomingOrderPositionName(orderPosition.getPositionName());
+
+        if (productMappingOpt.isEmpty()) {
+            createProductMapping(orderPosition);
+            return true;
+        } else {
+            return productMappingOpt.get().getProduct() == null;
+        }
+    }
+
+    private void createProductMapping(OrderPositionInfFromWord orderPosition) {
+        var productMapping = ProductMapping.builder()
+                .incomingOrderPositionName(orderPosition.getPositionName())
+                .build();
+        productMappingService.create(productMapping);
+        System.out.println("Created new ProductMapping for position: " + orderPosition.getPositionName()); // logging
+    }
+
+
+/*    @AllArgsConstructor
     @Getter
     @ToString
     private static class DocumentOrderPosition {
@@ -299,7 +308,7 @@ public class DocumentParser {
     private static class DocumentOrderInformation {
         private final Integer orderNo;
         private final LocalDate orderDate;
-    }
+    }*/
 
     public static class OrderPositionsExhaustedException extends RuntimeException {
         public OrderPositionsExhaustedException(String message) {
