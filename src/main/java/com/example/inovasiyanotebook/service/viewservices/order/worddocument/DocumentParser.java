@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -39,6 +40,7 @@ public class DocumentParser implements DocumentProcessor {
     private final WordToPdfConverter wordToPdfConverter;
     private final RawOrderDataService rawOrderDataService;
     private final OrderCreationService orderCreationService;
+    private final PdfGeneratorService pdfGeneratorService;
 
     @Override
     public void processDocument(String fileName, MemoryBuffer buffer) {
@@ -55,6 +57,8 @@ public class DocumentParser implements DocumentProcessor {
             }
 
             rawOrderDataService.create(rawOrderData);
+
+            showPrintDialog(pdfGeneratorService.generatePdf(rawOrderData).toPath());
         } catch (FileService.InvalidFileTypeException e) {
             Notification.show("Xəta: yükləmə yalnız Word faylları üçün mümkündür");
         } catch (Exception e) {
@@ -98,13 +102,13 @@ public class DocumentParser implements DocumentProcessor {
         return dialog;
     }
 
-    private void openPdfForPrinting(Path tempFile) {
+    public void openPdfForPrinting(Path pdfFilePath) {
         try {
-            byte[] pdfContent = wordToPdfConverter.convertToPdf(Files.newInputStream(tempFile));
+            byte[] pdfContent = Files.readAllBytes(pdfFilePath);
             openPdfInNewWindow(pdfContent);
-        } catch (Exception e) {
-            log.error("PDF-in konvertasiyası və açılması zamanı xəta: " + e.getMessage(), e);
-            Notification.show("PDF-in konvertasiyası və açılması zamanı xəta: " + e.getMessage());
+        } catch (IOException e) {
+            log.error("Error reading and opening PDF: " + e.getMessage(), e);
+            Notification.show("Error reading and opening PDF: " + e.getMessage());
         }
     }
 
