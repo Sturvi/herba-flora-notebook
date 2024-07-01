@@ -22,7 +22,7 @@ public class PdfGeneratorService {
 
     private static final float MARGIN = 30;
     private static final float TABLE_HEIGHT = 15;
-    private static final float FONT_SIZE = 10;
+    private static final float FONT_SIZE = 8;
 
     private final PdfDocumentService pdfDocumentService;
     private final PdfTableService pdfTableService;
@@ -37,7 +37,7 @@ public class PdfGeneratorService {
     public File generatePdf(RawOrderData orderData) throws IOException {
         File tempFile = File.createTempFile("order_", ".pdf");
         try (PDDocument document = new PDDocument()) {
-            PDType0Font font = loadFont(document, "fonts/DejaVuSans.ttf");
+            PDType0Font font = loadFont(document, "fonts/Arial Unicode MS.ttf");
 
             PDPage page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
             document.addPage(page);
@@ -48,7 +48,7 @@ public class PdfGeneratorService {
                 pdfDocumentService.addDepartment(contentStream, font, yStart - 20);
                 yStart -= 70;
 
-                float[] colWidths = {30, 250, 50, 30, 100, 100};
+                float[] colWidths = {30, 250, 50, 30, 100, 80};
 
                 pdfTableService.drawTableHeader(contentStream, font, yStart, colWidths);
                 yStart -= TABLE_HEIGHT;
