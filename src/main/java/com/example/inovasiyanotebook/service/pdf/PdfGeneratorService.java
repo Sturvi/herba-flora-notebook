@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -36,46 +37,56 @@ public class PdfGeneratorService {
     public File generatePdf(RawOrderData orderData) throws IOException {
         File tempFile = File.createTempFile("order_", ".pdf");
         try (PDDocument document = new PDDocument()) {
-            PDType0Font font = PDType0Font.load(document, new File("src/main/resources/fonts/DejaVuSans.ttf"));
+            PDType0Font font = loadFont(document, "fonts/DejaVuSans.ttf");
 
             PDPage page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
             document.addPage(page);
-            PDPageContentStream contentStream = new PDPageContentStream(document, page);
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                float yStart = page.getMediaBox().getHeight() - MARGIN;
 
-            float yStart = page.getMediaBox().getHeight() - MARGIN;
+                pdfDocumentService.addTitle(contentStream, font, yStart, orderData);
+                pdfDocumentService.addDepartment(contentStream, font, yStart - 20);
+                yStart -= 70;
 
-            pdfDocumentService.addTitle(contentStream, font, yStart, orderData);
-            pdfDocumentService.addDepartment(contentStream, font, yStart - 20);
-            yStart -= 70;
+                float[] colWidths = {30, 250, 50, 30, 100, 100};
 
-            float[] colWidths = {30, 250, 50, 30, 100, 100};
+                pdfTableService.drawTableHeader(contentStream, font, yStart, colWidths);
+                yStart -= TABLE_HEIGHT;
 
-            pdfTableService.drawTableHeader(contentStream, font, yStart, colWidths);
-            yStart -= TABLE_HEIGHT;
-
-            for (RawPositionData position : orderData.getPositions()) {
-                List<String[]> wrappedRows = pdfTextWrapperService.wrapRowText(position, colWidths, font, FONT_SIZE);
-                for (String[] row : wrappedRows) {
-                    if (yStart < MARGIN + TABLE_HEIGHT) {
-                        contentStream.close();
-                        page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
-                        document.addPage(page);
-                        contentStream = new PDPageContentStream(document, page);
-                        contentStream.setFont(font, FONT_SIZE);
-                        yStart = page.getMediaBox().getHeight() - MARGIN;
-                        pdfTableService.drawTableHeader(contentStream, font, yStart, colWidths);
-                        yStart -= TABLE_HEIGHT;
+                for (RawPositionData position : orderData.getPositions()) {
+                    List<String[]> wrappedRows = pdfTextWrapperService.wrapRowText(position, colWidths, font, FONT_SIZE);
+                    for (String[] row : wrappedRows) {
+                        if (yStart < MARGIN + TABLE_HEIGHT) {
+                            contentStream.close();
+                            page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
+                            document.addPage(page);
+                            try (PDPageContentStream newContentStream = new PDPageContentStream(document, page)) {
+                                newContentStream.setFont(font, FONT_SIZE);
+                                yStart = page.getMediaBox().getHeight() - MARGIN;
+                                pdfTableService.drawTableHeader(newContentStream, font, yStart, colWidths);
+                                yStart -= TABLE_HEIGHT;
+                                pdfTableService.drawTableRow(newContentStream, font, yStart, colWidths, row);
+                                yStart -= TABLE_HEIGHT;
+                            }
+                        } else {
+                            pdfTableService.drawTableRow(contentStream, font, yStart, colWidths, row);
+                            yStart -= TABLE_HEIGHT;
+                        }
                     }
-
-                    pdfTableService.drawTableRow(contentStream, font, yStart, colWidths, row);
-                    yStart -= TABLE_HEIGHT;
                 }
             }
-
-            contentStream.close();
             document.save(tempFile);
         }
 
         return tempFile;
+    }
+
+    private PDType0Font loadFont(PDDocument document, String fontPath) throws IOException {
+        try (InputStream fontStream = getClass().getClassLoader().getResourceAsStream(fontPath)) {
+            if (fontStream == null) {
+                throw new IOException("Font file not found: " + fontPath);
+            }
+            return PDType0Font.load(document, fontStream);
+        }
     }
 }
