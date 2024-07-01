@@ -45,9 +45,12 @@ public class PdfTextWrapperService {
             String[] words = row[i].split(" ");
             StringBuilder line = new StringBuilder();
             for (String word : words) {
-                // Уменьшаем доступную ширину на значение LINE_WRAP_MARGIN
-                float lineWidth = font.getStringWidth(line.toString() + " " + word) / 1000 * fontSize;
+                // Вычисляем ширину строки с добавленным словом
+                float lineWidth = font.getStringWidth(line.toString() + (line.length() > 0 ? " " : "") + word) / 1000 * fontSize;
+                log.trace("Ширина строки '{} {}': {} (макс: {})", line, word, lineWidth, colWidths[i] - 4 - LINE_WRAP_MARGIN);
+
                 if (lineWidth > colWidths[i] - 4 - LINE_WRAP_MARGIN) {
+                    // Если текущая строка не помещается, переносим её
                     wrappedText.add(line.toString());
                     line = new StringBuilder(word);
                     log.trace("Перенос строки в столбце {}: {}", i, line);
