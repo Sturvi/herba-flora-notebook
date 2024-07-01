@@ -3,15 +3,32 @@ package com.example.inovasiyanotebook.service.pdf.wrapper;
 import com.example.inovasiyanotebook.service.viewservices.order.worddocument.RawPositionData;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class PdfTextWrapperService {
 
+    // Добавим запас для переноса строки
+    private static final float LINE_WRAP_MARGIN = 5.0f;
+
+    /**
+     * Переносит текст в строке таблицы в зависимости от ширины столбцов.
+     *
+     * @param position данные позиции
+     * @param colWidths ширины столбцов
+     * @param font шрифт, используемый в PDF
+     * @param fontSize размер шрифта
+     * @return список строк с перенесённым текстом
+     * @throws IOException если происходит ошибка ввода-вывода
+     */
     public List<String[]> wrapRowText(RawPositionData position, float[] colWidths, PDType0Font font, float fontSize) throws IOException {
+        log.trace("Начало переноса текста для позиции: {}", position);
+
         List<String[]> wrappedRows = new ArrayList<>();
 
         String[] row = {
@@ -28,10 +45,12 @@ public class PdfTextWrapperService {
             String[] words = row[i].split(" ");
             StringBuilder line = new StringBuilder();
             for (String word : words) {
+                // Уменьшаем доступную ширину на значение LINE_WRAP_MARGIN
                 float lineWidth = font.getStringWidth(line.toString() + " " + word) / 1000 * fontSize;
-                if (lineWidth > colWidths[i] - 4) {
+                if (lineWidth > colWidths[i] - 4 - LINE_WRAP_MARGIN) {
                     wrappedText.add(line.toString());
                     line = new StringBuilder(word);
+                    log.trace("Перенос строки в столбце {}: {}", i, line);
                 } else {
                     if (line.length() > 0) line.append(" ");
                     line.append(word);
@@ -47,6 +66,7 @@ public class PdfTextWrapperService {
             }
         }
 
+        log.trace("Текст после переноса: {}", wrappedRows);
         return wrappedRows;
     }
 }
