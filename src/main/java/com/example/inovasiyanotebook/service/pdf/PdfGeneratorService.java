@@ -22,7 +22,7 @@ public class PdfGeneratorService {
 
     private static final float MARGIN = 30;
     private static final float TABLE_HEIGHT = 15;
-    private static final float FONT_SIZE = 8;
+    private static final float FONT_SIZE = 10;
 
     private final PdfDocumentService pdfDocumentService;
     private final PdfTableService pdfTableService;
