@@ -8,7 +8,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
-import com.example.inovasiyanotebook.service.viewservices.order.worddocument.UploadComponentCreator;
+import com.example.inovasiyanotebook.service.viewservices.order.UploadComponentCreator;
 import com.example.inovasiyanotebook.views.category.CategoryView;
 import com.example.inovasiyanotebook.views.order.OrderView;
 import com.example.inovasiyanotebook.views.ordermapping.ProductMappingView;
