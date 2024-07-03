@@ -114,12 +114,14 @@ public class DocumentService {
     }
 
     public boolean hasUnknownOrderPositions(List<RawPositionData> positions) {
+        boolean hasUnknownPosition = false;
+
         for (RawPositionData orderPosition : positions) {
             if (isUnknownOrderPosition(orderPosition)) {
-                return true;
+                hasUnknownPosition = true;
             }
         }
-        return false;
+        return hasUnknownPosition;
     }
 
     private boolean isUnknownOrderPosition(RawPositionData orderPosition) {

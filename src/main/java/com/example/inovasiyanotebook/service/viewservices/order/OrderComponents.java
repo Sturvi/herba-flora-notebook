@@ -131,6 +131,7 @@ public class OrderComponents {
         orderPositionComponents.getLast().nextButtonVisible(true);
     }
 
+
     /**
      * Sets the read-only mode for the form.
      *
@@ -337,6 +338,7 @@ public class OrderComponents {
 
         orderCommentField.setWidthFull();
         orderLayout.add(orderCommentField);
+
 
         orderLayout.add(positionsLayout);
 
