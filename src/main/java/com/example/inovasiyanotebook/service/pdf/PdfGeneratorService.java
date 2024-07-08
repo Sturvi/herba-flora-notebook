@@ -38,19 +38,17 @@ public class PdfGeneratorService {
         File tempFile = File.createTempFile("order_", ".pdf");
         try (PDDocument document = new PDDocument()) {
             PDType0Font font = loadFont(document, "fonts/Arial Unicode MS.ttf");
+            PDPage page = createPage(document);
 
-            PDPage page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
-            document.addPage(page);
-            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+            PDPageContentStream contentStream = createContentStream(document, page);
+
+            try {
                 float yStart = page.getMediaBox().getHeight() - MARGIN;
-
-                pdfDocumentService.addTitle(contentStream, font, yStart, orderData);
-                pdfDocumentService.addDepartment(contentStream, font, yStart - 20);
+                addDocumentHeader(contentStream, font, yStart, orderData);
                 yStart -= 70;
 
                 float[] colWidths = {30, 250, 50, 30, 100, 80};
-
-                pdfTableService.drawTableHeader(contentStream, font, yStart, colWidths);
+                drawTableHeader(contentStream, font, yStart, colWidths);
                 yStart -= TABLE_HEIGHT;
 
                 for (RawPositionData position : orderData.getPositions()) {
@@ -58,28 +56,49 @@ public class PdfGeneratorService {
                     for (String[] row : wrappedRows) {
                         if (yStart < MARGIN + TABLE_HEIGHT) {
                             contentStream.close();
-                            page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
-                            document.addPage(page);
-                            try (PDPageContentStream newContentStream = new PDPageContentStream(document, page)) {
-                                newContentStream.setFont(font, FONT_SIZE);
-                                yStart = page.getMediaBox().getHeight() - MARGIN;
-                                pdfTableService.drawTableHeader(newContentStream, font, yStart, colWidths);
-                                yStart -= TABLE_HEIGHT;
-                                pdfTableService.drawTableRow(newContentStream, font, yStart, colWidths, row);
-                                yStart -= TABLE_HEIGHT;
-                            }
-                        } else {
-                            pdfTableService.drawTableRow(contentStream, font, yStart, colWidths, row);
+                            page = createPage(document);
+                            contentStream = createContentStream(document, page);
+                            yStart = page.getMediaBox().getHeight() - MARGIN;
+                            drawTableHeader(contentStream, font, yStart, colWidths);
                             yStart -= TABLE_HEIGHT;
                         }
+                        drawTableRow(contentStream, font, yStart, colWidths, row);
+                        yStart -= TABLE_HEIGHT;
                     }
                 }
+            } finally {
+                contentStream.close();
             }
+
+
             document.save(tempFile);
         }
-
         return tempFile;
     }
+
+    private PDPage createPage(PDDocument document) {
+        PDPage page = new PDPage(new PDRectangle(PDRectangle.A5.getHeight(), PDRectangle.A5.getWidth()));
+        document.addPage(page);
+        return page;
+    }
+
+    private PDPageContentStream createContentStream(PDDocument document, PDPage page) throws IOException {
+        return new PDPageContentStream(document, page);
+    }
+
+    private void addDocumentHeader(PDPageContentStream contentStream, PDType0Font font, float yStart, RawOrderData orderData) throws IOException {
+        pdfDocumentService.addTitle(contentStream, font, yStart, orderData);
+        pdfDocumentService.addDepartment(contentStream, font, yStart - 20);
+    }
+
+    private void drawTableHeader(PDPageContentStream contentStream, PDType0Font font, float yStart, float[] colWidths) throws IOException {
+        pdfTableService.drawTableHeader(contentStream, font, yStart, colWidths);
+    }
+
+    private void drawTableRow(PDPageContentStream contentStream, PDType0Font font, float yStart, float[] colWidths, String[] row) throws IOException {
+        pdfTableService.drawTableRow(contentStream, font, yStart, colWidths, row);
+    }
+
 
     private PDType0Font loadFont(PDDocument document, String fontPath) throws IOException {
         try (InputStream fontStream = getClass().getClassLoader().getResourceAsStream(fontPath)) {
