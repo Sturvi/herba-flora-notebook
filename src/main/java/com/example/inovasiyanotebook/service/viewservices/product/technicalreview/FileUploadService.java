@@ -21,7 +21,7 @@ public class FileUploadService {
     private final WebClient.Builder webClientBuilder;
 
     public ResponseEntity<String> uploadFile(ByteArrayResource resource, Product product) {
-        String url = "http://localhost:25000/api/files/upload";
+        String url = "http://172.17.0.1:25000/api/files/upload";
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("name", product.getName());
@@ -88,7 +88,7 @@ public class FileUploadService {
     }
 
     public ResponseEntity<Boolean> fileExists(Product product) {
-        String url = "http://localhost:25000/api/files/exists?name=" + product.getName() + "&category=" + product.getCategory().getName() + "&documentType=" + "TECHNICAL_REVIEW";
+        String url = "http://172.17.0.1:25000/api/files/exists?name=" + product.getName() + "&category=" + product.getCategory().getName() + "&documentType=" + "TECHNICAL_REVIEW";
 
         return webClientBuilder.build()
                 .get()
