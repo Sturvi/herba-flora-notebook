@@ -12,20 +12,27 @@ import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
 import com.example.inovasiyanotebook.service.viewservices.order.OrdersGrid;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductInfoViewService;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductsGridService;
+import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
+import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.TechnicalReviewUploader;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.MainLayout;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.Optional;
 
 
@@ -44,11 +51,13 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private final NavigationTools navigationTools;
     private final NoteGridService noteGridService;
     private final ProductsGridService productsGridService;
+    private final TechnicalReviewUploader technicalReviewUploader;
+    private final FileUploadService fileUploadService;
 
     private Product product;
     private User user;
 
-    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, DesignTools designTools, OrdersGrid ordersGrid, PermissionsCheck permissionsCheck, InstructionService instructionService, NavigationTools navigationTools, NoteGridService noteGridService, ProductsGridService productsGridService) {
+    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, DesignTools designTools, OrdersGrid ordersGrid, PermissionsCheck permissionsCheck, InstructionService instructionService, NavigationTools navigationTools, NoteGridService noteGridService, ProductsGridService productsGridService, TechnicalReviewUploader technicalReviewUploader, FileUploadService fileUploadService) {
         this.productService = productService;
         this.infoViewService = infoViewService;
         this.userService = userService;
@@ -59,7 +68,10 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         this.navigationTools = navigationTools;
         this.noteGridService = noteGridService;
         this.productsGridService = productsGridService;
+        this.fileUploadService = fileUploadService;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
+
+        this.technicalReviewUploader = technicalReviewUploader;
 
         setHeightFull();
         setWidthFull();
@@ -90,6 +102,21 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         });
         hasProductNameLine.add(instruksionButton);
 
+        if (Boolean.TRUE.equals(fileUploadService.fileExists(product).getBody())) {
+            Button button = new Button("Rəy");
+            button.addClickListener(buttonClickEvent -> {
+                StreamResource resource = createResource(product);
+                Anchor anchor = new Anchor(resource, "Open PDF");
+                anchor.setTarget("_blank");
+                add(anchor); // Добавляем якорь на страницу
+                anchor.getElement().callJsFunction("click"); // Симулируем клик по якорю
+            });
+            hasProductNameLine.add(button);
+        }
+
+        technicalReviewUploader.setProduct(product);
+        hasProductNameLine.add(technicalReviewUploader.getUpload());
+
         VerticalLayout verticalLayout = new VerticalLayout(
                 hasProductNameLine,
                 infoViewService.getProductInformation(product, user),
@@ -106,6 +133,21 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
                 verticalLayout,
                 notesLayout
         );
+    }
+
+    private StreamResource createResource(Product product) {
+        return new StreamResource("review.pdf", () -> {
+            ResponseEntity<?> responseEntity = fileUploadService.downloadFile(product);
+            if (responseEntity.getBody() instanceof ByteArrayResource) {
+                ByteArrayResource byteArrayResource = (ByteArrayResource) responseEntity.getBody();
+                try {
+                    return byteArrayResource.getInputStream();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return null;
+        });
     }
 
     private void openInstructionDialog(Product product, User user) {
