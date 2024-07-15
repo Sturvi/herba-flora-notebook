@@ -5,6 +5,8 @@ import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ProductRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
+import com.example.inovasiyanotebook.service.viewservices.order.worddocument.FileService;
+import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +17,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductService implements CRUDService<Product> {
     private final ProductRepository productRepository;
+    private final FileUploadService fileUploadService;
 
 
     @Override
     public Product create(Product entity) {
+        handleProductNameOrCategoryChange(entity);
         return productRepository.save(entity);
     }
 
@@ -34,7 +38,26 @@ public class ProductService implements CRUDService<Product> {
 
     @Override
     public Product update(Product entity) {
+        handleProductNameOrCategoryChange(entity);
+
         return productRepository.save(entity);
+    }
+
+    private void handleProductNameOrCategoryChange(Product entity) {
+        productRepository.
+                findById(entity.getId())
+                .ifPresent(existingProduct -> {
+                    boolean nameChanged = !existingProduct.getName().equals(entity.getName());
+                    boolean categoryChanged = !existingProduct.getCategory().equals(entity.getCategory());
+
+                    if (nameChanged || categoryChanged) {
+                        fileUploadService.changeNameOrCategory(
+                                existingProduct.getName(),
+                                entity.getName(),
+                                existingProduct.getCategory().getName(),
+                                entity.getCategory().getName());
+                    }
+                });
     }
 
     @Override
@@ -42,7 +65,7 @@ public class ProductService implements CRUDService<Product> {
         productRepository.delete(entity);
     }
 
-    public List<Product> getAllByClient (Client client) {
+    public List<Product> getAllByClient(Client client) {
         return productRepository.findAllByClient(client);
     }
 

@@ -21,6 +21,15 @@ public class FileUploadService {
 
     private final WebClient.Builder webClientBuilder;
 
+    public void changeNameOrCategory(String oldName, String newName, String oldCategory, String newCategory) {
+        if (!oldName.equals(newName)) {
+            renameFile(oldName, oldCategory, newName);
+        }
+        if (!oldCategory.equals(newCategory)) {
+            changeCategory(newName, oldCategory, newCategory);
+        }
+    }
+
     public ResponseEntity<String> uploadFile(ByteArrayResource resource, Product product) {
         String url = "http://172.17.0.1:25000/api/files/upload";
 
@@ -61,8 +70,8 @@ public class FileUploadService {
                 .block();
     }
 
-    public ResponseEntity<String> renameFile(String name, String category, String documentType, String newName) {
-        String url = "http://localhost:25000/api/files/rename?name=" + name + "&category=" + category + "&documentType=" + documentType + "&newName=" + newName;
+    public ResponseEntity<String> renameFile(String name, String category, String newName) {
+        String url = "http://172.17.0.1:25000/api/files/rename?name=" + name + "&category=" + category + "&documentType=" + "TECHNICAL_REVIEW" + "&newName=" + newName;
 
         return webClientBuilder.build()
                 .put()
@@ -72,8 +81,8 @@ public class FileUploadService {
                 .block();
     }
 
-    public ResponseEntity<String> deleteFile(String name, String category, String documentType) {
-        String url = "http://localhost:25000/api/files/delete?name=" + name + "&category=" + category + "&documentType=" + documentType;
+    public ResponseEntity<String> deleteFile(String name, String category) {
+        String url = "http://172.17.0.1:25000/api/files/delete?name=" + name + "&category=" + category + "&documentType=" + "TECHNICAL_REVIEW";
 
         return webClientBuilder.build()
                 .delete()
@@ -83,8 +92,8 @@ public class FileUploadService {
                 .block();
     }
 
-    public ResponseEntity<String> changeCategory(String name, String category, String documentType, String newCategory) {
-        String url = "http://localhost:25000/api/files/changeCategory?name=" + name + "&category=" + category + "&documentType=" + documentType + "&newCategory=" + newCategory;
+    public ResponseEntity<String> changeCategory(String name, String category, String newCategory) {
+        String url = "http://172.17.0.1:25000/api/files/changeCategory?name=" + name + "&category=" + category + "&documentType=" + "TECHNICAL_REVIEW" + "&newCategory=" + newCategory;
 
         return webClientBuilder.build()
                 .put()
