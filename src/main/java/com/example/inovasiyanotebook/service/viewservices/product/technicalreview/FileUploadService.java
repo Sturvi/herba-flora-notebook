@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
@@ -44,9 +45,15 @@ public class FileUploadService {
     }
 
     public ResponseEntity<ByteArrayResource> downloadFile(Product product) {
-        String url = "http://172.17.0.1:25000/api/files/download?name=" + product.getName() + "&category=" + product.getCategory().getName() + "&documentType=" + "TECHNICAL_REVIEW";
+        String url = "http://172.17.0.1:25000/api/files/download?name=" + product.getName() + "&category=" + product.getCategory().getName() + "&documentType=TECHNICAL_REVIEW";
 
-        return webClientBuilder.build()
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(30 * 1024 * 1024)) // 10MB buffer
+                .build();
+
+        return webClientBuilder
+                .exchangeStrategies(strategies)
+                .build()
                 .get()
                 .uri(url)
                 .retrieve()
