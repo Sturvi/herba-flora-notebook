@@ -44,7 +44,7 @@ public class FileUploadService {
     }
 
     public ResponseEntity<ByteArrayResource> downloadFile(Product product) {
-        String url = "http://localhost:25000/api/files/download?name=" + product.getName() + "&category=" + product.getCategory().getName() + "&documentType=" + "TECHNICAL_REVIEW";
+        String url = "http://172.17.0.1:25000/api/files/download?name=" + product.getName() + "&category=" + product.getCategory().getName() + "&documentType=" + "TECHNICAL_REVIEW";
 
         return webClientBuilder.build()
                 .get()
