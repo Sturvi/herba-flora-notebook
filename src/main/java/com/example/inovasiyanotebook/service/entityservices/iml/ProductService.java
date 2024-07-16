@@ -44,20 +44,22 @@ public class ProductService implements CRUDService<Product> {
     }
 
     private void handleProductNameOrCategoryChange(Product entity) {
-        productRepository.
-                findById(entity.getId())
-                .ifPresent(existingProduct -> {
-                    boolean nameChanged = !existingProduct.getName().equals(entity.getName());
-                    boolean categoryChanged = !existingProduct.getCategory().equals(entity.getCategory());
+        if (entity.getId() != null) {
+            productRepository.
+                    findById(entity.getId())
+                    .ifPresent(existingProduct -> {
+                        boolean nameChanged = !existingProduct.getName().equals(entity.getName());
+                        boolean categoryChanged = !existingProduct.getCategory().equals(entity.getCategory());
 
-                    if (nameChanged || categoryChanged) {
-                        fileUploadService.changeNameOrCategory(
-                                existingProduct.getName(),
-                                entity.getName(),
-                                existingProduct.getCategory().getName(),
-                                entity.getCategory().getName());
-                    }
-                });
+                        if (nameChanged || categoryChanged) {
+                            fileUploadService.changeNameOrCategory(
+                                    existingProduct.getName(),
+                                    entity.getName(),
+                                    existingProduct.getCategory().getName(),
+                                    entity.getCategory().getName());
+                        }
+                    });
+        }
     }
 
     @Override
