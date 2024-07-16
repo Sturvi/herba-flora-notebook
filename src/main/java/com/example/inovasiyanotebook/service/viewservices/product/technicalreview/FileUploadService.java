@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +23,28 @@ public class FileUploadService {
     private final WebClient.Builder webClientBuilder;
 
     public void changeNameOrCategory(String oldName, String newName, String oldCategory, String newCategory) {
-        if (!oldName.equals(newName)) {
-            renameFile(oldName, oldCategory, newName);
+        try {
+            if (!oldName.equals(newName)) {
+                renameFile(oldName, oldCategory, newName);
+            }
+        } catch (WebClientResponseException e) {
+            logException(e, oldName, newName, oldCategory, newCategory);
         }
-        if (!oldCategory.equals(newCategory)) {
-            changeCategory(newName, oldCategory, newCategory);
+
+        try {
+            if (!oldCategory.equals(newCategory)) {
+                changeCategory(newName, oldCategory, newCategory);
+            }
+        } catch (WebClientResponseException e) {
+            logException(e, oldName, newName, oldCategory, newCategory);
+        }
+    }
+
+    private void logException(WebClientResponseException e, String oldName, String newName, String oldCategory, String newCategory) {
+        if (e.getStatusCode().value() == 404) {
+            log.trace("404 Not Found: Unable to process change for file {} from category {} to category {}", newName, oldCategory, newCategory, e);
+        } else {
+            log.error("Error occurred while processing change for file {}: old name - {}, new name - {}, old category - {}, new category - {}", oldName, oldName, newName, oldCategory, newCategory, e);
         }
     }
 
