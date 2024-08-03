@@ -59,9 +59,10 @@ public class DocumentParser implements DocumentProcessor {
 
             // Проверка на наличие неизвестных позиций заказа
             if (documentService.hasUnknownOrderPositions(rawOrderData.getPositions())) {
+                rawOrderData.setIsProcessed(false);
                 navigationTools.navigateTo(ViewsEnum.PRODUCT_MAPPING);
             } else {
-                orderCreationService.createNewOrder(rawOrderData);
+                orderCreationService.createAndOpenDialogForNewOrder(rawOrderData);
                 rawOrderData.setIsProcessed(true);
             }
 

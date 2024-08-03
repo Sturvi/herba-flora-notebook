@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +27,7 @@ public class Order extends AbstractEntity implements Noteable {
 
     private Integer orderNo;
 
-    private LocalDateTime orderReceivedDateTime;
+    private LocalDate orderReceivedDate;
 
     private LocalDateTime orderCompletedDateTime;
 

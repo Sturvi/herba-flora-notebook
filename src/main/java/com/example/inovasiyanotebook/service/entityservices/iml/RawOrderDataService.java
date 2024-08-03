@@ -28,7 +28,6 @@ public class RawOrderDataService implements CRUDService<RawOrderData> {
     @Override
     public RawOrderData create(RawOrderData entity) {
         log.trace("Создание нового объекта RawOrderData: {}", entity);
-        entity.setIsProcessed(true);
         return repository.save(entity);
     }
 
@@ -64,7 +63,6 @@ public class RawOrderDataService implements CRUDService<RawOrderData> {
     @Override
     public RawOrderData update(RawOrderData entity) {
         log.trace("Обновление объекта RawOrderData: {}", entity);
-        entity.setIsProcessed(true);
         return repository.save(entity);
     }
 

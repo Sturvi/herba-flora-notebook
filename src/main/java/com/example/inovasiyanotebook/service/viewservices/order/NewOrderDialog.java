@@ -10,11 +10,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@UIScope
+@Scope(value="prototype")
 public class NewOrderDialog {
 
     private final NavigationTools navigationTools;

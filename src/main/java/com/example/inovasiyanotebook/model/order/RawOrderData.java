@@ -44,7 +44,7 @@ public class RawOrderData extends AbstractEntity {
     @Column(name = "positions", columnDefinition = "TEXT")
     private List<RawPositionData> positions;
 
-    @Column(name = "is_processed")
+    @Column(name = "is_processed", nullable = false)
     @Setter
     private Boolean isProcessed;
 

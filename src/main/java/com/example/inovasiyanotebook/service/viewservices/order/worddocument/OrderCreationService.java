@@ -4,6 +4,7 @@ import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.model.order.RawOrderData;
+import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingService;
 import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -19,36 +21,58 @@ import java.util.Optional;
 @Service
 @Slf4j
 @AllArgsConstructor
-@UIScope
 public class OrderCreationService {
 
     private final NewOrderDialog newOrderDialog;
     private final ProductMappingService productMappingService;
+    private final OrderService orderService;
 
     /**
-     * Создает новый заказ на основе предоставленных данных и открывает диалоговое окно для нового заказа.
+     * Creates a new order based on the given data and opens a dialog for the new order.
      *
-     * @param rawOrderData данные о заказе.
+     * @param rawOrderData order data.
      */
-    public void createNewOrder(RawOrderData rawOrderData) {
-        log.trace("Начало создания нового заказа: {}", rawOrderData);
+    public void createAndOpenDialogForNewOrder(RawOrderData rawOrderData) {
+        Order order = createAndAssignOrderPositions(rawOrderData);
+        newOrderDialog.openNewDialog(order);
+        log.trace("Opened a dialog for the new order.");
+    }
+
+    /**
+     * Creates a new order based on the given data and saves the order.
+     *
+     * @param rawOrderData order data.
+     */
+    public void createAndSaveNewOrder(RawOrderData rawOrderData) {
+        Order order = createAndAssignOrderPositions(rawOrderData);
+        orderService.create(order); // assuming you have an OrderService with a save method.
+        log.debug("The order has been saved: {}", order);
+    }
+
+    /**
+     * Helper method to create an order and assign positions to it.
+     *
+     * @param rawOrderData order data.
+     * @return the created order
+     */
+    private Order createAndAssignOrderPositions(RawOrderData rawOrderData) {
+        log.trace("Start of creating a new order: {}", rawOrderData);
 
         Order order = createOrder(rawOrderData);
-        log.debug("Создан объект заказа: {}", order);
+        log.debug("Created order object: {}", order);
 
         List<OrderPosition> orderPositions = createOrderPositions(rawOrderData.getPositions(), order);
-        log.debug("Созданы позиции заказа: {}", orderPositions);
+        log.debug("Created order positions: {}", orderPositions);
 
         if (orderPositions.isEmpty()) {
-            log.error("В заказе отсутствуют позиции.");
+            log.error("No positions in the order.");
             throw new IllegalStateException("No positions in the order.");
         }
 
         order.setOrderPositions(orderPositions);
-        log.trace("Позиции добавлены в заказ.");
+        log.trace("Positions have been added to the order.");
 
-        newOrderDialog.openNewDialog(order);
-        log.trace("Открыто диалоговое окно для нового заказа.");
+        return order;
     }
 
     /**
@@ -62,7 +86,7 @@ public class OrderCreationService {
 
         Order order = new Order();
         order.setOrderNo(rawOrderData.getOrderNumber());
-        order.setOrderReceivedDateTime(LocalDateTime.of(rawOrderData.getOrderDate(), LocalTime.now()));
+        order.setOrderReceivedDate(rawOrderData.getOrderDate());
         order.setStatus(OrderStatusEnum.OPEN);
 
         log.trace("Создан объект заказа: {}", order);

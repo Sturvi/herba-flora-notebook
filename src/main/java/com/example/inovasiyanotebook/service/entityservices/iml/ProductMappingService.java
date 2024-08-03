@@ -47,4 +47,8 @@ public class ProductMappingService implements CRUDService<ProductMapping> {
     public boolean existsByIncomingOrderPositionName(String incomingOrderPositionName) {
         return productMappingRepository.existsByIncomingOrderPositionName(incomingOrderPositionName);
     }
+
+    public boolean doAllExist(List<String> incomingOrderPositionNames) {
+        return productMappingRepository.countByIncomingOrderPositionNamesWithNonNullProduct(incomingOrderPositionNames) == incomingOrderPositionNames.size();
+    }
 }
