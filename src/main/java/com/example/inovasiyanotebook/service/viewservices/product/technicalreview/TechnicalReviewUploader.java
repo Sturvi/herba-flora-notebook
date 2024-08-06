@@ -2,6 +2,7 @@ package com.example.inovasiyanotebook.service.viewservices.product.technicalrevi
 
 import com.example.inovasiyanotebook.model.Product;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
@@ -26,15 +27,17 @@ public class TechnicalReviewUploader {
     private Upload upload;
     @Setter
     private Product product;
+    @Setter
+    private Runnable additionalFunction;
 
     private final FileUploadService fileUploadService;
+
 
     @PostConstruct
     public void init() {
         MemoryBuffer buffer = new MemoryBuffer();
         upload = new Upload(buffer);
         upload.setDropAllowed(false);
-        upload.setWidthFull();
         upload.setAcceptedFileTypes("application/pdf");
 
         Button uploadButton = new Button("Rəy yüklə", VaadinIcon.UPLOAD.create());
@@ -49,12 +52,20 @@ public class TechnicalReviewUploader {
                     }
                 };
 
-                var response = fileUploadService.uploadFile(resource, product);
+                fileUploadService.uploadFile(resource, product);
                 upload.clearFileList();
+
+                if (additionalFunction != null){
+                    additionalFunction.run();
+                }
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "File processing error", e);
             }
             upload.clearFileList();
         });
+    }
+
+    public void setUploaderHeaderText (String headerText) {
+        upload.setDropLabel(new Span(headerText));
     }
 }

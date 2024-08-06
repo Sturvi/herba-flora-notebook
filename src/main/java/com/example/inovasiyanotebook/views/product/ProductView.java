@@ -17,12 +17,15 @@ import com.example.inovasiyanotebook.service.viewservices.product.technicalrevie
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.MainLayout;
 import com.example.inovasiyanotebook.views.NavigationTools;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -43,12 +46,10 @@ import java.util.Optional;
 public class ProductView extends HorizontalLayout implements HasUrlParameter<String> {
     private final ProductService productService;
     private final ProductInfoViewService infoViewService;
-    private final UserService userService;
     private final DesignTools designTools;
     private final OrdersGrid ordersGrid;
     private final PermissionsCheck permissionsCheck;
     private final InstructionService instructionService;
-    private final NavigationTools navigationTools;
     private final NoteGridService noteGridService;
     private final ProductsGridService productsGridService;
     private final TechnicalReviewUploader technicalReviewUploader;
@@ -57,21 +58,34 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private Product product;
     private User user;
 
-    public ProductView(ProductService productService, ProductInfoViewService infoViewService, UserService userService, DesignTools designTools, OrdersGrid ordersGrid, PermissionsCheck permissionsCheck, InstructionService instructionService, NavigationTools navigationTools, NoteGridService noteGridService, ProductsGridService productsGridService, TechnicalReviewUploader technicalReviewUploader, FileUploadService fileUploadService) {
+    private HorizontalLayout productNameLayout;
+
+    public ProductView(ProductService productService,
+                       ProductInfoViewService infoViewService,
+                       UserService userService,
+                       DesignTools designTools,
+                       OrdersGrid ordersGrid,
+                       PermissionsCheck permissionsCheck,
+                       InstructionService instructionService,
+                       NavigationTools navigationTools,
+                       NoteGridService noteGridService,
+                       ProductsGridService productsGridService,
+                       TechnicalReviewUploader technicalReviewUploader,
+                       FileUploadService fileUploadService) {
         this.productService = productService;
         this.infoViewService = infoViewService;
-        this.userService = userService;
         this.designTools = designTools;
         this.ordersGrid = ordersGrid;
         this.permissionsCheck = permissionsCheck;
         this.instructionService = instructionService;
-        this.navigationTools = navigationTools;
         this.noteGridService = noteGridService;
         this.productsGridService = productsGridService;
         this.fileUploadService = fileUploadService;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
 
         this.technicalReviewUploader = technicalReviewUploader;
+
+        productNameLayout = new HorizontalLayout();
 
         setHeightFull();
         setWidthFull();
@@ -94,41 +108,102 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     }
 
     private void handleHasProduct() {
+        handleProductNameLine();
+        assembleLayout();
+    }
 
-        HorizontalLayout hasProductNameLine = infoViewService.getProductNameLine(product, user);
+    private void handleProductNameLine() {
+        productNameLayout.removeAll();
+
+        productNameLayout.add(infoViewService.getProductNameLine(product, user));
+
         Button instruksionButton = new Button("İnstruksiya");
-        instruksionButton.addClickListener(buttonClickEvent -> {
-            openInstructionDialog(product, user);
-        });
-        hasProductNameLine.add(instruksionButton);
+        instruksionButton.addClickListener(buttonClickEvent -> openInstructionDialog(product, user));
+        productNameLayout.add(instruksionButton);
 
-        if (Boolean.TRUE.equals(fileUploadService.fileExists(product).getBody())) {
-            Button button = new Button("Rəy");
-            button.addClickListener(buttonClickEvent -> {
-                StreamResource resource = createResource(product);
-                Anchor anchor = new Anchor(resource, "Open PDF");
-                anchor.setTarget("_blank");
-                add(anchor); // Добавляем якорь на страницу
-                anchor.getElement().callJsFunction("click"); // Симулируем клик по якорю
-            });
-            hasProductNameLine.add(button);
+        var hasDocumentFile = checkIfDocumentFileExist();
+
+        if (hasDocumentFile && permissionsCheck.isContributorOrHigher(user)) {
+            addReviewButton(hasDocumentFile, productNameLayout);
         }
 
-        technicalReviewUploader.setProduct(product);
-        hasProductNameLine.add(technicalReviewUploader.getUpload());
+        if (permissionsCheck.isEditorOrHigher(user)) {
+            handleTechnicalReviewUploader(productNameLayout, hasDocumentFile);
+        }
 
+        if (hasDocumentFile && permissionsCheck.isEditorOrHigher(user)) {
+            addDeleteDocumentButton(productNameLayout);
+        }
+    }
+
+    private void addDeleteDocumentButton(HorizontalLayout hasProductNameLine) {
+        Button documentDeleteButton = new Button("Rəyi sil", VaadinIcon.TRASH.create());
+
+        technicalReviewUploader.setUploaderHeaderText("Rəyi yenilə");
+
+        documentDeleteButton.addClickListener((ClickEvent<Button> buttonClickEvent) -> {
+            designTools.showConfirmationDialog(() -> {
+                try {
+                    fileUploadService.deleteFile(product.getName(), product.getCategory().getName());
+                    Notification.show("Sənəd uğurla silindi!");
+                } catch (Exception e) {
+                    Notification.show("Səhv: sənədi silmək mümkün olmadı.");
+                }
+                handleProductNameLine();
+            });
+        });
+
+        hasProductNameLine.add(documentDeleteButton);
+    }
+
+
+    private boolean checkIfDocumentFileExist() {
+        Boolean hasDocumentFile;
+        try {
+            hasDocumentFile = Boolean.TRUE.equals(fileUploadService.fileExists(product).getBody());
+        } catch (Exception e) {
+            hasDocumentFile = false;
+            Notification.show(e.getMessage());
+        }
+        return hasDocumentFile;
+    }
+
+    private void addReviewButton(Boolean hasDocumentFile, HorizontalLayout hasProductNameLine) {
+        Button button = new Button("Rəy");
+        button.addClickListener(buttonClickEvent -> {
+            StreamResource resource = createResource(product);
+            Anchor anchor = new Anchor(resource, "Open PDF");
+            anchor.setTarget("_blank");
+            anchor.getStyle().set("display", "none");
+            add(anchor); // Добавляем якорь на страницу
+            anchor.getElement().callJsFunction("click"); // Симулируем клик по якорю
+        });
+        hasProductNameLine.add(button);
+    }
+
+    private void handleTechnicalReviewUploader(HorizontalLayout hasProductNameLine, Boolean hasDocumentFile) {
+        technicalReviewUploader.setProduct(product);
+
+        technicalReviewUploader.setAdditionalFunction(this::handleProductNameLine);
+
+        if (Boolean.TRUE.equals(hasDocumentFile)) {
+            technicalReviewUploader.setUploaderHeaderText("Rəyi yenilə");
+        }
+
+        hasProductNameLine.add(technicalReviewUploader.getUpload());
+    }
+
+    private void assembleLayout() {
         VerticalLayout verticalLayout = new VerticalLayout(
-                hasProductNameLine,
-                infoViewService.getProductInformation(product, user),
+                productNameLayout,
+                infoViewService.createProductInformationComponent(product, user),
                 ordersGrid.getOrderGrid(user, product)
         );
         verticalLayout.setWidthFull();
-
         VerticalLayout notesLayout = new VerticalLayout(
                 noteGridService.getNoteGrid(product, user)
         );
         notesLayout.setWidthFull();
-
         add(
                 verticalLayout,
                 notesLayout
@@ -173,7 +248,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setWidthFull(); // Задаем ширину на всю доступную ширину
-        buttonsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END); // Выравнивание содержимого справа
+        buttonsLayout.setJustifyContentMode(JustifyContentMode.END); // Выравнивание содержимого справа
 
         if (permissionsCheck.needEditor(user)) {
             Button saveButton = designTools.getNewIconButton(new Icon("lumo", "edit"), () -> {

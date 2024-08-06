@@ -11,6 +11,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Service
@@ -45,50 +47,78 @@ public class ProductInfoViewService {
         }
     }
 
-    public Component getProductInformation(Product product, User user) {
+    public Component createProductInformationComponent(Product product, User user) {
         VerticalLayout verticalLayout = new VerticalLayout();
+        ensureProductHasShelfLife(product);
 
+        if (permissionsCheck.needEditor(user)) {
+            addEditableFieldsToLayout(product, verticalLayout);
+
+            ComboBox<Category> categoriesComboBox = setupCategoriesComboBox(product);
+            ComboBox<Client> clientsComboBox = setupClientsComboBox(product);
+
+            verticalLayout.add(new HorizontalLayout(categoriesComboBox, clientsComboBox));
+        } else {
+            addProductDetailsToLayout(product, verticalLayout);
+        }
+
+        return verticalLayout;
+    }
+
+    private void ensureProductHasShelfLife(Product product) {
         if (product.getShelfLife() == null) {
             product.setShelfLife("");
             productService.update(product);
         }
+    }
 
-        if (permissionsCheck.needEditor(user)) {
-            designTools.addEditableField(product, verticalLayout, "TŞ (və ya ГОСТ):", product.getTs(), "^.*$", "", this::updateTs);
-            designTools.addEditableField(product, verticalLayout, "Barkod:", product.getBarcode(), "^\\d*$", "Yalnız rəqəmlərdən ibarət ola bilər.", this::updateBarcode);
-            designTools.addEditableField(product, verticalLayout, "Çəkisi:", product.getWeight(), "^.*$", "", this::updateWeight);
-            designTools.addEditableField(product, verticalLayout, "Saxlama müddəti:", product.getShelfLife(), "^.*$", "", this::updateShelfLife);
+    private void addEditableFieldsToLayout(Product product, VerticalLayout verticalLayout) {
+        designTools.addEditableField(product, verticalLayout, "TŞ (və ya ГОСТ):", product.getTs(), "^.*$", "", this::updateTs);
+        designTools.addEditableField(product, verticalLayout, "Barkod:", product.getBarcode(), "^\\d*$", "Yalnız rəqəmlərdən ibarət ola bilər.", this::updateBarcode);
+        designTools.addEditableField(product, verticalLayout, "Çəkisi:", product.getWeight(), "^.*$", "", this::updateWeight);
+        designTools.addEditableField(product, verticalLayout, "Saxlama müddəti:", product.getShelfLife(), "^.*$", "", this::updateShelfLife);
+    }
 
-            var categories = categoryService.getAllSortingByParent();
-            var categoriesComboBox = designTools.creatComboBox("Kateqoriyalar", categories, Category::getFullName);
-            categoriesComboBox.setValue(product.getCategory());
-            categoriesComboBox.addValueChangeListener(event -> {
-                product.setCategory(event.getValue());
-                productService.update(product);
-            });
+    private ComboBox<Category> setupCategoriesComboBox(Product product) {
+        List<Category> categories = categoryService.getAllSortingByParent();
+        ComboBox<Category> categoriesComboBox = designTools.creatComboBox("Kateqoriyalar", categories, Category::getFullName);
 
-            var clients = clientService.getAll();
-            clients.sort(Comparator.comparing(Client::getName));
-            var clientsComboBox = designTools.creatComboBox("Müştəri", clients, Client::getName);
-            clientsComboBox.setValue(product.getClient());
-            clientsComboBox.addValueChangeListener(event -> {
-                product.setClient(event.getValue());
-                productService.update(product);
-            });
+        categoriesComboBox.setValue(product.getCategory());
+        categoriesComboBox.addValueChangeListener(event -> updateProductCategory(product, event.getValue()));
 
-            verticalLayout.add(new HorizontalLayout(categoriesComboBox, clientsComboBox));
-        } else {
-            verticalLayout.add(
-                    new H4("TŞ (və ya ГОСТ): " + product.getTs()),
-                    new H4("Barkod: " + product.getBarcode()),
-                    new H4("Çəkisi: " + product.getWeight()),
-                    new H4("Saxlama müddəti: " + product.getShelfLife()),
-                    new H4("Kateqoriya: " + product.getCategory().getFullName()),
-                    new H4("Müştəri: " + product.getClient().getName())
-            );
-        }
+        return categoriesComboBox;
+    }
 
-        return verticalLayout;
+    private ComboBox<Client> setupClientsComboBox(Product product) {
+        List<Client> clients = clientService.getAll();
+        clients.sort(Comparator.comparing(Client::getName));
+        ComboBox<Client> clientsComboBox = designTools.creatComboBox("Müştəri", clients, Client::getName);
+
+        clientsComboBox.setValue(product.getClient());
+        clientsComboBox.addValueChangeListener(event -> updateProductClient(product, event.getValue()));
+
+        return clientsComboBox;
+    }
+
+    private void addProductDetailsToLayout(Product product, VerticalLayout verticalLayout) {
+        verticalLayout.add(
+                new H4("TŞ (və ya ГОСТ): " + product.getTs()),
+                new H4("Barkod: " + product.getBarcode()),
+                new H4("Çəkisi: " + product.getWeight()),
+                new H4("Saxlama müddəti: " + product.getShelfLife()),
+                new H4("Kateqoriya: " + product.getCategory().getFullName()),
+                new H4("Müştəri: " + product.getClient().getName())
+        );
+    }
+
+    private void updateProductCategory(Product product, Category newValue) {
+        product.setCategory(newValue);
+        productService.update(product);
+    }
+
+    private void updateProductClient(Product product, Client newValue) {
+        product.setClient(newValue);
+        productService.update(product);
     }
 
     private void updateShelfLife(NamedEntity entity, String s) {
