@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -44,7 +45,7 @@ public class OrdersGrid {
     private final UploadComponentCreator uploadComponentCreator;
 
     private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
-    private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
 
     public VerticalLayout getAllOrdersGrid(User user) {
@@ -211,11 +212,11 @@ public class OrdersGrid {
 
     private void addOrderReceivedDateTimeColum(Grid<Order> orderGrid) {
         Grid.Column<Order> orderReceivedDateTimeColumn = orderGrid.addColumn(order ->
-                        order.getOrderReceivedDateTime() != null ?
-                                order.getOrderReceivedDateTime().format(DATE_FORMATTER) : "")
+                        order.getOrderReceivedDate() != null ?
+                                order.getOrderReceivedDate().format(DATE_FORMATTER) : "")
                 .setHeader("Sifariş gəldi")
                 .setComparator(order ->
-                        order.getOrderReceivedDateTime() != null ? order.getOrderReceivedDateTime() : LocalDateTime.MIN)
+                        order.getOrderReceivedDate() != null ? order.getOrderReceivedDate() : LocalDate.MIN)
                 .setFlexGrow(2)
                 .setKey("incoming_date");
 

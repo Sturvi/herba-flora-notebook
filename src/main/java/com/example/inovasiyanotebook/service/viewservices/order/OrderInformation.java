@@ -61,7 +61,7 @@ public class OrderInformation {
 
         H5 orderStatus = new H5("Status: " + order.getStatus().getName());
         H5 receivedDateTime = new H5(
-                "Gəlmə tarixi: " + order.getOrderReceivedDateTime().format(FORMATTER));
+                "Gəlmə tarixi: " + order.getOrderReceivedDate().format(FORMATTER));
         verticalLayout.add(orderStatus, receivedDateTime);
 
         if (order.getOrderCompletedDateTime() != null) {

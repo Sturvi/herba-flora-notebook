@@ -15,9 +15,11 @@ import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.HtmlContainer;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -52,7 +55,7 @@ public class OrderComponents {
     private final NoteDialog noteDialog;
 
     private TextField orderNoField;
-    private DateTimePicker receivedDateTimePicker;
+    private DatePicker receivedDatePicker;
     private DateTimePicker completedDataTime;
     private TextArea orderCommentField;
     private ComboBox<OrderStatusEnum> statusField;
@@ -77,8 +80,8 @@ public class OrderComponents {
                 "\\d+",
                 "Yalnız rəqəmlərdən ibarət ola bilər");
 
-        this.receivedDateTimePicker = new DateTimePicker("Şifarişin şöbəyə göndərilən tarix");
-        receivedDateTimePicker.setValue(LocalDateTime.now());
+        this.receivedDatePicker = new DatePicker("Şifarişin şöbəyə göndərilən tarix");
+        receivedDatePicker.setValue(LocalDate.now());
 
         this.completedDataTime = new DateTimePicker("Şifarişin bitmə tarixi");
 
@@ -111,7 +114,7 @@ public class OrderComponents {
         positionsLayout.removeAll();
 
         orderNoField.setValue(String.valueOf(order.getOrderNo()));
-        receivedDateTimePicker.setValue(order.getOrderReceivedDateTime());
+        receivedDatePicker.setValue(order.getOrderReceivedDate());
         this.completedDataTime = new DateTimePicker("Şifarişin bitmə tarixi");
         completedDataTime.setValue(order.getOrderCompletedDateTime());
         statusField.setValue(order.getStatus());
@@ -139,7 +142,7 @@ public class OrderComponents {
      */
     public void readOnly(boolean isReadOnly) {
         orderNoField.setReadOnly(isReadOnly);
-        receivedDateTimePicker.setReadOnly(isReadOnly);
+        receivedDatePicker.setReadOnly(isReadOnly);
         completedDataTime.setReadOnly(isReadOnly);
         orderCommentField.setReadOnly(isReadOnly);
         statusField.setReadOnly(isReadOnly);
@@ -190,6 +193,11 @@ public class OrderComponents {
             return false;
         }
 
+        if (orderService.existsByOrderNoAndOrderReceivedDate(Integer.parseInt(orderNoField.getValue()), receivedDatePicker.getValue())) {
+            Notification.show("Bu nömrə və tarix ilə sifariş artıq sistemdə mövcuddur.", 3000, Notification.Position.MIDDLE);
+            return false;
+        }
+
         setOrderDetails();
         processOrderStatusAndCompletionTime();
         saveOrUpdateOrder();
@@ -227,7 +235,7 @@ public class OrderComponents {
 
     private void setOrderDetails() {
         order.setOrderNo(Integer.parseInt(orderNoField.getValue()));
-        order.setOrderReceivedDateTime(receivedDateTimePicker.getValue());
+        order.setOrderReceivedDate(receivedDatePicker.getValue());
         order.setComment(orderCommentField.getValue());
     }
 
@@ -296,9 +304,9 @@ public class OrderComponents {
     }
 
     private boolean isReceivedDateValid(boolean result) {
-        if (receivedDateTimePicker.getValue() == null) {
-            receivedDateTimePicker.setErrorMessage("Tarix seçilməlidir");
-            receivedDateTimePicker.setInvalid(true);
+        if (receivedDatePicker.getValue() == null) {
+            receivedDatePicker.setErrorMessage("Tarix seçilməlidir");
+            receivedDatePicker.setInvalid(true);
             result = false;
         }
         return result;
@@ -327,7 +335,7 @@ public class OrderComponents {
             orderLayout.removeAll();
         }
 
-        HorizontalLayout firstLine = new HorizontalLayout(orderNoField, receivedDateTimePicker, completedDataTime, statusField);
+        HorizontalLayout firstLine = new HorizontalLayout(orderNoField, receivedDatePicker, completedDataTime, statusField);
         if (notesDialogButton != null) {
             firstLine.add(notesDialogButton);
         }
