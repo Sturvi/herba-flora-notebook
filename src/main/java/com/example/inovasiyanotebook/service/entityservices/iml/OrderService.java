@@ -2,13 +2,9 @@ package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
-import com.example.inovasiyanotebook.model.order.OrderPosition;
-import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
-import com.example.inovasiyanotebook.model.order.RawOrderData;
 import com.example.inovasiyanotebook.repository.OrderRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import com.example.inovasiyanotebook.service.entityservices.exceptions.DuplicateOrderException;
-import com.example.inovasiyanotebook.service.viewservices.order.worddocument.RawPositionData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -64,4 +60,7 @@ public class OrderService implements CRUDService<Order> {
         return orderRepository.existsByOrderNoAndOrderReceivedDate(orderNo, orderReceivedDate);
     }
 
+    public Optional<Long> getOrderIdByOrderNoAndOrderReceivedDate(Integer orderNo, LocalDate orderReceivedDate) {
+        return orderRepository.findIdByOrderNoAndOrderReceivedDate(orderNo, orderReceivedDate);
+    }
 }

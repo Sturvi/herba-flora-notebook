@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -16,5 +17,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Set<Order> findAllByProducts(Product product);
 
     boolean existsByOrderNoAndOrderReceivedDate(Integer orderNo, LocalDate orderReceivedDate);
+
+
+    @Query("SELECT o.id FROM Order o WHERE o.orderNo = :orderNo AND o.orderReceivedDate = :orderReceivedDate")
+    Optional<Long> findIdByOrderNoAndOrderReceivedDate(Integer orderNo, LocalDate orderReceivedDate);
 
 }

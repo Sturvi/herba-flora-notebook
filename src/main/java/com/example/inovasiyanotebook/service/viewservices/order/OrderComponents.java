@@ -193,7 +193,9 @@ public class OrderComponents {
             return false;
         }
 
-        if (orderService.existsByOrderNoAndOrderReceivedDate(Integer.parseInt(orderNoField.getValue()), receivedDatePicker.getValue())) {
+        if (order.getId() != null
+                && orderService.existsByOrderNoAndOrderReceivedDate(Integer.parseInt(orderNoField.getValue()), receivedDatePicker.getValue())
+        && !isMatchingOrder()) {
             Notification.show("Bu nömrə və tarix ilə sifariş artıq sistemdə mövcuddur.", 3000, Notification.Position.MIDDLE);
             return false;
         }
@@ -204,6 +206,11 @@ public class OrderComponents {
         handleOrderPositions();
 
         return true;
+    }
+
+    private boolean isMatchingOrder() {
+        var orderNoOptional = orderService.getOrderIdByOrderNoAndOrderReceivedDate(Integer.parseInt(orderNoField.getValue()), receivedDatePicker.getValue());
+        return orderNoOptional.map(aLong -> aLong.equals(order.getId())).orElse(false);
     }
 
     private void handleOrderPositions() {
