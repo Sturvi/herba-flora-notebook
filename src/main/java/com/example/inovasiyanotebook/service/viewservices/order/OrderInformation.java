@@ -11,9 +11,11 @@ import com.example.inovasiyanotebook.service.entityservices.iml.PrintedTypeServi
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -43,7 +45,8 @@ public class OrderInformation {
     private final PrintedTypeService printedTypeService;
     private final NavigationTools navigationTools;
 
-    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     public VerticalLayout getInformationLayout (Order order, User user) {
         VerticalLayout verticalLayout = new VerticalLayout();
@@ -61,12 +64,12 @@ public class OrderInformation {
 
         H5 orderStatus = new H5("Status: " + order.getStatus().getName());
         H5 receivedDateTime = new H5(
-                "Gəlmə tarixi: " + order.getOrderReceivedDate().format(FORMATTER));
+                "Gəlmə tarixi: " + order.getOrderReceivedDate().format(DATE_FORMATTER));
         verticalLayout.add(orderStatus, receivedDateTime);
 
         if (order.getOrderCompletedDateTime() != null) {
             H5 completedDateTime = new H5(
-                    "Bitmə tarixi: " + order.getOrderCompletedDateTime().format(FORMATTER));
+                    "Bitmə tarixi: " + order.getOrderCompletedDateTime().format(DATE_TIME_FORMATTER));
             verticalLayout.add(completedDateTime);
         }
 
@@ -89,6 +92,7 @@ public class OrderInformation {
 
         scroller.setContent(ordersComponents);
         verticalLayout.add(scroller);
+
 
         return verticalLayout;
     }
