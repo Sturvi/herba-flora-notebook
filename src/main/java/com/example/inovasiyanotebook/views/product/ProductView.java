@@ -10,6 +10,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
 import com.example.inovasiyanotebook.service.viewservices.order.OrdersGrid;
+import com.example.inovasiyanotebook.service.viewservices.product.extrainformationdialog.ProductExtraInfoDialogService;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductInfoViewService;
 import com.example.inovasiyanotebook.service.viewservices.product.ProductsGridService;
 import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
@@ -18,7 +19,6 @@ import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.MainLayout;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -32,8 +32,10 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.security.PermitAll;
+import org.hibernate.Hibernate;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -54,6 +56,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private final ProductsGridService productsGridService;
     private final TechnicalReviewUploader technicalReviewUploader;
     private final FileUploadService fileUploadService;
+    private final ProductExtraInfoDialogService productExtraInfoDialogService;
 
     private Product product;
     private User user;
@@ -71,7 +74,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
                        NoteGridService noteGridService,
                        ProductsGridService productsGridService,
                        TechnicalReviewUploader technicalReviewUploader,
-                       FileUploadService fileUploadService) {
+                       FileUploadService fileUploadService, ProductExtraInfoDialogService productExtraInfoDialogService) {
         this.productService = productService;
         this.infoViewService = infoViewService;
         this.designTools = designTools;
@@ -81,6 +84,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         this.noteGridService = noteGridService;
         this.productsGridService = productsGridService;
         this.fileUploadService = fileUploadService;
+        this.productExtraInfoDialogService = productExtraInfoDialogService;
         this.user = userService.findByUsername(navigationTools.getCurrentUsername());
 
         this.technicalReviewUploader = technicalReviewUploader;
@@ -92,6 +96,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     }
 
     @Override
+    @Transactional
     public void setParameter(BeforeEvent beforeEvent, @OptionalParameter String productId) {
         removeAll();
 
@@ -101,6 +106,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
             var productOpt = productService.getById(Long.parseLong(productId));
             productOpt.ifPresentOrElse(product -> {
                         this.product = product;
+                        Hibernate.initialize(product.getExtraInfo());
                         handleHasProduct();
                     },
                     this::allProductsPage);
@@ -134,6 +140,8 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         if (hasDocumentFile && permissionsCheck.isEditorOrHigher(user)) {
             addDeleteDocumentButton(productNameLayout);
         }
+
+        addExtraInformationButton(productNameLayout);
     }
 
     private void addDeleteDocumentButton(HorizontalLayout hasProductNameLine) {
@@ -154,6 +162,17 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         });
 
         hasProductNameLine.add(documentDeleteButton);
+    }
+
+        private void addExtraInformationButton(HorizontalLayout hasProductNameLine) {
+        Button extraInfoButton = new Button("Elave Melumat", VaadinIcon.INFO.create());
+
+
+        extraInfoButton.addClickListener((ClickEvent<Button> buttonClickEvent) -> {
+            productExtraInfoDialogService.openDialog(product);
+        });
+
+        hasProductNameLine.add(extraInfoButton);
     }
 
 
