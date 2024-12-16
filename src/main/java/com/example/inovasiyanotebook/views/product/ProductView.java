@@ -119,30 +119,52 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     }
 
     private void handleProductNameLine() {
+        // Clear the layout
         productNameLayout.removeAll();
 
-        productNameLayout.add(infoViewService.getProductNameLine(product, user));
+        // Create a vertical layout to hold two lines
+        VerticalLayout verticalLayout = new VerticalLayout();
 
+        // Add product name to the first line
+        var productNameLine = infoViewService.getProductNameLine(product, user);
+        verticalLayout.add(productNameLine);
+
+        // Create a layout for additional controls
+        HorizontalLayout controlsLayout = new HorizontalLayout();
+
+        // Add instruction button
         Button instruksionButton = new Button("İnstruksiya");
         instruksionButton.addClickListener(buttonClickEvent -> openInstructionDialog(product, user));
-        productNameLayout.add(instruksionButton);
+        controlsLayout.add(instruksionButton);
 
+        // Check if document file exists
         var hasDocumentFile = checkIfDocumentFileExist();
 
+        // Add review button if user has contributor permissions or higher
         if (hasDocumentFile && permissionsCheck.isContributorOrHigher(user)) {
-            addReviewButton(hasDocumentFile, productNameLayout);
+            addReviewButton(hasDocumentFile, controlsLayout);
         }
 
+        // Add technical review uploader for editors or higher
         if (permissionsCheck.isEditorOrHigher(user)) {
-            handleTechnicalReviewUploader(productNameLayout, hasDocumentFile);
+            handleTechnicalReviewUploader(controlsLayout, hasDocumentFile);
         }
 
+        // Add delete document button if document exists and user has editor permissions or higher
         if (hasDocumentFile && permissionsCheck.isEditorOrHigher(user)) {
-            addDeleteDocumentButton(productNameLayout);
+            addDeleteDocumentButton(controlsLayout);
         }
 
-        addExtraInformationButton(productNameLayout);
+        // Add extra information button
+        addExtraInformationButton(controlsLayout);
+
+        // Add the controls layout to the second line
+        verticalLayout.add(controlsLayout);
+
+        // Add the vertical layout to the productNameLayout
+        productNameLayout.add(verticalLayout);
     }
+
 
     private void addDeleteDocumentButton(HorizontalLayout hasProductNameLine) {
         Button documentDeleteButton = new Button("Rəyi sil", VaadinIcon.TRASH.create());
@@ -164,7 +186,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         hasProductNameLine.add(documentDeleteButton);
     }
 
-        private void addExtraInformationButton(HorizontalLayout hasProductNameLine) {
+    private void addExtraInformationButton(HorizontalLayout hasProductNameLine) {
         Button extraInfoButton = new Button("Elave Melumat", VaadinIcon.INFO.create());
 
 
