@@ -45,6 +45,9 @@ public class Product extends AbstractEntity implements ParentEntity, NamedEntity
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<OrderPosition> orderPositions;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductExtraInfo> extraInfo;
+
     @Override
     public ViewsEnum getViewEnum() {
         return ViewsEnum.PRODUCT;

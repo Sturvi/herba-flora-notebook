@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.ProductExtraInfo;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ProductRepository;
@@ -9,7 +10,9 @@ import com.example.inovasiyanotebook.service.viewservices.order.worddocument.Fil
 import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,4 +77,41 @@ public class ProductService implements CRUDService<Product> {
     public List<Product> getAllByCategory(Category category) {
         return productRepository.findAllByCategoryAndHisSubCategory(category);
     }
+
+    @Transactional
+    public void updateExtraInfo(Product product, List<ProductExtraInfo> extraInfoList) {
+        // Загружаем продукт с полной связанной информацией
+        Product existingProduct = productRepository.findByIdWithExtraInfo(product.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with ID: " + product.getId()));
+
+        // Удаление лишних записей
+        existingProduct.getExtraInfo().removeIf(existingInfo ->
+                extraInfoList.stream().noneMatch(newInfo -> newInfo.getKey().equals(existingInfo.getKey()))
+        );
+
+        // Добавление новых записей или обновление существующих
+        extraInfoList.forEach(newInfo -> {
+            ProductExtraInfo existingInfo = existingProduct.getExtraInfo().stream()
+                    .filter(info -> info.getKey().equals(newInfo.getKey()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingInfo == null) {
+                // Если запись новая, добавляем её
+                newInfo.setProduct(existingProduct);
+                existingProduct.getExtraInfo().add(newInfo);
+            } else {
+                // Если запись существует, обновляем её значение
+                existingInfo.setValue(newInfo.getValue());
+            }
+        });
+
+        // Сохранение обновлений
+        productRepository.save(existingProduct);
+
+        // Обновление текущего объекта продукта
+        product.setExtraInfo(existingProduct.getExtraInfo());
+    }
+
+
 }
