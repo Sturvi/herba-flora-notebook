@@ -56,6 +56,9 @@ public class ProductExtraInfoDialogService {
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
         Button saveButton = new Button("Save", event -> {
+            for (int i = 0; i < temporaryExtraInfo.size(); i++) {
+                temporaryExtraInfo.get(i).setSortOrder(i);
+            }
             productService.updateExtraInfo(product, temporaryExtraInfo);
             dialog.close();
         });
@@ -92,6 +95,7 @@ public class ProductExtraInfoDialogService {
                 newInfo.setKey(key);
                 newInfo.setValue(value);
                 newInfo.setProduct(product);
+                newInfo.setSortOrder(temporaryExtraInfo.size() + 1); // Set initial order
 
                 temporaryExtraInfo.add(newInfo);
                 parentLayout.add(createExtraInfoRow(newInfo, temporaryExtraInfo, parentLayout));
@@ -111,7 +115,7 @@ public class ProductExtraInfoDialogService {
     private HorizontalLayout createExtraInfoRow(ProductExtraInfo extraInfo, List<ProductExtraInfo> temporaryExtraInfo, VerticalLayout parentLayout) {
         TextArea keyField = new TextArea();
         keyField.setValue(extraInfo.getKey());
-        keyField.setWidth("40%");
+        keyField.setWidth("20%");
         keyField.setReadOnly(true);
 
         TextArea valueField = new TextArea();
@@ -121,8 +125,11 @@ public class ProductExtraInfoDialogService {
 
         Button editButton = new Button("Edit");
         Button deleteButton = new Button("Delete");
+        Button moveUpButton = new Button("↑");
+        Button moveDownButton = new Button("↓");
 
-        HorizontalLayout rowLayout = new HorizontalLayout(keyField, valueField, editButton, deleteButton);
+
+        HorizontalLayout rowLayout = new HorizontalLayout(moveUpButton, moveDownButton, keyField, valueField, editButton, deleteButton);
         rowLayout.setWidthFull();
         rowLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
@@ -146,6 +153,38 @@ public class ProductExtraInfoDialogService {
             parentLayout.remove(rowLayout);
         });
 
+        moveUpButton.addClickListener(event -> {
+            int currentIndex = temporaryExtraInfo.indexOf(extraInfo);
+            if (currentIndex > 0) {
+                temporaryExtraInfo.remove(currentIndex);
+                temporaryExtraInfo.add(currentIndex - 1, extraInfo);
+                updateSortOrders(temporaryExtraInfo);
+                refreshLayout(parentLayout, temporaryExtraInfo);
+            }
+        });
+
+        moveDownButton.addClickListener(event -> {
+            int currentIndex = temporaryExtraInfo.indexOf(extraInfo);
+            if (currentIndex < temporaryExtraInfo.size() - 1) {
+                temporaryExtraInfo.remove(currentIndex);
+                temporaryExtraInfo.add(currentIndex + 1, extraInfo);
+                updateSortOrders(temporaryExtraInfo);
+                refreshLayout(parentLayout, temporaryExtraInfo);
+            }
+        });
+
         return rowLayout;
+    }
+
+    private void updateSortOrders(List<ProductExtraInfo> extraInfoList) {
+        for (int i = 0; i < extraInfoList.size(); i++) {
+            extraInfoList.get(i).setSortOrder(i + 1);
+        }
+    }
+
+    private void refreshLayout(VerticalLayout parentLayout, List<ProductExtraInfo> temporaryExtraInfo) {
+        parentLayout.removeAll();
+        parentLayout.add(createNewInfoInputRow(null, temporaryExtraInfo, parentLayout));
+        temporaryExtraInfo.forEach(extraInfo -> parentLayout.add(createExtraInfoRow(extraInfo, temporaryExtraInfo, parentLayout)));
     }
 }

@@ -25,4 +25,8 @@ public class ProductExtraInfo extends AbstractEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    @Column(name = "sort_order", nullable = false)
+    private Integer sortOrder;
+
 }
