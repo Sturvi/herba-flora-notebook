@@ -69,7 +69,14 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
     }*/
 
     public void deleteAll(List<OrderPosition> entities) {
-        orderPositionRepository.deleteAllInBatch(entities);
+        List<OrderPosition> validEntities = filterEntitiesWithNonNullId(entities);
+        orderPositionRepository.deleteAllInBatch(validEntities);
+    }
+
+    private List<OrderPosition> filterEntitiesWithNonNullId(List<OrderPosition> entities) {
+        return entities.stream()
+                .filter(orderPosition -> orderPosition.getId() != null)
+                .toList();
     }
 
     public void delete(OrderPosition entity) {
