@@ -1,16 +1,20 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.repository.OrderPositionRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
+import com.example.inovasiyanotebook.views.openedordersbyproduct.ProductOpeningPositionDTO;
 import com.vaadin.flow.component.combobox.ComboBox;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.*;
 
@@ -78,5 +82,16 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
 
     public void saveAll(List<OrderPosition> orderPositions) {
         orderPositionRepository.saveAll(orderPositions);
+    }
+
+    public Set<OrderPosition> getAllByProductWithOpenedStatus (Product product) {
+        return orderPositionRepository.getAllByProductAndStatus(product, OPEN);
+    }
+
+    public Set<ProductOpeningPositionDTO> getAllWithOpeningStatus(){
+        Set<ProductOpeningPositionDTO> dtoSet = new HashSet<>();
+        orderPositionRepository.getAllByStatus(OPEN).forEach(position -> 
+            dtoSet.add(new ProductOpeningPositionDTO(position)));
+        return dtoSet;
     }
 }
