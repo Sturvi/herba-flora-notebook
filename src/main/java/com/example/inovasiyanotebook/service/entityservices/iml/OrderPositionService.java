@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.*;
 
@@ -88,10 +85,24 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
         return orderPositionRepository.getAllByProductAndStatus(product, OPEN);
     }
 
-    public Set<ProductOpeningPositionDTO> getAllWithOpeningStatus(){
-        Set<ProductOpeningPositionDTO> dtoSet = new HashSet<>();
-        orderPositionRepository.getAllByStatus(OPEN).forEach(position -> 
-            dtoSet.add(new ProductOpeningPositionDTO(position)));
-        return dtoSet;
+   public List<ProductOpeningPositionDTO> getAllWithOpeningStatusGroupedByProduct() {
+        // Получение позиций со статусом OPEN
+        List<OrderPosition> openPositions = orderPositionRepository.getAllByStatus(OrderStatusEnum.OPEN);
+   
+        Map<Product, ProductOpeningPositionDTO> productOpeningPositionDTOMap = new HashMap<>();
+        
+        openPositions.forEach(orderPosition -> {
+            if (productOpeningPositionDTOMap.containsKey(orderPosition.getProduct())) {
+                productOpeningPositionDTOMap.get(orderPosition.getProduct()).addOpenedPosition(orderPosition);
+            } else {
+                var productOpeningPositionDTO = new ProductOpeningPositionDTO(orderPosition.getProduct());
+                productOpeningPositionDTO.addOpenedPosition(orderPosition);
+                productOpeningPositionDTOMap.put(orderPosition.getProduct(), productOpeningPositionDTO);
+            }
+        });
+   
+        // Сбор всех DTO из мапы в Set
+        return new ArrayList<>(productOpeningPositionDTOMap.values());
     }
 }
+

@@ -1,0 +1,42 @@
+.category-order-card {
+  /* Стили контейнера */
+  display: inline-block; /* или block в зависимости от вашего макета */
+  /*max-width: 900px; !* пример ширины, задайте свою *!*/
+  margin: 5px; /* пространство вокруг карточки */
+  padding: 10px 20px 20px 20px; /* внутренние отступы карточки */
+  box-sizing: border-box;
+
+  /* Шрифты и текст */
+  font-family: 'Open Sans', sans-serif;
+  color: #495456; /* цвет текста */
+
+  /* Фон и тени */
+  background: #141a25; /* фон карточки */
+  box-shadow: 0px 5px 15px rgb(0, 9, 14); /* тень карточки */
+  border-radius: 6px; /* скругление углов */
+
+  /* Переходы и интерактивность */
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* плавный переход тени и преобразования */
+
+  /* Псевдо-параметры для наведения */
+  --offset-multiplier: 4px; /* множитель смещения */
+}
+
+.category-order-card:hover {
+  --offset-multiplier: 1px; /* увеличенное смещение при наведении */
+  transform: scale(1.01); /* небольшое увеличение карточки */
+  box-shadow: -8px 0px 16px rgba(0, 0, 0, 0.8); /* усиленная тень */
+}
+
+/* Стили для заголовков и параграфов внутри карточки */
+.category-order-card h2 {
+  font-family: 'Arbutus Slab', serif;
+  font-weight: normal;
+  color: #000;
+  line-height: 1.25;
+}
+
+.category-order-card p {
+  font-size: 14px;
+}
