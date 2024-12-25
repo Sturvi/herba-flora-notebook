@@ -157,6 +157,16 @@ public class DesignTools {
         return textField;
     }
 
+        public TextField createTextFieldWithValue(String label, String value, boolean readOnly) {
+        TextField textField = new TextField();
+        textField.setLabel(label);
+        textField.setValue(value);
+        textField.setReadOnly(readOnly);
+        textField.setSizeFull();
+
+        return textField;
+    }
+
     public TextArea createTextArea(String label, String pattern, String errorMessage) {
         return createTextArea(label, pattern, errorMessage, null);
     }

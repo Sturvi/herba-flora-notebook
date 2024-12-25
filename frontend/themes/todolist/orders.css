@@ -59,3 +59,16 @@
     color: white; /* Белый цвет */
     font-style: italic; /* Курсив */
 }
+
+.product-label {
+    font-size: 1.5em; /* Чуть меньше, чем H2 */
+    color: white;
+    margin-right: 0.4em; /* Уменьшенный отступ */
+    margin-left: 0.4em;
+}
+
+.product-date-label {
+    font-size: 0.9em; /* Уменьшенный размер текста */
+    color: white;
+    font-style: italic;
+}

@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.service.viewservices.note;
 
+import com.example.inovasiyanotebook.model.interfaces.Noteable;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.views.DesignTools;
@@ -22,7 +23,7 @@ public class NoteDialog {
     private final DesignTools designTools;
 
 
-    public void openDialog(Order order, User user) {
+    public void openDialog(Noteable noteble, User user) {
         Dialog dialog = new Dialog();
         dialog.setHeightFull();
         dialog.setMinWidth("700px");
@@ -31,7 +32,7 @@ public class NoteDialog {
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(true);
 
-        var notesLayout = noteGridService.getNoteGrid(order, user);
+        var notesLayout = noteGridService.getNoteGrid(noteble, user);
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setWidthFull(); // Задаем ширину на всю доступную ширину
