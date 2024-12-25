@@ -93,10 +93,10 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
         
         openPositions.forEach(orderPosition -> {
             if (productOpeningPositionDTOMap.containsKey(orderPosition.getProduct())) {
-                productOpeningPositionDTOMap.get(orderPosition.getProduct()).addOpenedPosition(orderPosition);
+                productOpeningPositionDTOMap.get(orderPosition.getProduct()).addOrderPositionIfMatchesProduct(orderPosition);
             } else {
                 var productOpeningPositionDTO = new ProductOpeningPositionDTO(orderPosition.getProduct());
-                productOpeningPositionDTO.addOpenedPosition(orderPosition);
+                productOpeningPositionDTO.addOrderPositionIfMatchesProduct(orderPosition);
                 productOpeningPositionDTOMap.put(orderPosition.getProduct(), productOpeningPositionDTO);
             }
         });

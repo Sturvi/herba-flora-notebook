@@ -1,33 +1,59 @@
 package com.example.inovasiyanotebook.views.openedordersbyproduct;
 
 import com.example.inovasiyanotebook.model.client.Category;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class CategoryOpeningPositionDTOList {
-    private Map<Category, CategoryOpeningPositionDTO> categoryCategoryOpeningPositionDTOMap;
+    // Map to store categories and their respective positions
+    // Карта для хранения категорий и соответствующих им позиций
+    private final Map<Category, CategoryOpeningPositionDTO> categoryToPositionMap;
 
     public CategoryOpeningPositionDTOList() {
-        this.categoryCategoryOpeningPositionDTOMap = new HashMap<>();
+        this.categoryToPositionMap = new HashMap<>();
+        log.debug("Initialized CategoryOpeningPositionDTOList with an empty map."); // Log initialization
     }
 
-    public void addProductOpeningPositionDTO(ProductOpeningPositionDTO productOpeningPositionDTO) {
-        if (categoryCategoryOpeningPositionDTOMap.containsKey(productOpeningPositionDTO.getParentCategory())) {
-            categoryCategoryOpeningPositionDTOMap.get(productOpeningPositionDTO.getParentCategory()).addOpenedPosition(productOpeningPositionDTO);
-        } else {
-            CategoryOpeningPositionDTO categoryOpeningPositionDTO = new CategoryOpeningPositionDTO(productOpeningPositionDTO.getParentCategory());
-            categoryOpeningPositionDTO.addOpenedPosition(productOpeningPositionDTO);
-            categoryCategoryOpeningPositionDTOMap.put(productOpeningPositionDTO.getParentCategory(), categoryOpeningPositionDTO);
-        }
+    /**
+     * Adds a product position to the corresponding category. If the category doesn't exist in the map,
+     * it creates a new entry.
+     * Добавляет позицию продукта в соответствующую категорию. Если категория отсутствует в карте,
+     * создается новая запись.
+     *
+     * @param productPosition ProductOpeningPositionDTO to add.
+     *                       Позиция продукта для добавления.
+     */
+    public void addProductPosition(ProductOpeningPositionDTO productPosition) {
+        log.debug("Adding product position: {}", productPosition);
+        Category parentCategory = productPosition.getParentCategory();
+        CategoryOpeningPositionDTO categoryPosition = categoryToPositionMap.computeIfAbsent(
+                parentCategory,
+                key -> {
+                    log.debug("Creating new CategoryOpeningPositionDTO for category: {}", key);
+                    // Создание нового CategoryOpeningPositionDTO для категории: {}
+                    return new CategoryOpeningPositionDTO(parentCategory);
+                }
+        );
+        categoryPosition.addOpenedPosition(productPosition);
+        log.info("Product position added to category: {}", parentCategory);
     }
 
-    public List<CategoryOpeningPositionDTO> getCategoryOpeningPositionDTOList() {
-        return categoryCategoryOpeningPositionDTOMap.values().stream()
+    /**
+     * Retrieves a sorted list of CategoryOpeningPositionDTO objects based on their order received dates.
+     * Возвращает отсортированный список объектов CategoryOpeningPositionDTO по дате получения заказа.
+     *
+     * @return Sorted list of CategoryOpeningPositionDTO.
+     *         Отсортированный список CategoryOpeningPositionDTO.
+     */
+    public List<CategoryOpeningPositionDTO> getSortedCategoryPositions() {
+        log.debug("Sorting CategoryOpeningPositionDTO list by order received date.");
+        List<CategoryOpeningPositionDTO> sortedList = categoryToPositionMap.values().stream()
                 .sorted(Comparator.comparing(CategoryOpeningPositionDTO::getOrderReceivedDate))
                 .collect(Collectors.toList());
+        log.info("Retrieved sorted list of CategoryOpeningPositionDTO objects.");
+        return sortedList;
     }
 }

@@ -40,3 +40,22 @@
 .category-order-card p {
   font-size: 14px;
 }
+
+
+.category-order-card {
+    /* Общий стиль для карточки */
+    width: 100%;
+}
+
+.category-label {
+    font-size: 2em; /* Размер текста как H2 */
+    color: white; /* Белый цвет */
+    margin-right: 0.5em; /* Отступ после иконки */
+    margin-left: 0.5em; /* Отступ до иконки */
+}
+
+.date-label {
+    font-size: 1.2em; /* Увеличенный размер текста */
+    color: white; /* Белый цвет */
+    font-style: italic; /* Курсив */
+}

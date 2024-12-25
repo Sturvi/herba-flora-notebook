@@ -40,9 +40,9 @@ public class OpenedOrdersByProduct extends VerticalLayout {
         List<ProductOpeningPositionDTO> openedPositions = orderPositionService.getAllWithOpeningStatusGroupedByProduct();
 
         CategoryOpeningPositionDTOList categoryOpeningPositionDTOList = new CategoryOpeningPositionDTOList();
-        openedPositions.forEach(categoryOpeningPositionDTOList::addProductOpeningPositionDTO);
+        openedPositions.forEach(categoryOpeningPositionDTOList::addProductPosition);
 
-        categoryOpeningPositionDTOList.getCategoryOpeningPositionDTOList().forEach(dto -> {
+        categoryOpeningPositionDTOList.getSortedCategoryPositions().forEach(dto -> {
             var card = layoutProvider.getObject();
             card.setCategoryOpeningPositionDTO(dto);
             add(card.getLayout());
@@ -54,7 +54,7 @@ public class OpenedOrdersByProduct extends VerticalLayout {
         dtoList.sort(Comparator.comparing((ProductOpeningPositionDTO dto) ->
             dto.getProduct().getCategory().hasParent() ? dto.getProduct().getCategory().getParent().getName() : dto.getProduct().getCategory().getName())
             .thenComparing(dto -> dto.getProduct().getCategory().getName())
-            .thenComparing(ProductOpeningPositionDTO::getOrderReceivedDate));
+            .thenComparing(ProductOpeningPositionDTO::getEarliestOrderReceivedDate));
         return dtoList;
     }
 
