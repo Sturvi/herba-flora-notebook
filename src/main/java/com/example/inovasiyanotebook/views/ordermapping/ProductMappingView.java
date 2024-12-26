@@ -25,25 +25,21 @@ import org.atmosphere.config.service.Post;
 @RequiredArgsConstructor
 public class ProductMappingView extends VerticalLayout {
     private final DesignTools designTools;
-    private final UserService userService;
     private final NavigationTools navigationTools;
     private final ProductMappingGridService productMappingGridService;
     private final AddNewProductViewService addNewProductViewService;
-    private User user;
 
     @PostConstruct
     private void setupProductMappingView(){
-        user = userService.findByUsername(navigationTools.getCurrentUsername());
-
         setHeightFull();
         setWidthFull();
 
-        var productMappingPageHeaderLine = designTools.getAllCommonViewHeader(user, "Eyniləşdirmə", null);
+        var productMappingPageHeaderLine = designTools.getAllCommonViewHeader("Eyniləşdirmə", null);
         productMappingPageHeaderLine.setWidthFull();
         productMappingPageHeaderLine.add(addNewProductButtonOnClick(addNewProductViewService));
         productMappingPageHeaderLine.add(getStatusComboBox());
 
-        var productMappingGrid = productMappingGridService.getOrderMappingGridLayout(user);
+        var productMappingGrid = productMappingGridService.getOrderMappingGridLayout();
 
         var searchField = getSearchField();
         searchField.addValueChangeListener(event -> productMappingGridService.setSearchTerm(searchField.getValue()));

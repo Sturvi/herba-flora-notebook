@@ -39,7 +39,7 @@ public class PrintedTypeGrid {
     private Grid<PrintedType> printedTypeGrid;
     private GridListDataView<PrintedType> dataList;
 
-    public void openDialog(User user) {
+    public void openDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeightFull();
         dialog.setMinWidth("500px");
@@ -52,7 +52,7 @@ public class PrintedTypeGrid {
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         // Создаем заголовок для диалога
-        var header = createHeaderLine(user);
+        var header = createHeaderLine();
 
         FlexLayout headerLayout = new FlexLayout();
         headerLayout.setWidthFull();
@@ -71,7 +71,7 @@ public class PrintedTypeGrid {
                 .setFlexGrow(5);
 
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             var editAndDeleteButtons = printedTypeGrid.addComponentColumn(printedType -> {
                 Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> editDialog(printedType));
                 Button deleteButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), () -> deleteHandler(printedType));
@@ -149,13 +149,13 @@ public class PrintedTypeGrid {
         return addButton;
     }
 
-    private HorizontalLayout createHeaderLine(User user) {
+    private HorizontalLayout createHeaderLine() {
         var header = new H4("Çap növləri");
         header.setWidthFull();
         HorizontalLayout horizontalLayout = new HorizontalLayout(header);
         horizontalLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             var newPrintedTypeNameField = designTools.createTextField("", "^.*$", "");
             newPrintedTypeNameField.setVisible(false);
             newPrintedTypeNameField.setWidthFull();

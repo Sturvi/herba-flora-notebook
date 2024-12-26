@@ -36,7 +36,7 @@ public class NoteCard extends VerticalLayout {
         HorizontalLayout header = new HorizontalLayout();
         header.setJustifyContentMode(JustifyContentMode.END);
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             Icon editIcon = new Icon(VaadinIcon.EDIT);
             editIcon.setClassName("small-button");
             editIcon.setColor("gray");
@@ -46,7 +46,7 @@ public class NoteCard extends VerticalLayout {
             });
         }
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             Icon deleteIcon = new Icon(VaadinIcon.TRASH);
             deleteIcon.setClassName("small-button");
             deleteIcon.setColor("gray");
@@ -63,7 +63,7 @@ public class NoteCard extends VerticalLayout {
         pinIcon.setClassName("small-button");
         pinIcon.setColor(note.isPinned() ? "#FF6666" : "gray");
         header.add(pinIcon);
-        if (permissionsCheck.isContributorOrHigher(user)) {
+        if (permissionsCheck.isContributorOrHigher()) {
             pinIcon.addClickListener(click -> {
                 note.setPinned(!note.isPinned());
                 note.setUpdatedBy(user);

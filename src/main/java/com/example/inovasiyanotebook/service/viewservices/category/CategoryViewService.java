@@ -48,8 +48,8 @@ public class CategoryViewService {
     private final AtomicBoolean buttonClicked = new AtomicBoolean(false);
 
 
-    public VerticalLayout getCategoryName(Category category, User user) {
-        return new VerticalLayout(designTools.getNameLine(category, user, categoryService, this::updateCategoryName));
+    public VerticalLayout getCategoryName(Category category) {
+        return new VerticalLayout(designTools.getNameLine(category, categoryService, this::updateCategoryName));
     }
 
     private void updateCategoryName(NamedEntity namedEntity, String text) {
@@ -61,11 +61,11 @@ public class CategoryViewService {
         }
     }
 
-    public HorizontalLayout getAllCategoryHeader(User user) {
-        return designTools.getAllCommonViewHeader(user, "Bütün kateqoriyalar.", this::addNewCategoryDialog);
+    public HorizontalLayout getAllCategoryHeader() {
+        return designTools.getAllCommonViewHeader("Bütün kateqoriyalar.", this::addNewCategoryDialog);
     }
 
-    public VerticalLayout getAllCategoriesGridLayout(User user) {
+    public VerticalLayout getAllCategoriesGridLayout() {
         TreeGrid<Category> categoriesGrid = new TreeGrid<>();
         categoriesGrid.setMaxWidth("700px");
         categoriesGrid.setHeightFull();
@@ -79,7 +79,7 @@ public class CategoryViewService {
 
         categoriesGrid.addHierarchyColumn(Category::getName).setHeader("Kateqoriya");
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             // Добавление кнопки удаления
             var deleteColumn = categoriesGrid.addComponentColumn(category -> {
                 buttonClicked.set(true);

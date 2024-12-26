@@ -34,8 +34,8 @@ public class ProductInfoViewService {
     private final ClientService clientService;
     private final AddNewProductViewService addNewProductViewService;
 
-    public HorizontalLayout getProductNameLine(Product product, User user) {
-        return designTools.getNameLine(product, user, productService, this::updateProductName);
+    public HorizontalLayout getProductNameLine(Product product) {
+        return designTools.getNameLine(product, productService, this::updateProductName);
     }
 
     private void updateProductName(NamedEntity namedEntity, String name) {
@@ -47,11 +47,11 @@ public class ProductInfoViewService {
         }
     }
 
-    public Component createProductInformationComponent(Product product, User user) {
+    public Component createProductInformationComponent(Product product) {
         VerticalLayout verticalLayout = new VerticalLayout();
         ensureProductHasShelfLife(product);
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             addEditableFieldsToLayout(product, verticalLayout);
 
             ComboBox<Category> categoriesComboBox = setupCategoriesComboBox(product);
@@ -146,7 +146,7 @@ public class ProductInfoViewService {
         productService.update(product);
     }
 
-    public Component getAllProductsHeader (User user) {
-        return designTools.getAllCommonViewHeader(user, "Bütün məhsullar", addNewProductViewService::creatNewProductDialog);
+    public Component getAllProductsHeader () {
+        return designTools.getAllCommonViewHeader("Bütün məhsullar", addNewProductViewService::creatNewProductDialog);
     }
 }

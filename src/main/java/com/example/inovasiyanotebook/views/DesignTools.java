@@ -256,13 +256,12 @@ public class DesignTools {
     }
 
     public <T extends NamedEntity> HorizontalLayout getNameLine(T entity,
-                                                                User user,
                                                                 CRUDService<T> service,
                                                                 BiConsumer<T, String> updateFunction) {
         H1 title = new H1(entity.getName());
         HorizontalLayout titleLine = new HorizontalLayout(title);
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             TextField titleEditor = createEditableField(entity, title, "^.+$", "Boş ola bilməz", updateFunction);
             titleEditor.addClassName("my-text-field");
             titleLine.add(titleEditor);
@@ -281,14 +280,14 @@ public class DesignTools {
         return titleLine;
     }
 
-    public HorizontalLayout getAllCommonViewHeader(User user, String headerText, Runnable addFunction) {
+    public HorizontalLayout getAllCommonViewHeader(String headerText, Runnable addFunction) {
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         var headerName = new H1(headerText);
         horizontalLayout.add(headerName);
 
-        if (permissionsCheck.isEditorOrHigher(user) && addFunction != null) {
+        if (permissionsCheck.isEditorOrHigher() && addFunction != null) {
             var addButton = getAddButton(addFunction);
             horizontalLayout.add(addButton);
         }
