@@ -5,6 +5,7 @@ import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.viewservices.note.NoteDialog;
+import com.example.inovasiyanotebook.service.viewservices.note.NoteGridService;
 import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -46,6 +47,7 @@ public class ProductOrderCardLayout {
     private final UserService userService;
     private final NavigationTools navigationTools;
     private final NewOrderDialog newOrderDialog;
+    private final NoteGridService noteGridService;
 
     /**
      * Initializes the layout after construction.
@@ -119,8 +121,7 @@ public class ProductOrderCardLayout {
             }));
 
 
-
-            layout.add(horizontalLayout);
+            layout.add(horizontalLayout,  noteGridService.getNoteGrid(position.getOrder(), userService.findByUsername(navigationTools.getCurrentUsername()), true));
         });
 
         log.info("Layout constructed successfully.");

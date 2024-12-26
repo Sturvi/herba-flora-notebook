@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @UIScope
-
 public class NoteGridService {
     private final PermissionsCheck permissionsCheck;
     private final AddNewNoteService addNewNoteService;
@@ -40,7 +39,7 @@ public class NoteGridService {
     private boolean allDataLoaded = false;
 
 
-    public VerticalLayout getNoteGrid (Noteable entity, User user) {
+    public VerticalLayout getNoteGrid(Noteable entity, User user) {
         allDataLoaded = false;
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
         if (permissionsCheck.isContributorOrHigher(user)) {
@@ -50,13 +49,31 @@ public class NoteGridService {
             productNameLine.add(button);
         }
 
+        VerticalLayout container = new VerticalLayout();
+        loadNotes(entity, container, 0, user); // начальная загрузка первых 10 заметок
+
+        Scroller scroller = getScrollerWithNotes(entity, user, container);
+
+
+        VerticalLayout notesColumn = new VerticalLayout(productNameLine, scroller);
+        notesColumn.setHeightFull();
+        notesColumn.setWidthFull();
+        notesColumn.setPadding(false);
+        notesColumn.setMargin(false);
+        notesColumn.setSpacing(false);
+        notesColumn.getStyle().set("margin-left", "-10px");
+
+        notesColumn.setAlignItems(FlexComponent.Alignment.START);
+
+        return notesColumn;
+    }
+
+    private Scroller getScrollerWithNotes(Noteable entity, User user, VerticalLayout container) {
         Scroller scroller = new Scroller();
         scroller.setSizeFull();
         scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
         scroller.addClassName("no-padding-margin");
 
-        VerticalLayout container = new VerticalLayout();
-        loadNotes(entity, container, 0, user); // начальная загрузка первых 10 заметок
 
         // Добавление слушателя прокрутки
         scroller.getElement().addEventListener("scroll", e -> {
@@ -76,19 +93,7 @@ public class NoteGridService {
         scroller.setClassName("note-bar-padding");
         scroller.setWidthFull();
         scroller.setHeightFull();
-
-
-        VerticalLayout notesColumn = new VerticalLayout(productNameLine, scroller);
-        notesColumn.setHeightFull();
-        notesColumn.setWidthFull();
-        notesColumn.setPadding(false);
-        notesColumn.setMargin(false);
-        notesColumn.setSpacing(false);
-        notesColumn.getStyle().set("margin-left", "-10px");
-
-        notesColumn.setAlignItems(FlexComponent.Alignment.START);
-
-        return notesColumn;
+        return scroller;
     }
 
     private void loadNotes(Noteable entity, VerticalLayout container, int currentElementCount, User user) {
@@ -99,7 +104,7 @@ public class NoteGridService {
             Page<Note> notesPage = null;
 
             if (entity instanceof Client) {
-                notesPage =  noteService.getAllByClientWithPagination((Client) entity, currentPade);
+                notesPage = noteService.getAllByClientWithPagination((Client) entity, currentPade);
             } else if (entity instanceof Category) {
                 notesPage = noteService.getAllByCategoryWithPagination((Category) entity, currentPade);
             } else if (entity instanceof Product) {
