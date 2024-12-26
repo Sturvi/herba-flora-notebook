@@ -10,8 +10,6 @@ import com.example.inovasiyanotebook.service.viewservices.order.NewOrderDialog;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -19,7 +17,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -27,6 +24,7 @@ import org.springframework.stereotype.Service;
 import com.vaadin.flow.component.textfield.TextField;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Service class representing the layout of product order cards.
@@ -103,31 +101,46 @@ public class ProductOrderCardLayout {
         dateLabel.addClassName("product-date-label");
         layout.add(dateLabel);
 
-        productOpeningPositionDTO.getOpenOrderPositions().forEach(position -> {
+
+        var positions = productOpeningPositionDTO.getOpenOrderPositions();
+
+        for (int i = 0; i < positions.size(); i++) {
+            final int index = i; // Переменная должна быть effectively final для использования в лямбда-выражении
+
             HorizontalLayout horizontalLayout = new HorizontalLayout();
             horizontalLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-            horizontalLayout.add(getTextFieldWithCustomSize("Sifariş №", position.getOrder().getOrderNo().toString(), "80px"));
-            horizontalLayout.add(getTextFieldWithCustomSize("Çap növü", position.getPrintedType().getName(), "140px"));
-            horizontalLayout.add(getTextFieldWithCustomSize("Say", position.getCount(), "140px"));
-            horizontalLayout.add(designTools.createTextFieldWithValue("Not", position.getComment(), true));
-            horizontalLayout.add(getOrderStatusEnumComboBox(position));
+            // Добавление текстовых полей для отображения данных позиции
+            horizontalLayout.add(getTextFieldWithCustomSize("Sifariş №", positions.get(index).getOrder().getOrderNo().toString(), "80px"));
+            horizontalLayout.add(getTextFieldWithCustomSize("Çap növü", positions.get(index).getPrintedType().getName(), "140px"));
+            horizontalLayout.add(getTextFieldWithCustomSize("Say", positions.get(index).getCount(), "140px"));
+            horizontalLayout.add(designTools.createTextFieldWithValue("Not", positions.get(index).getComment(), true));
+            horizontalLayout.add(getOrderStatusEnumComboBox(positions.get(index)));
 
+            // Добавление кнопки для открытия диалога заметок
             horizontalLayout.add(designTools.getNewIconButton(VaadinIcon.NOTEBOOK.create(), () -> {
-                noteDialog.openDialog(position.getProduct(), userService.findByUsername(navigationTools.getCurrentUsername()));
+                noteDialog.openDialog(positions.get(index).getProduct(), userService.findByUsername(navigationTools.getCurrentUsername()));
             }));
+
+            // Добавление кнопки для редактирования заказа
             horizontalLayout.add(designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
-                newOrderDialog.openNewDialog(position.getOrder());
+                newOrderDialog.openNewDialog(positions.get(index).getOrder());
             }));
 
+            // Добавление горизонтальной компоновки в основной лейаут
+            layout.add(horizontalLayout);
 
-            layout.add(horizontalLayout,  noteGridService.getNoteGrid(position.getOrder(), userService.findByUsername(navigationTools.getCurrentUsername())));
-        });
+            // Добавление сетки заметок для последней позиции
+            if (index == positions.size() - 1) {
+                layout.add(noteGridService.getHorizontalGridWithHeader(positions.get(index).getProduct()));
+            }
+        }
+
 
         log.info("Layout constructed successfully.");
     }
 
-    private TextField getTextFieldWithCustomSize (String label, String value, String size) {
+    private TextField getTextFieldWithCustomSize(String label, String value, String size) {
         var textField = designTools.createTextFieldWithValue(label, value, true);
         textField.setMaxWidth(size);
 

@@ -11,6 +11,8 @@ import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
+import com.example.inovasiyanotebook.views.openedordersbyproduct.CategoriesOpenedOrdersCardLayout;
+import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
@@ -21,7 +23,9 @@ import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import elemental.json.JsonObject;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -35,11 +39,12 @@ public class NoteGridService {
     private final NoteService noteService;
     private final EditNoteDialog editNoteDialog;
     private final DesignTools designTools;
+    private final ObjectProvider<NoteCard> noteProvider;
 
     private boolean allDataLoaded = false;
 
 
-    public VerticalLayout getNoteGrid(Noteable entity, User user) {
+    public VerticalLayout getVerticalGridWithHeader(Noteable entity, User user) {
         allDataLoaded = false;
         HorizontalLayout productNameLine = new HorizontalLayout(new H2("Notlar"));
         if (permissionsCheck.isContributorOrHigher()) {
@@ -49,10 +54,8 @@ public class NoteGridService {
             productNameLine.add(button);
         }
 
-        VerticalLayout container = new VerticalLayout();
-        loadNotes(entity, container, 0, user); // начальная загрузка первых 10 заметок
 
-        Scroller scroller = getScrollerWithNotes(entity, user, container);
+        Scroller scroller = getScrollerWithNotes(entity, false, false);
 
 
         VerticalLayout notesColumn = new VerticalLayout(productNameLine, scroller);
@@ -68,10 +71,34 @@ public class NoteGridService {
         return notesColumn;
     }
 
-    private Scroller getScrollerWithNotes(Noteable entity, User user, VerticalLayout container) {
+    public HorizontalLayout getHorizontalGridWithHeader(Noteable entity) {
+        allDataLoaded = false;
+
+
+        Scroller scroller = getScrollerWithNotes(entity, true, true);
+
+
+        HorizontalLayout notesColumn = new HorizontalLayout(scroller);
+        notesColumn.setHeightFull();
+        notesColumn.setWidthFull();
+        notesColumn.setPadding(false);
+        notesColumn.setMargin(false);
+        notesColumn.setSpacing(false);
+        notesColumn.getStyle().set("margin-left", "10px");
+
+        //notesColumn.setAlignItems(FlexComponent.Alignment.START);
+
+        return notesColumn;
+    }
+
+    private Scroller getScrollerWithNotes(Noteable entity, boolean isHorizontal, boolean onlyNotesText) {
+        var container = isHorizontal ? new HorizontalLayout() : new VerticalLayout();
+        loadNotes(entity, container, 0, onlyNotesText); // начальная загрузка первых 10 заметок
+
+
         Scroller scroller = new Scroller();
         scroller.setSizeFull();
-        scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scroller.setScrollDirection(isHorizontal ? Scroller.ScrollDirection.HORIZONTAL : Scroller.ScrollDirection.VERTICAL);
         scroller.addClassName("no-padding-margin");
 
 
@@ -84,7 +111,7 @@ public class NoteGridService {
 
             if (scrollTop + clientHeight >= scrollHeight) {
                 // Загрузка следующих 10 заметок
-                loadNotes(entity, container, (int) container.getChildren().count(), user);
+                loadNotes(entity, container, (int) container.getChildren().count(), onlyNotesText);
             }
         }).addEventData("element.clientHeight").addEventData("element.scrollTop").addEventData("element.scrollHeight");
 
@@ -96,7 +123,7 @@ public class NoteGridService {
         return scroller;
     }
 
-    private void loadNotes(Noteable entity, VerticalLayout container, int currentElementCount, User user) {
+    private void loadNotes(Noteable entity, HasComponents container, int currentElementCount, boolean onlyNotesText) {
         int currentPade = (int) Math.ceil((double) currentElementCount / 10);
 
 
@@ -119,7 +146,9 @@ public class NoteGridService {
             }
 
             for (Note note : notesPage.getContent()) {
-                NoteCard noteCard = new NoteCard(note, navigationTools, noteService, user, permissionsCheck, editNoteDialog, designTools);
+                NoteCard noteCard = noteProvider.getObject();
+                noteCard.setNote(note);
+                noteCard.setOnlyTextVisible(onlyNotesText);
                 container.add(noteCard);
             }
         }

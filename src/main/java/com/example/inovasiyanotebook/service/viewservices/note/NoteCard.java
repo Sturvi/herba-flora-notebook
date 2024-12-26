@@ -2,7 +2,6 @@ package com.example.inovasiyanotebook.service.viewservices.note;
 
 import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.interfaces.ParentEntity;
-import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
 import com.example.inovasiyanotebook.views.DesignTools;
@@ -13,28 +12,93 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
 
+@Component
+@Scope("prototype")
+@RequiredArgsConstructor
 public class NoteCard extends VerticalLayout {
-    private NavigationTools navigationTools;
-    private NoteService noteService;
-    private PermissionsCheck permissionsCheck;
-    private EditNoteDialog editNoteDialog;
-    private DesignTools designTools;
+    private final NavigationTools navigationTools;
+    private final NoteService noteService;
+    private final PermissionsCheck permissionsCheck;
+    private final EditNoteDialog editNoteDialog;
+    private final DesignTools designTools;
     private Note note;
 
-    public NoteCard(Note note, NavigationTools navigationTools, NoteService noteService, User user, PermissionsCheck permissionsCheck, EditNoteDialog editNoteDialog, DesignTools designTools) {
-        this.navigationTools = navigationTools;
-        this.note = note;
-        this.permissionsCheck = permissionsCheck;
-        this.editNoteDialog = editNoteDialog;
-        this.designTools = designTools;
-        setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-        setWidthFull();
+    private HorizontalLayout header;
+    private VerticalLayout informationLayout;
+    private Pre text;
 
-        HorizontalLayout header = new HorizontalLayout();
+    public void setNote(Note note) {
+        this.note = note;
+        initContent();
+    }
+
+    public void setOnlyTextVisible (boolean visible) {
+        header.setVisible(!visible);
+        informationLayout.setVisible(!visible);
+        if (visible) {
+            text.getStyle().set("font-size", "13px");
+        } else {
+            text.getStyle().set("font-size", "19px");
+        }
+    }
+
+    @PostConstruct
+    private void init() {
+        setDefaultHorizontalComponentAlignment(Alignment.CENTER);
+        //setWidthFull();
+        setMinWidth("400px");
+
+        informationLayout = new VerticalLayout();
+        informationLayout.setSpacing(false);
+
+        header = new HorizontalLayout();
         header.setJustifyContentMode(JustifyContentMode.END);
+
+        add(new HorizontalLayout(informationLayout, header));
+
+        addClassName("note-card");
+    }
+
+    public void initContent() {
+        initHeader();
+        initInformationLayout();
+
+        text = new Pre(note.getText());
+        text.setWidthFull();
+        text.setClassName("pretext-component");
+
+        add(text);
+    }
+
+    private void initInformationLayout() {
+        informationLayout.add(getParentLayout(note));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
+        H5 createdAtInformation = new H5("Yaradılıb: "
+                + note.getCreatedAt().format(formatter)
+                + ". (" + note.getAddedBy().getFullName() + ")");
+        createdAtInformation.addClassName("smaller-text");
+        informationLayout.add(createdAtInformation);
+
+        if (note.getUpdatedBy() != null) {
+            H5 updatedInformation = new H5("Son düzəliş: "
+                    + note.getUpdatedAt().format(formatter)
+                    + ". (" + note.getUpdatedBy().getFullName() + ")");
+            updatedInformation.addClassName("smaller-text");
+            informationLayout.add(updatedInformation);
+        }
+    }
+
+    private void initHeader() {
+
 
         if (permissionsCheck.needEditor()) {
             Icon editIcon = new Icon(VaadinIcon.EDIT);
@@ -42,7 +106,7 @@ public class NoteCard extends VerticalLayout {
             editIcon.setColor("gray");
             header.add(editIcon);
             editIcon.addClickListener(clickEvent -> {
-                editNoteDialog.createNewNoteDialog(note, user);
+                editNoteDialog.createNewNoteDialog(note, navigationTools.getCurrentUser());
             });
         }
 
@@ -66,43 +130,14 @@ public class NoteCard extends VerticalLayout {
         if (permissionsCheck.isContributorOrHigher()) {
             pinIcon.addClickListener(click -> {
                 note.setPinned(!note.isPinned());
-                note.setUpdatedBy(user);
+                note.setUpdatedBy(navigationTools.getCurrentUser());
                 pinIcon.setColor(note.isPinned() ? "#FF6666" : "gray");
                 noteService.update(note);
             });
         }
-
-        VerticalLayout informationLayout = new VerticalLayout();
-        informationLayout.setSpacing(false);
-
-        informationLayout.add(getParentLayout(note, navigationTools));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-
-        H5 createdAtInformation = new H5("Yaradılıb: "
-                + note.getCreatedAt().format(formatter)
-                + ". (" + note.getAddedBy().getFullName() + ")");
-        createdAtInformation.addClassName("smaller-text");
-        informationLayout.add(createdAtInformation);
-
-        if (note.getUpdatedBy() != null) {
-            H5 updatedInformation = new H5("Son düzəliş: "
-                    + note.getUpdatedAt().format(formatter)
-                    + ". (" + note.getUpdatedBy().getFullName() + ")");
-            updatedInformation.addClassName("smaller-text");
-            informationLayout.add(updatedInformation);
-        }
-
-        add(new HorizontalLayout(informationLayout, header));
-
-        Pre text = new Pre(note.getText());
-        text.setWidthFull();
-        text.setClassName("pretext-component");
-        addClassName("note-card");
-        add(text);
     }
 
-    private static HorizontalLayout getParentLayout(Note note, NavigationTools navigationTools) {
+    private HorizontalLayout getParentLayout(Note note) {
         H5 h5 = new H5("Səviyyə: ");
         h5.addClassName("smaller-text");
         var parentLayout = new HorizontalLayout(h5);
@@ -119,7 +154,6 @@ public class NoteCard extends VerticalLayout {
         parentLayout.addClassName("smaller-text");
         return parentLayout;
     }
-
 
 
 }

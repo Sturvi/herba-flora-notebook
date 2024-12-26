@@ -69,7 +69,7 @@ public class CategoryView extends HorizontalLayout implements HasUrlParameter<St
 
         add(
                 verticalLayout,
-                new VerticalLayout(noteGridService.getNoteGrid(category, user))
+                new VerticalLayout(noteGridService.getVerticalGridWithHeader(category, user))
         );
 
     }

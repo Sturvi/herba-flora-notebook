@@ -1,10 +1,7 @@
 package com.example.inovasiyanotebook.views.openedordersbyproduct;
 
-import com.example.inovasiyanotebook.model.Product;
-import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import com.example.inovasiyanotebook.views.MainLayout;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.PageTitle;
@@ -14,13 +11,14 @@ import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
 
-@PageTitle("Aciq sifarisler olan mehsullar")
-@Route(value = "orders-by-product", layout = MainLayout.class)
+@PageTitle("Kateqoriya üzrə açıq sifarişlər\n")
+@Route(value = "orders-by-category", layout = MainLayout.class)
 @PermitAll
 @RequiredArgsConstructor
-public class OpenedOrdersByProduct extends VerticalLayout {
+public class OpenedOrdersByCategory extends VerticalLayout {
 
     private final OrderPositionService orderPositionService;
     private final ObjectProvider<CategoriesOpenedOrdersCardLayout> layoutProvider;

@@ -85,7 +85,7 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
         setHeightFull();
         setWidthFull();
 
-        var notesColumn = new VerticalLayout(noteGridService.getNoteGrid(client, user));
+        var notesColumn = new VerticalLayout(noteGridService.getVerticalGridWithHeader(client, user));
         notesColumn.setWidthFull();
         notesColumn.setWidthFull();
 

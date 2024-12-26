@@ -242,7 +242,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         );
         verticalLayout.setWidthFull();
         VerticalLayout notesLayout = new VerticalLayout(
-                noteGridService.getNoteGrid(product, user)
+                noteGridService.getVerticalGridWithHeader(product, user)
         );
         notesLayout.setWidthFull();
         add(
