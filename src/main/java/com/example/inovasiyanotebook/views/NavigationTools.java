@@ -1,13 +1,18 @@
 package com.example.inovasiyanotebook.views;
 
+import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.vaadin.flow.component.UI;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class NavigationTools {
+    private final UserService userService;
 
 
     public void reloadPage() {
@@ -37,6 +42,10 @@ public class NavigationTools {
         } else {
             return null;
         }
+    }
+
+    public User getCurrentUser() {
+        return userService.findByUsername(getCurrentUsername());
     }
 }
 

@@ -48,14 +48,14 @@ public class OrderInformation {
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    public VerticalLayout getInformationLayout (Order order, User user) {
+    public VerticalLayout getInformationLayout (Order order) {
         VerticalLayout verticalLayout = new VerticalLayout();
 
         H1 orderNumber = new H1(order.getOrderNo().toString());
         HorizontalLayout headerLine = new HorizontalLayout(orderNumber);
         headerLine.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             Button editButton =
                     designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> newOrderDialog.openNewDialog(order));
             headerLine.add(editButton);
@@ -88,7 +88,7 @@ public class OrderInformation {
         scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
         //scroller.addClassName("no-padding-margin");
 
-        var ordersComponents = getOrdersComponents(order.getOrderPositions(), user);
+        var ordersComponents = getOrdersComponents(order.getOrderPositions());
 
         scroller.setContent(ordersComponents);
         verticalLayout.add(scroller);
@@ -97,7 +97,7 @@ public class OrderInformation {
         return verticalLayout;
     }
 
-    private VerticalLayout getOrdersComponents (List<OrderPosition> orderPositions, User user) {
+    private VerticalLayout getOrdersComponents (List<OrderPosition> orderPositions) {
         var products = productService.getAll();
         var printedTypes = printedTypeService.getAll();
 
@@ -120,7 +120,7 @@ public class OrderInformation {
 
             ComboBox<OrderStatusEnum> statusComboBox = designTools.creatComboBox("Status", List.of(values()), OrderStatusEnum::getName);
             statusComboBox.setValue(orderPosition.getStatus());
-            if (permissionsCheck.needEditor(user)) {
+            if (permissionsCheck.needEditor()) {
                 statusComboBox.addValueChangeListener(event -> {
                     orderPositionService.setOrderPositionStatus(orderPosition, statusComboBox);
 

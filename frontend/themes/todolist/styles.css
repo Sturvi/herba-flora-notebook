@@ -1,6 +1,14 @@
 @import url('./main-layout.css');
 @import url('./scroller.css');
-    [theme~="dark"] {
+@import url('./orders.css');
+
+[theme~="dark"] {
       --lumo-base-color: hsl(215, 30%, 10%);
 
     }
+
+[theme~="dark"] {
+      --lumo-base-color: hsl(215, 30%, 10%);
+
+    }
+

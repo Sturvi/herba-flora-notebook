@@ -3,6 +3,7 @@ package com.example.inovasiyanotebook.views;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.client.ClientMapper;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.RequiresPermission;
 import com.example.inovasiyanotebook.service.viewservices.client.AddNewClientMenuService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
@@ -10,6 +11,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.service.viewservices.order.UploadComponentCreator;
 import com.example.inovasiyanotebook.views.category.CategoryView;
+import com.example.inovasiyanotebook.views.openedordersbyproduct.OpenedOrdersByCategory;
 import com.example.inovasiyanotebook.views.order.OrderView;
 import com.example.inovasiyanotebook.views.ordermapping.ProductMappingView;
 import com.example.inovasiyanotebook.views.product.ProductView;
@@ -91,11 +93,12 @@ public class MainLayout extends AppLayout{
                 new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
                 new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
                 new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
-                permissionsCheck.isAdminOrHigher(user) ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
-                permissionsCheck.isEditorOrHigher(user) ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
+                new SideNavItem("Sifarişlər (Kateqoriya üzrə)", OpenedOrdersByCategory.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
+                permissionsCheck.isAdminOrHigher() ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
+                permissionsCheck.isEditorOrHigher() ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
                 designTools.addEmptySpace(),
                 addTitle("Müştərilər"),
-                newClientButton(user),
+                newClientButton(),
                 new Scroller(clientsNav),
                 getIsFunctionalityEnabledButton(),
                 createFooter());
@@ -123,7 +126,7 @@ public class MainLayout extends AppLayout{
                 client.getName());
         link.addClassNames("text");
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             Span dragHandle = new Span(LineAwesomeIcon.BARS_SOLID.create());
             dragHandle.addClassNames("drag-handle");
 
@@ -215,8 +218,8 @@ public class MainLayout extends AppLayout{
         return projectsTitle;
     }
 
-    public Button newClientButton(User user) {
-        if (permissionsCheck.needEditor(user)) {
+    public Button newClientButton() {
+        if (permissionsCheck.needEditor()) {
             Button newClientButton = new Button("Yeni şirkət");
             newClientButton.addClickListener(event -> addNewClientMenuService.createAddClientDialog());
 
@@ -226,9 +229,9 @@ public class MainLayout extends AppLayout{
         return null;
     }
 
+    @RequiresPermission("EDITOR")
+    public Component getIsFunctionalityEnabledButton() {
 
-    private Component getIsFunctionalityEnabledButton() {
-        if (permissionsCheck.isEditorOrHigher(user)) {
             var upload = uploadComponentCreator.getUpload();
             upload.setDropAllowed(true);
             Checkbox toggleButton = new Checkbox("Admin funksiyaları");
@@ -242,9 +245,6 @@ public class MainLayout extends AppLayout{
             });
 
             return new VerticalLayout(upload, toggleButton);
-        }
-
-        return null;
     }
 
     @EventListener

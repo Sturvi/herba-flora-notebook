@@ -62,7 +62,7 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
     private void handleHasClient(Client clientFromOpt) {
         this.client = clientFromOpt;
 
-        var information = clientInformation.getInformation(client, user);
+        var information = clientInformation.getInformation(client);
 
 
 
@@ -71,7 +71,7 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
         client.getNote().forEach(note -> notesLayout.add(new Span(note.getText())));*/
 
         VerticalLayout clientLayout = new VerticalLayout(
-                clientInformation.getClientName(client, user),
+                clientInformation.getClientName(client),
                 information,
                 productsGridService.getProductGrid(client, user)
         );
@@ -85,7 +85,7 @@ public class ClientView extends HorizontalLayout implements HasUrlParameter<Stri
         setHeightFull();
         setWidthFull();
 
-        var notesColumn = new VerticalLayout(noteGridService.getNoteGrid(client, user));
+        var notesColumn = new VerticalLayout(noteGridService.getVerticalGridWithHeader(client, user));
         notesColumn.setWidthFull();
         notesColumn.setWidthFull();
 

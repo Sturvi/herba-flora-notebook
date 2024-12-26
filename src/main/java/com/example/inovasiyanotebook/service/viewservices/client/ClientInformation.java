@@ -39,10 +39,10 @@ public class ClientInformation {
      * @param client The client object for which the information needs to be retrieved.
      * @return A VerticalLayout object containing the client information.
      */
-    public Component getInformation(Client client, User user) {
+    public Component getInformation(Client client) {
         VerticalLayout verticalLayout = new VerticalLayout();
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             designTools.addEditableField(client, verticalLayout, "Telefon nömrəsi:", client.getPhoneNumber(),
                     "^\\+(?:[0-9] ?){6,14}[0-9]$|^$", "Telefon nömrəsi doğru yazılmayıb", this::updatePhoneNumber);
 
@@ -63,11 +63,10 @@ public class ClientInformation {
         return verticalLayout;
     }
 
-    public HorizontalLayout getClientName(Client client, User user) {
+    public HorizontalLayout getClientName(Client client) {
 
         return designTools.getNameLine(
                 client,
-                user,
                 clientService,
                 this::updateClientName
         );

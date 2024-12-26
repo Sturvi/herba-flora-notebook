@@ -72,8 +72,8 @@ public class OrderView extends HorizontalLayout implements HasUrlParameter<Strin
     }
 
     private void handleHasProduct() {
-        add(orderInformation.getInformationLayout(order, user),
-                noteGridService.getNoteGrid(order, user));
+        add(orderInformation.getInformationLayout(order),
+                noteGridService.getVerticalGridWithHeader(order, user));
 
 
     }
