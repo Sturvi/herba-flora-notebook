@@ -69,7 +69,7 @@ public class OrdersGrid {
         ComboBox<StatusWrapper> statusComboBox = getStatusWrapperComboBox();
 
 
-        displayOrdersGridHeader(user, addButtonAction, hasTitle, statusComboBox, searchField, layout);
+        displayOrdersGridHeader(addButtonAction, hasTitle, statusComboBox, searchField, layout);
 
         Grid<Order> orderGrid = new Grid<>();
         orderGrid.setHeightFull();
@@ -136,17 +136,17 @@ public class OrdersGrid {
         addButtonsColumn(user, orderGrid);
     }
 
-    private void displayOrdersGridHeader(User user, Runnable addButtonAction, boolean hasTitle, ComboBox<StatusWrapper> statusComboBox, TextField searchField, VerticalLayout layout) {
+    private void displayOrdersGridHeader(Runnable addButtonAction, boolean hasTitle, ComboBox<StatusWrapper> statusComboBox, TextField searchField, VerticalLayout layout) {
         if (hasTitle) {
-            var ordersPageHeaderLine = designTools.getAllCommonViewHeader(user, "Sifarişlər", addButtonAction);
+            var ordersPageHeaderLine = designTools.getAllCommonViewHeader("Sifarişlər", addButtonAction);
 
             Button printedTypeButton;
-            if (permissionsCheck.isEditorOrHigher(user)) {
+            if (permissionsCheck.isEditorOrHigher()) {
                 ordersPageHeaderLine.add(uploadComponentCreator.getUpload());
 
                 printedTypeButton = new Button("Çap növləri");
                 printedTypeButton.addClickListener(buttonClickEvent -> {
-                    printedTypeGrid.openDialog(user);
+                    printedTypeGrid.openDialog();
                 });
                 ordersPageHeaderLine.add(printedTypeButton);
             }
@@ -176,7 +176,7 @@ public class OrdersGrid {
                     });
                     componentsColumn.add(notesDialogButton);
 
-                    if (permissionsCheck.needEditor(user)) {
+                    if (permissionsCheck.needEditor()) {
                         Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
                             buttonClicked.set(true);
                             newOrderDialog.openNewDialog(order);

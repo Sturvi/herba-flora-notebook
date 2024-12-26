@@ -126,7 +126,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         VerticalLayout verticalLayout = new VerticalLayout();
 
         // Add product name to the first line
-        var productNameLine = infoViewService.getProductNameLine(product, user);
+        var productNameLine = infoViewService.getProductNameLine(product);
         verticalLayout.add(productNameLine);
 
         // Create a layout for additional controls
@@ -134,24 +134,24 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
 
         // Add instruction button
         Button instruksionButton = new Button("İnstruksiya");
-        instruksionButton.addClickListener(buttonClickEvent -> openInstructionDialog(product, user));
+        instruksionButton.addClickListener(buttonClickEvent -> openInstructionDialog(product));
         controlsLayout.add(instruksionButton);
 
         // Check if document file exists
         var hasDocumentFile = checkIfDocumentFileExist();
 
         // Add review button if user has contributor permissions or higher
-        if (hasDocumentFile && permissionsCheck.isContributorOrHigher(user)) {
+        if (hasDocumentFile && permissionsCheck.isContributorOrHigher()) {
             addReviewButton(hasDocumentFile, controlsLayout);
         }
 
         // Add technical review uploader for editors or higher
-        if (permissionsCheck.isEditorOrHigher(user)) {
+        if (permissionsCheck.isEditorOrHigher()) {
             handleTechnicalReviewUploader(controlsLayout, hasDocumentFile);
         }
 
         // Add delete document button if document exists and user has editor permissions or higher
-        if (hasDocumentFile && permissionsCheck.isEditorOrHigher(user)) {
+        if (hasDocumentFile && permissionsCheck.isEditorOrHigher()) {
             addDeleteDocumentButton(controlsLayout);
         }
 
@@ -237,7 +237,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private void assembleLayout() {
         VerticalLayout verticalLayout = new VerticalLayout(
                 productNameLayout,
-                infoViewService.createProductInformationComponent(product, user),
+                infoViewService.createProductInformationComponent(product),
                 ordersGrid.getOrderGrid(user, product)
         );
         verticalLayout.setWidthFull();
@@ -266,7 +266,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         });
     }
 
-    private void openInstructionDialog(Product product, User user) {
+    private void openInstructionDialog(Product product) {
         Dialog dialog = new Dialog();
         dialog.setHeightFull();
         dialog.setMinWidth("500px");
@@ -283,7 +283,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         if (instruction.getText() != null) {
             textArea.setValue(instruction.getText());
         }
-        if (!permissionsCheck.needEditor(user)) {
+        if (!permissionsCheck.needEditor()) {
             textArea.setReadOnly(true);
         }
 
@@ -291,7 +291,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
         buttonsLayout.setWidthFull(); // Задаем ширину на всю доступную ширину
         buttonsLayout.setJustifyContentMode(JustifyContentMode.END); // Выравнивание содержимого справа
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             Button saveButton = designTools.getNewIconButton(new Icon("lumo", "edit"), () -> {
                 instruction.setText(textArea.getValue());
                 saveInstuction(instruction);
@@ -319,7 +319,7 @@ public class ProductView extends HorizontalLayout implements HasUrlParameter<Str
     private void allProductsPage() {
         add(
                 new VerticalLayout(
-                        infoViewService.getAllProductsHeader(user),
+                        infoViewService.getAllProductsHeader(),
                         productsGridService.getProductGrid(user)
                 )
         );

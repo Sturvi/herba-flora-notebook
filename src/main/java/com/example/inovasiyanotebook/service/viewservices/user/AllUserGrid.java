@@ -31,7 +31,7 @@ public class AllUserGrid {
     private final UserInfoValidation userInfoValidation;
     private final PermissionsCheck permissionsCheck;
 
-    public Component getAllUsersLayout(User user) {
+    public Component getAllUsersLayout() {
         var UserList = userService.getAll();
 
         Grid<User> userGrid = new Grid<>();
@@ -67,7 +67,7 @@ public class AllUserGrid {
                 .setKey("role")
                 .setFlexGrow(1);
 
-        if (permissionsCheck.needEditor(user)) {
+        if (permissionsCheck.needEditor()) {
             userGrid
                     .addComponentColumn(this::getButtonLayout)
                     .setFlexGrow(1);

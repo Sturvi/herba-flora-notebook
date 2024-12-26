@@ -121,7 +121,7 @@ public class ProductOrderCardLayout {
             }));
 
 
-            layout.add(horizontalLayout,  noteGridService.getNoteGrid(position.getOrder(), userService.findByUsername(navigationTools.getCurrentUsername()), true));
+            layout.add(horizontalLayout,  noteGridService.getNoteGrid(position.getOrder(), userService.findByUsername(navigationTools.getCurrentUsername())));
         });
 
         log.info("Layout constructed successfully.");

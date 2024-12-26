@@ -18,27 +18,23 @@ import jakarta.annotation.security.RolesAllowed;
 @RolesAllowed("ADMIN")
 public class UserView extends VerticalLayout {
     private final DesignTools designTools;
-    private final UserService userService;
     private final NavigationTools navigationTools;
     private final UserInfoValidation userInfoValidation;
     private final AllUserGrid allUserGrid;
-    private final User user;
 
-    public UserView(DesignTools designTools, UserService userService, NavigationTools navigationTools, UserInfoValidation userInfoValidation, AllUserGrid allUserGrid) {
+    public UserView(DesignTools designTools, NavigationTools navigationTools, UserInfoValidation userInfoValidation, AllUserGrid allUserGrid) {
         this.designTools = designTools;
-        this.userService = userService;
         this.navigationTools = navigationTools;
         this.userInfoValidation = userInfoValidation;
         this.allUserGrid = allUserGrid;
-        this.user = userService.findByUsername(navigationTools.getCurrentUsername());
 
 
         setHeightFull();
         setWidthFull();
 
-        var usersPageHeaderLine = designTools.getAllCommonViewHeader(user, "İstifadəçilər", this::createNewUser);
+        var usersPageHeaderLine = designTools.getAllCommonViewHeader("İstifadəçilər", this::createNewUser);
 
-        add(usersPageHeaderLine, allUserGrid.getAllUsersLayout(user));
+        add(usersPageHeaderLine, allUserGrid.getAllUsersLayout());
     }
 
     private void createNewUser () {

@@ -63,7 +63,7 @@ public class CategoryView extends HorizontalLayout implements HasUrlParameter<St
 
     private void handleHasCategory() {
         VerticalLayout verticalLayout = new VerticalLayout(
-                categoryViewService.getCategoryName(category, user),
+                categoryViewService.getCategoryName(category),
                 productsGridService.getProductGrid(category, user)
         );
 
@@ -78,8 +78,8 @@ public class CategoryView extends HorizontalLayout implements HasUrlParameter<St
     private void allCategoriesPage() {
         add(
                 new VerticalLayout(
-                        categoryViewService.getAllCategoryHeader(user),
-                        categoryViewService.getAllCategoriesGridLayout(user))
+                        categoryViewService.getAllCategoryHeader(),
+                        categoryViewService.getAllCategoriesGridLayout())
         );
     }
 }

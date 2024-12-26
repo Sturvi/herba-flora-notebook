@@ -53,7 +53,7 @@ public class ProductMappingGridService {
         gridLayout.add(productMappingGrid);
     }
 
-    public VerticalLayout getOrderMappingGridLayout (User user) {
+    public VerticalLayout getOrderMappingGridLayout () {
         return gridLayout;
     }
 
