@@ -31,6 +31,10 @@ public class OrderService implements CRUDService<Order> {
         }
     }
 
+    public Set<Order> findOrdersWithClosedPositionsButNonFinalStatus() {
+        return orderRepository.findOpenOrdersWithAllPositionsClosedOrCanceled();
+    }
+
 
     @Override
     public Optional<Order> getById(Long id) {
@@ -52,7 +56,7 @@ public class OrderService implements CRUDService<Order> {
         orderRepository.delete(entity);
     }
 
-    public Set<Order> getAllByProduct(Product product){
+    public Set<Order> getAllByProduct(Product product) {
         return orderRepository.findAllByProducts(product);
     }
 

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import com.vaadin.flow.component.textfield.TextField;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -147,10 +148,12 @@ public class ProductOrderCardLayout {
         return textField;
     }
 
+
     private ComboBox<OrderStatusEnum> getOrderStatusEnumComboBox(OrderPosition position) {
         ComboBox<OrderStatusEnum> statusComboBox = designTools.creatComboBox("Status", List.of(OrderStatusEnum.values()), OrderStatusEnum::getName);
         statusComboBox.setValue(position.getStatus());
         statusComboBox.addValueChangeListener(event -> {
+            position.setPositionCompletedDateTime(LocalDateTime.now());
             position.setStatus(statusComboBox.getValue());
             orderPositionService.update(position);
         });
