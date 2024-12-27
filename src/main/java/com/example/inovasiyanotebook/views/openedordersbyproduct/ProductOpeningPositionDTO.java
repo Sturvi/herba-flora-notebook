@@ -7,10 +7,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * DTO class to manage the relationship between a product and its open order positions.
@@ -21,16 +18,17 @@ import java.util.TreeSet;
 public class ProductOpeningPositionDTO {
 
     private final Product product;
-    private final TreeSet<OrderPosition> openOrderPositions;
+    private final List<OrderPosition> openOrderPositions;
     private LocalDate earliestOrderReceivedDate;
     private final Category parentCategory;
 
     /**
      * Constructor initializes the DTO with a product, calculating its top-level parent category.
+     *
      * @param product the product to initialize the DTO with
      * @throws IllegalArgumentException if the product is null
-     *
-     * Конструктор инициализирует DTO списком продуктов и рассчитывает их главную категорию.
+     *                                  <p>
+     *                                  Конструктор инициализирует DTO списком продуктов и рассчитывает их главную категорию.
      */
     public ProductOpeningPositionDTO(Product product) {
         if (product == null) {
@@ -46,17 +44,18 @@ public class ProductOpeningPositionDTO {
         }
         this.parentCategory = topCategory;
 
-        this.openOrderPositions = new TreeSet<>(Comparator.comparing(op -> op.getOrder().getOrderReceivedDate()));
+        this.openOrderPositions = new LinkedList<>();
         this.earliestOrderReceivedDate = LocalDate.now();
     }
 
     /**
      * Adds an order position to the openOrderPositions set if its product matches the DTO's product.
      * Updates the earliest order received date if the new position's order date is earlier.
-     * @param orderPosition the order position to add
      *
-     * Добавляет позицию заказа в набор openOrderPositions, если продукт совпадает.
-     * Обновляет самую раннюю дату получения заказа, если она ранее.
+     * @param orderPosition the order position to add
+     *                      <p>
+     *                      Добавляет позицию заказа в набор openOrderPositions, если продукт совпадает.
+     *                      Обновляет самую раннюю дату получения заказа, если она ранее.
      */
     public void addOrderPositionIfMatchesProduct(OrderPosition orderPosition) {
         if (orderPosition.getProduct().equals(product)) {
@@ -73,13 +72,18 @@ public class ProductOpeningPositionDTO {
 
     /**
      * Retrieves a list of open order positions.
-     * @return list of open order positions
      *
+     * @return list of open order positions
+     * <p>
      * Возвращает список открытых позиций заказов.
      */
     public List<OrderPosition> getOpenOrderPositions() {
-        return openOrderPositions.stream().toList();
+        return openOrderPositions
+                .stream()
+                .sorted(Comparator.comparing(op -> op.getOrder().getOrderReceivedDate()))
+                .toList();
     }
+
 
     @Override
     public boolean equals(Object o) {

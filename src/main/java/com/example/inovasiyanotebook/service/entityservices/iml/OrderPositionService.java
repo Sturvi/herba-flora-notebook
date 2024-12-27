@@ -88,26 +88,29 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
         orderPositionRepository.saveAll(orderPositions);
     }
 
-    public Set<OrderPosition> getAllByProductWithOpenedStatus (Product product) {
+    public Set<OrderPosition> getAllByProductWithOpenedStatus(Product product) {
         return orderPositionRepository.getAllByProductAndStatus(product, OPEN);
     }
 
-   public List<ProductOpeningPositionDTO> getAllWithOpeningStatusGroupedByProduct() {
+    public List<ProductOpeningPositionDTO> getAllWithOpeningStatusGroupedByProduct() {
         // Получение позиций со статусом OPEN
         List<OrderPosition> openPositions = orderPositionRepository.getAllByStatus(OrderStatusEnum.OPEN);
-   
+
         Map<Product, ProductOpeningPositionDTO> productOpeningPositionDTOMap = new HashMap<>();
-        
-        openPositions.forEach(orderPosition -> {
-            if (productOpeningPositionDTOMap.containsKey(orderPosition.getProduct())) {
-                productOpeningPositionDTOMap.get(orderPosition.getProduct()).addOrderPositionIfMatchesProduct(orderPosition);
-            } else {
-                var productOpeningPositionDTO = new ProductOpeningPositionDTO(orderPosition.getProduct());
-                productOpeningPositionDTO.addOrderPositionIfMatchesProduct(orderPosition);
-                productOpeningPositionDTOMap.put(orderPosition.getProduct(), productOpeningPositionDTO);
-            }
-        });
-   
+
+        openPositions
+                .stream()
+                .filter(position -> position.getOrder().getStatus() == OPEN)
+                .forEach(orderPosition -> {
+                    if (productOpeningPositionDTOMap.containsKey(orderPosition.getProduct())) {
+                        productOpeningPositionDTOMap.get(orderPosition.getProduct()).addOrderPositionIfMatchesProduct(orderPosition);
+                    } else {
+                        var productOpeningPositionDTO = new ProductOpeningPositionDTO(orderPosition.getProduct());
+                        productOpeningPositionDTO.addOrderPositionIfMatchesProduct(orderPosition);
+                        productOpeningPositionDTOMap.put(orderPosition.getProduct(), productOpeningPositionDTO);
+                    }
+                });
+
         // Сбор всех DTO из мапы в Set
         return new ArrayList<>(productOpeningPositionDTOMap.values());
     }
