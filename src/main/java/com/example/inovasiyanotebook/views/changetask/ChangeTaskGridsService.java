@@ -1,11 +1,15 @@
 package com.example.inovasiyanotebook.views.changetask;
 
+import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,10 @@ public class ChangeTaskGridsService {
         initProductGrid();
         initCategoryGrid();
 
+    }
+
+    public Set<Product> getSelectedProducts (){
+        return productGrid.getSelectedProducts();
     }
 
     private void productSelected(Category category) {

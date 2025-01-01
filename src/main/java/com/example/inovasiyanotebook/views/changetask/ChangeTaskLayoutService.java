@@ -1,11 +1,16 @@
 package com.example.inovasiyanotebook.views.changetask;
 
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.changetask.ChangeItemStatus;
+import com.example.inovasiyanotebook.model.changetask.ChangeTask;
+import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
+import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -20,8 +25,8 @@ import java.util.List;
 @UIScope
 public class ChangeTaskLayoutService {
     private final DesignTools designTools;
-    private final ProductService productService;
     private final ChangeTaskGridsService changeTaskGridsService;
+    private final ChangeTaskService changeTaskService;
 
     public HorizontalLayout getLayout() {
         HorizontalLayout layout = new HorizontalLayout();
@@ -44,41 +49,39 @@ public class ChangeTaskLayoutService {
         return layout;
     }
 
-/*private void initSecondColumn(VerticalLayout secondColumn) {
-    // Создаем Grid для отображения списка продуктов
-    Grid<Product> productGrid = new Grid<>(Product.class);
-    productGrid.setHeightFull();
-
-    // Устанавливаем данные для грида из сервиса
-    productGrid.setItems(productService.getAll());
-
-    // Устанавливаем режим множественного выбора
-    productGrid.setSelectionMode(Grid.SelectionMode.MULTI);
-
-    // Оставляем только колонку с именем продукта
-    productGrid.setColumns("name");
-
-    // Добавляем слушатель для обработки выбора элементов
-    productGrid.addSelectionListener(selection -> {
-        selectedProducts.clear();
-        selectedProducts.addAll(selection.getAllSelectedItems());
-    });
-
-    // Создаем кнопку подтверждения выбора
-    Button confirmButton = new Button("Confirm Selection", e -> {
-        Notification.show("Selected products: " + selectedProducts);
-    });
-
-    // Добавляем Grid и кнопку на вторую колонку
-    secondColumn.add(productGrid, confirmButton);
-}*/
-
 
     private void initFirstColum(VerticalLayout firstColumn) {
-        var nameField = designTools.createTextField("Deyisiklik adi", null, null);
-        var descriptionField = designTools.createTextArea("Deyisiklik adi", null, null);
+        var nameField = designTools.createTextField("Deyisiklik adi", null, null); //todo грамматика
+        nameField.setWidthFull();
+        var descriptionField = designTools.createTextArea("Deyisiklik tesfiri", null, null);
+
+        Button button = new Button("Yadda saxla");
+        button.addClickListener(e -> {
+            ChangeTask changeTask = new ChangeTask();
+            changeTask.setTaskType(nameField.getValue());
+            changeTask.setDescription(descriptionField.getValue());
+
+            var changeTaskItems = changeTaskGridsService.getSelectedProducts().stream()
+                    .map(product -> {
+                        ChangeTaskItem ctItem = new ChangeTaskItem();
+                        ctItem.setProduct(product);
+                        ctItem.setTask(changeTask);
+                        ctItem.setStatus(ChangeItemStatus.PENDING);
+                        return ctItem;
+                    }).toList();
+
+            changeTask.setItems(changeTaskItems);
+
+            changeTaskService.create(changeTask);
+        });
+
         descriptionField.setClassName("change-task-text-area");
-        firstColumn.add(nameField, descriptionField, changeTaskGridsService.getCategoryGrid());
+
+        var nameAndButtonLine = new HorizontalLayout(nameField, button);
+        nameAndButtonLine.setWidthFull();
+        nameAndButtonLine.setAlignItems(FlexComponent.Alignment.BASELINE);
+
+        firstColumn.add(nameAndButtonLine, descriptionField, changeTaskGridsService.getCategoryGrid());
     }
 
 

@@ -1,7 +1,6 @@
 package com.example.inovasiyanotebook.model.changetask;
 
 import com.example.inovasiyanotebook.model.AbstractEntity;
-import com.example.inovasiyanotebook.model.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
