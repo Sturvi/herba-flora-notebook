@@ -55,6 +55,14 @@ public class ChangeTaskGridsService {
         return productGrid.getProductGrid();
     }
 
+    public void setProducts(List<Product> products) {
+        productGrid.setProducts(products);
+    }
+
+    public void clearSelectedProducts() {
+        productGrid.clearSelectedProducts();
+    }
+
     private void initProductGrid() {
         productGrid.setProductSelectedListener(this::productSelected);
         productGrid.setProductDeselectedListener(this::productDeselected);

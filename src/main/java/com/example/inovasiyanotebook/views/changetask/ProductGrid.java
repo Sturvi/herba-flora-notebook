@@ -108,4 +108,27 @@ public class ProductGrid {
     public Set<Product> getSelectedProducts() {
         return productGrid.getSelectedItems();
     }
+
+    public void setProducts(List<Product> productsForSelect) {
+        products.stream()
+                .filter(product -> productsForSelect.stream()
+                        .anyMatch(selected -> selected.getId().equals(product.getId())))
+                .forEach(productGrid::select);
+
+        productGrid.getSelectedItems().stream()
+                .collect(Collectors.groupingBy(Product::getCategory))
+                .values().stream() // Преобразуем карту в поток записей (ключ-значение)
+                .map(products -> products.iterator().next()) // Берем первый продукт из каждой категории
+                .forEach(this::handleProductSelection);
+    }
+
+    public void clearSelectedProducts() {
+        productGrid.getSelectedItems().clear();
+
+        productGrid.getSelectedItems().stream()
+                .collect(Collectors.groupingBy(Product::getCategory))
+                .values().stream() // Преобразуем карту в поток записей (ключ-значение)
+                .map(products -> products.iterator().next()) // Берем первый продукт из каждой категории
+                .forEach(this::handleProductSelection);
+    }
 }

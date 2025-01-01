@@ -4,10 +4,13 @@ import com.example.inovasiyanotebook.model.changetask.ChangeTask;
 import com.example.inovasiyanotebook.repository.ChangeTaskRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +29,25 @@ public class ChangeTaskService implements CRUDService<ChangeTask> {
         return repository.findById(id);
     }
 
+    @Transactional
+    public Optional<ChangeTask> getByIdWithItems(Long id) {
+        var entityOpt = repository.findById(id);
+        entityOpt.ifPresent(entity -> {
+            entity.getItems().forEach(Hibernate::initialize);
+        });
+        return entityOpt;
+    }
+
     @Override
     public List<ChangeTask> getAll() {
         return repository.findAll();
+    }
+
+    @Transactional
+    public List<ChangeTask> getAllWithItems() {
+        return repository.findAll().stream()
+                .peek(changeTask -> Hibernate.initialize(changeTask.getItems()))
+                .toList();
     }
 
     @Override
@@ -40,7 +59,6 @@ public class ChangeTaskService implements CRUDService<ChangeTask> {
     public void delete(ChangeTask entity) {
         repository.delete(entity);
     }
-
 
 
 }
