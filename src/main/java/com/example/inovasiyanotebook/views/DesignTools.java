@@ -149,7 +149,7 @@ public class DesignTools {
     public TextField createTextField(String label, String pattern, String errorMessage) {
         TextField textField = new TextField();
         textField.setLabel(label);
-        textField.setSizeFull();
+        textField.setWidthFull();
         if (pattern != null) {
             textField.setPattern(pattern);
             textField.setErrorMessage(errorMessage);
@@ -162,7 +162,7 @@ public class DesignTools {
         textField.setLabel(label);
         textField.setValue(value);
         textField.setReadOnly(readOnly);
-        textField.setSizeFull();
+        textField.setWidthFull();
 
         return textField;
     }
@@ -174,8 +174,7 @@ public class DesignTools {
     public TextArea createTextArea(String label, String pattern, String errorMessage, String  value) {
         TextArea textArea = new TextArea();
         textArea.setLabel(label);
-        textArea.setMinHeight("300px");
-        textArea.setWidthFull();
+        textArea.addClassName("text-area");
         if (pattern != null) {
             textArea.setPattern(pattern);
             textArea.setErrorMessage(errorMessage);

@@ -11,7 +11,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.service.viewservices.order.UploadComponentCreator;
 import com.example.inovasiyanotebook.views.category.CategoryView;
-import com.example.inovasiyanotebook.views.openedordersbyproduct.OpenedOrdersByCategory;
+import com.example.inovasiyanotebook.views.openedordersbyproduct.OpenedOrdersByCategoryView;
 import com.example.inovasiyanotebook.views.order.OrderView;
 import com.example.inovasiyanotebook.views.ordermapping.ProductMappingView;
 import com.example.inovasiyanotebook.views.product.ProductView;
@@ -93,7 +93,7 @@ public class MainLayout extends AppLayout{
                 new SideNavItem("Kateqoriyalar", CategoryView.class, LineAwesomeIcon.LIST_ALT.create()),
                 new SideNavItem("Məhsullar", ProductView.class, LineAwesomeIcon.SHOPPING_CART_SOLID.create()),
                 new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
-                new SideNavItem("Sifarişlər (Kateqoriya üzrə)", OpenedOrdersByCategory.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
+                new SideNavItem("Sifarişlər (Kateqoriya üzrə)", OpenedOrdersByCategoryView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 permissionsCheck.isAdminOrHigher() ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 permissionsCheck.isEditorOrHigher() ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
                 designTools.addEmptySpace(),

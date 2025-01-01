@@ -4,6 +4,7 @@ import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.repository.CategoryRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,24 @@ public class CategoryService implements CRUDService<Category> {
 
     public List<Category> getAllParentCategories() {
         return categoryRepository.findByParentCategoryIsNull();
+    }
+
+    @Transactional
+    public List<Category> getAllParentCategoriesWithSubCategories() {
+        // Получаем родительские категории
+        List<Category> categories = categoryRepository.findByParentCategoryIsNull();
+        // Инициализируем их подкатегории
+        categories.forEach(this::initializeSubCategories);
+        return categories;
+    }
+
+
+    private void initializeSubCategories(Category category) {
+        if (category.getSubCategories() != null) {
+            Hibernate.initialize(category.getSubCategories());
+            // Рекурсивно инициализируем подкатегории текущей категории
+            category.getSubCategories().forEach(this::initializeSubCategories);
+        }
     }
 
     @Transactional
