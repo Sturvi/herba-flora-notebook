@@ -7,7 +7,9 @@ import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskItemService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -34,9 +36,9 @@ public class ChangeTaskLayoutService {
 
     private TextField nameField;
     private TextArea descriptionField;
-    @Getter
     private HorizontalLayout layout;
     private ChangeTask changeTask;
+    private boolean viewMode;
 
     public HorizontalLayout getNewLayout() {
         nameField.clear();
@@ -47,34 +49,54 @@ public class ChangeTaskLayoutService {
         return layout;
     }
 
-    public void setChangeTaskData(ChangeTask changeTask) {
+    public Component getLayout() {
+        return layout;
+    }
+
+    public void setChangeTaskData(ChangeTask changeTask, boolean viewMode) {
         this.changeTask = changeTask;
+        this.viewMode = viewMode;
 
         nameField.setValue(changeTask.getTaskType());
         descriptionField.setValue(changeTask.getDescription());
 
-        var selectedProducts = changeTask.getItems().stream()
-                .map(ChangeTaskItem::getProduct)
-                .toList();
+        nameField.setReadOnly(viewMode);
+        descriptionField.setReadOnly(viewMode);
 
-        changeTaskGridsService.setProducts(selectedProducts);
+        if (viewMode) {
+            changeTaskGridsService.setChangeTaskItems(changeTask.getItems());
+        } else {
+            var selectedProducts = changeTask.getItems().stream()
+                    .map(ChangeTaskItem::getProduct)
+                    .toList();
+
+            changeTaskGridsService.setProducts(selectedProducts);
+        }
+
     }
 
 
     private Button getButton(TextField nameField, TextArea descriptionField) {
         Button button = new Button("Yadda saxla");
         button.addClickListener(e -> {
-            changeTask = changeTask == null ? new ChangeTask() : changeTask;
-            changeTask.setTaskType(nameField.getValue());
-            changeTask.setDescription(descriptionField.getValue());
+            if (viewMode) {
+                changeTaskGridsService.getChangeTaskItemList().forEach(changeTaskItemService::update);
+                Notification.show("Melumat yenilendi", 5000, Notification.Position.MIDDLE);
+            } else {
+                changeTask = changeTask == null ? new ChangeTask() : changeTask;
+                changeTask.setTaskType(nameField.getValue());
+                changeTask.setDescription(descriptionField.getValue());
 
-            var selectedProducts = changeTaskGridsService.getSelectedProducts();
+                var selectedProducts = changeTaskGridsService.getSelectedProducts();
 
-            var items = processChangeTaskItems(changeTask.getItems(), selectedProducts);
+                var items = processChangeTaskItems(changeTask.getItems(), selectedProducts);
 
-            changeTask.setItems(items);
+                changeTask.setItems(items);
 
-            changeTaskService.create(changeTask);
+                changeTaskService.create(changeTask);
+
+                Notification.show(changeTask.getId() == null ? "Dəyişiklik yaradıldı" : "Dəyişiklik yeniləndi", 5000, Notification.Position.MIDDLE);
+            }
         });
         return button;
     }
@@ -114,7 +136,7 @@ public class ChangeTaskLayoutService {
     }
 
     @PostConstruct
-    public void init() {
+    private void init() {
         layout = new HorizontalLayout();
         layout.setSizeFull();
         layout.setSpacing(true);
@@ -127,7 +149,7 @@ public class ChangeTaskLayoutService {
         secondColumn.setHeightFull();
 
         initFirstColum(firstColumn);
-        secondColumn.add(changeTaskGridsService.getProductGrid());
+        secondColumn.add(changeTaskGridsService.getProductGridForNewChangeTask(), changeTaskGridsService.getChangeTaskItemsGrid());
         //initSecondColumn(secondColumn);
 
         layout.add(firstColumn, secondColumn);
@@ -135,9 +157,9 @@ public class ChangeTaskLayoutService {
 
 
     private void initFirstColum(VerticalLayout firstColumn) {
-        nameField = designTools.createTextField("Deyisiklik adi", null, null); //todo грамматика
+        nameField = designTools.createTextField("Dəyişiklik adı\n", null, null);
         nameField.setWidthFull();
-        descriptionField = designTools.createTextArea("Deyisiklik tesfiri", null, null);
+        descriptionField = designTools.createTextArea("Dəyişiklik təsviri", null, null);
 
         Button button = getButton(nameField, descriptionField);
 

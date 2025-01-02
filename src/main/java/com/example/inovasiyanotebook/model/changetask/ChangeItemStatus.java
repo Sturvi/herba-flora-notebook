@@ -1,10 +1,12 @@
 package com.example.inovasiyanotebook.model.changetask;
 
-public enum ChangeItemStatus {
-    PENDING("Ожидает выполнения"),
-    DONE("Выполнено"),
-    FAILED("Не удалось");
+import lombok.Getter;
 
+public enum ChangeItemStatus {
+    PENDING("Edilməyib"),
+    DONE("Bitdi");
+
+    @Getter
     private final String description;
 
     ChangeItemStatus(String description) {

@@ -168,4 +168,7 @@ public class CategoryGrid {
     }
 
 
+    public void setVisible(boolean b) {
+        categoriesGrid.setVisible(b);
+    }
 }

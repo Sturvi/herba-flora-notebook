@@ -11,7 +11,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 
-@PageTitle("Deyisikler")
+@PageTitle("Deyisikler") //todo грамматика
 @Route(value = "change-task", layout = MainLayout.class)
 @RequiredArgsConstructor
 @UIScope
@@ -19,26 +19,28 @@ import lombok.RequiredArgsConstructor;
 public class ChangeTaskView extends HorizontalLayout implements HasUrlParameter<Long> {
     private final ChangeTaskLayoutService changeTaskLayoutService;
     private final ChangeTaskService changeTaskService;
-    private final AllChangesTaskGrid allChangesTaskGrid;
+    private final AllChangesLayoutService allChangesLayoutService;
 
 
     @PostConstruct
     public void init() {
         setHeightFull();
+        setWidthFull();
 
     }
 
     @Override
     public void setParameter(BeforeEvent event, @OptionalParameter Long parameter) {
+        removeAll();
         if (parameter != null) {
-            var changeTask = changeTaskService.getByIdWithItems(parameter);
+            var changeTaskOpt = changeTaskService.getByIdWithItems(parameter);
 
-            if (changeTask.isPresent()) {
-                changeTaskLayoutService.setChangeTaskData(changeTask.get());
+            if (changeTaskOpt.isPresent()) {
+                changeTaskLayoutService.setChangeTaskData(changeTaskOpt.get(), true);
                 add(changeTaskLayoutService.getLayout());
             }
         } else {
-            add(allChangesTaskGrid.getGrid());
+            add(allChangesLayoutService.getComponent());
         }
     }
 }

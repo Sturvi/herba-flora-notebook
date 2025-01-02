@@ -1,11 +1,13 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.model.changetask.ChangeItemStatus;
 import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
 import com.example.inovasiyanotebook.repository.ChangeTaskItemRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +33,13 @@ public class ChangeTaskItemService implements CRUDService<ChangeTaskItem> {
 
     @Override
     public ChangeTaskItem update(ChangeTaskItem entity) {
+        if (entity.getStatus() == ChangeItemStatus.DONE && entity.getCompletedAt() == null) {
+            entity.setCompletedAt(LocalDateTime.now());
+        }
+
+        if (entity.getStatus() == ChangeItemStatus.PENDING && entity.getCompletedAt() != null) {
+            entity.setCompletedAt(null);
+        }
         return repository.save(entity);
     }
 

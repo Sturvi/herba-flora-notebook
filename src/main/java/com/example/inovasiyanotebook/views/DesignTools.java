@@ -53,12 +53,12 @@ public class DesignTools {
     public Button getAddButton(Runnable clickHandleFunction) {
         return getNewIconButton(new Icon(VaadinIcon.PLUS), clickHandleFunction);
     }
-    
-    public Button getTrashButton (Runnable clickHandleFunction){
+
+    public Button getTrashButton(Runnable clickHandleFunction) {
         return getNewIconButton(new Icon(VaadinIcon.TRASH), clickHandleFunction);
     }
-    
-    public Button getNewIconButton (Icon icon, Runnable clickHandleFunction){
+
+    public Button getNewIconButton(Icon icon, Runnable clickHandleFunction) {
         Button button = new Button(icon);
         button.addClickListener(e -> clickHandleFunction.run());
         button.setClassName("small-button");
@@ -80,7 +80,7 @@ public class DesignTools {
         dialog.open();
     }
 
-    public void showConfirmationDialog (Runnable deleteAction) {
+    public void showConfirmationDialog(Runnable deleteAction) {
         Dialog confirmationDialog = new Dialog();
         confirmationDialog.setMaxWidth("400px");
 
@@ -136,7 +136,7 @@ public class DesignTools {
     }
 
 
-    private VerticalLayout getMobileView (List<Component> components) {
+    private VerticalLayout getMobileView(List<Component> components) {
         VerticalLayout mobileView = new VerticalLayout();
         mobileView.add(components);
 
@@ -157,7 +157,13 @@ public class DesignTools {
         return textField;
     }
 
-        public TextField createTextFieldWithValue(String label, String value, boolean readOnly) {
+    public TextField createTextField() {
+        TextField textField = new TextField();
+        textField.setWidthFull();
+        return textField;
+    }
+
+    public TextField createTextFieldWithValue(String label, String value, boolean readOnly) {
         TextField textField = new TextField();
         textField.setLabel(label);
         textField.setValue(value);
@@ -171,7 +177,7 @@ public class DesignTools {
         return createTextArea(label, pattern, errorMessage, null);
     }
 
-    public TextArea createTextArea(String label, String pattern, String errorMessage, String  value) {
+    public TextArea createTextArea(String label, String pattern, String errorMessage, String value) {
         TextArea textArea = new TextArea();
         textArea.setLabel(label);
         textArea.addClassName("text-area");
@@ -205,18 +211,18 @@ public class DesignTools {
     }
 
     public <T extends NamedEntity> void processEntityUpdate(T entity,
-                                    TextField textField,
-                                    HtmlContainer htmlContainer,
-                                    BiConsumer<T, String> updateFunction) {
+                                                            TextField textField,
+                                                            HtmlContainer htmlContainer,
+                                                            BiConsumer<T, String> updateFunction) {
         String newText = textField.getValue().trim();
 
-         if (newText.matches(textField.getPattern())) {
-             if (newText.isEmpty()) {
-                 setEmptyFieldStyle(htmlContainer, "Əlavə et");
-             } else {
-                 resetFieldStyle(htmlContainer, newText);
-             }
-             updateFunction.accept(entity, newText);
+        if (newText.matches(textField.getPattern())) {
+            if (newText.isEmpty()) {
+                setEmptyFieldStyle(htmlContainer, "Əlavə et");
+            } else {
+                resetFieldStyle(htmlContainer, newText);
+            }
+            updateFunction.accept(entity, newText);
         } else {
             textField.setVisible(true);
             textField.focus();

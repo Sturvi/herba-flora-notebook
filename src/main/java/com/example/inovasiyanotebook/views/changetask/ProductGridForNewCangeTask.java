@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 @UIScope
 @RequiredArgsConstructor
 @Slf4j
-public class ProductGrid {
+public class ProductGridForNewCangeTask {
     private final ProductService productService;
 
     private Grid<Product> productGrid;
@@ -130,5 +129,9 @@ public class ProductGrid {
                 .values().stream() // Преобразуем карту в поток записей (ключ-значение)
                 .map(products -> products.iterator().next()) // Берем первый продукт из каждой категории
                 .forEach(this::handleProductSelection);
+    }
+
+    public void setVisible(boolean b) {
+        productGrid.setVisible(b);
     }
 }

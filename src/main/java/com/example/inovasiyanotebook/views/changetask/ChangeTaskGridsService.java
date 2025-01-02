@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.views.changetask;
 
 import com.example.inovasiyanotebook.model.Product;
+import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -16,19 +17,25 @@ import java.util.Set;
 @UIScope
 public class ChangeTaskGridsService {
     private final CategoryGrid categoryGrid;
-    private final ProductGrid productGrid;
+    private final ProductGridForNewCangeTask productGridForNewCangeTask;
+    private final ChangeTaskItemsGrid changeTaskItemsGrid;
 
-
+    private boolean viewMode = false;
 
     @PostConstruct
     public void init() {
         initProductGrid();
         initCategoryGrid();
+        configGridsVisible();
 
     }
 
-    public Set<Product> getSelectedProducts (){
-        return productGrid.getSelectedProducts();
+    public Set<Product> getSelectedProducts() {
+        return viewMode ? null : productGridForNewCangeTask.getSelectedProducts();
+    }
+
+    public List<ChangeTaskItem> getChangeTaskItemList(){
+        return viewMode ? changeTaskItemsGrid.getChangeTaskItems() : null;
     }
 
     private void productSelected(Category category) {
@@ -40,32 +47,52 @@ public class ChangeTaskGridsService {
     }
 
     private void categorySelected(Category category) {
-        productGrid.selectProducts(category);
+        productGridForNewCangeTask.selectProducts(category);
     }
 
     private void categoryDeselected(Category category) {
-        productGrid.deselectProducts(category);
+        productGridForNewCangeTask.deselectProducts(category);
     }
 
     public Component getCategoryGrid() {
         return categoryGrid.getCategoriesGrid();
     }
 
-    public Component getProductGrid() {
-        return productGrid.getProductGrid();
+    public Component getProductGridForNewChangeTask() {
+        return productGridForNewCangeTask.getProductGrid();
+    }
+
+    public Component getChangeTaskItemsGrid() {
+        return changeTaskItemsGrid.getGrid();
     }
 
     public void setProducts(List<Product> products) {
-        productGrid.setProducts(products);
+        viewMode = false;
+        configGridsVisible();
+
+        productGridForNewCangeTask.setProducts(products);
+    }
+
+    public void setChangeTaskItems(List<ChangeTaskItem> changeTaskItems) {
+        viewMode = true;
+        configGridsVisible();
+
+        changeTaskItemsGrid.setChangeTask(changeTaskItems);
+    }
+
+    private void configGridsVisible() {
+        productGridForNewCangeTask.setVisible(!viewMode);
+        categoryGrid.setVisible(!viewMode);
+        changeTaskItemsGrid.setVisible(viewMode);
     }
 
     public void clearSelectedProducts() {
-        productGrid.clearSelectedProducts();
+        productGridForNewCangeTask.clearSelectedProducts();
     }
 
     private void initProductGrid() {
-        productGrid.setProductSelectedListener(this::productSelected);
-        productGrid.setProductDeselectedListener(this::productDeselected);
+        productGridForNewCangeTask.setProductSelectedListener(this::productSelected);
+        productGridForNewCangeTask.setProductDeselectedListener(this::productDeselected);
     }
 
     private void initCategoryGrid() {
