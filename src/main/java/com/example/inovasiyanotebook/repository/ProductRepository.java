@@ -23,5 +23,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.extraInfo WHERE p.id = :id")
     Optional<Product> findByIdWithExtraInfo(@Param("id") Long id);
 
+    @Query("SELECT p FROM Product p WHERE LOWER(p.client.name) = LOWER(:clientName)")
+    List<Product> findAllByClientNameIgnoreCase(@Param("clientName") String clientName);
 
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.category = :category AND LOWER(p.client.name) = LOWER(:clientName)")
+    long countProductsByCategoryAndClientName(@Param("category") Category category, String clientName);
 }

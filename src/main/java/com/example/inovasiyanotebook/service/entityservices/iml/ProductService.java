@@ -9,6 +9,7 @@ import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,9 +62,22 @@ public class ProductService implements CRUDService<Product> {
      * @return a list of all products. / список всех продуктов.
      */
     @Override
+    @Transactional
     public List<Product> getAll() {
         log.debug("Retrieving all products.");
         return productRepository.findAll();
+    }
+
+    @Transactional
+    public List<Product> getAllWithCategory() {
+        var products = getAll();
+        products.forEach(product -> Hibernate.initialize(product.getCategory()));
+
+        return products;
+    }
+
+    public List<Product> getAllHerbaFloraProduct() {
+        return productRepository.findAllByClientNameIgnoreCase("Herba Flora");
     }
 
     /**
@@ -142,6 +156,10 @@ public class ProductService implements CRUDService<Product> {
     public List<Product> getAllByCategory(Category category) {
         log.debug("Retrieving all products for category: {}", category);
         return productRepository.findAllByCategoryAndHisSubCategory(category);
+    }
+
+    public long getHerbaFloraProductsCountByCategory (Category category) {
+        return productRepository.countProductsByCategoryAndClientName(category, "Herba Flora");
     }
 
     /**

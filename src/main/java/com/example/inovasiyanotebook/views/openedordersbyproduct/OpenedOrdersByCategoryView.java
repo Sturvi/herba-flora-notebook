@@ -18,7 +18,7 @@ import java.util.List;
 @Route(value = "orders-by-category", layout = MainLayout.class)
 @PermitAll
 @RequiredArgsConstructor
-public class OpenedOrdersByCategory extends VerticalLayout {
+public class OpenedOrdersByCategoryView extends VerticalLayout {
 
     private final OrderPositionService orderPositionService;
     private final ObjectProvider<CategoriesOpenedOrdersCardLayout> layoutProvider;

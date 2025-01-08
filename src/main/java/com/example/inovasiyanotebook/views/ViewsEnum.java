@@ -11,6 +11,7 @@ public enum ViewsEnum {
     CLIENT("client"),
     ORDER("order"),
     PRODUCT_MAPPING("productmapping"),
+    CHANGE_TASK("change-task"),
     PAGE404("404");
 
     private String view;
