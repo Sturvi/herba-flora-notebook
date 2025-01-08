@@ -2,9 +2,9 @@ package com.example.inovasiyanotebook.views.changetask;
 
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskService;
 import com.example.inovasiyanotebook.views.MainLayout;
-import com.vaadin.flow.component.HasComponents;
+import com.example.inovasiyanotebook.views.changetask.components.AllChangesLayoutService;
+import com.example.inovasiyanotebook.views.changetask.components.ChangeTaskLayoutService;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
@@ -33,12 +33,17 @@ public class ChangeTaskView extends HorizontalLayout implements HasUrlParameter<
     public void setParameter(BeforeEvent event, @OptionalParameter Long parameter) {
         removeAll();
         if (parameter != null) {
-            var changeTaskOpt = changeTaskService.getByIdWithItems(parameter);
+            if (parameter == 0) {
+                add(changeTaskLayoutService.getNewLayout());
+            } else {
+                var changeTaskOpt = changeTaskService.getByIdWithItems(parameter);
 
-            if (changeTaskOpt.isPresent()) {
-                changeTaskLayoutService.setChangeTaskData(changeTaskOpt.get(), true);
-                add(changeTaskLayoutService.getLayout());
+                if (changeTaskOpt.isPresent()) {
+                    changeTaskLayoutService.setChangeTaskData(changeTaskOpt.get(), true);
+                    add(changeTaskLayoutService.getLayout());
+                }
             }
+
         } else {
             add(allChangesLayoutService.getComponent());
         }

@@ -1,7 +1,8 @@
-package com.example.inovasiyanotebook.views.changetask;
+package com.example.inovasiyanotebook.views.changetask.components;
 
 import com.example.inovasiyanotebook.views.DesignTools;
-import com.sun.jna.platform.win32.WinGDI;
+import com.example.inovasiyanotebook.views.NavigationTools;
+import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.Icon;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class AllChangesLayoutService {
     private final AllChangesTaskGrid allChangesTaskGrid;
     private final DesignTools designTools;
+    private final NavigationTools navigationTools;
 
     VerticalLayout layout;
 
@@ -37,6 +39,9 @@ public class AllChangesLayoutService {
 
         Button button = new Button("Yeni deyisiklik", new Icon(VaadinIcon.PLUS));
         button.removeClassNames();
+        button.addClickListener(event -> {
+            navigationTools.navigateTo(ViewsEnum.CHANGE_TASK, "0");
+        });
 
 
         var filterField = designTools.createTextField();

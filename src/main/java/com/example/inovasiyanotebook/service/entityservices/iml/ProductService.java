@@ -76,6 +76,10 @@ public class ProductService implements CRUDService<Product> {
         return products;
     }
 
+    public List<Product> getAllHerbaFloraProduct() {
+        return productRepository.findAllByClientNameIgnoreCase("Herba Flora");
+    }
+
     /**
      * Updates an existing product.
      * Обновляет существующий продукт.
@@ -152,6 +156,10 @@ public class ProductService implements CRUDService<Product> {
     public List<Product> getAllByCategory(Category category) {
         log.debug("Retrieving all products for category: {}", category);
         return productRepository.findAllByCategoryAndHisSubCategory(category);
+    }
+
+    public long getHerbaFloraProductsCountByCategory (Category category) {
+        return productRepository.countProductsByCategoryAndClientName(category, "Herba Flora");
     }
 
     /**

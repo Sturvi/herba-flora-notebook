@@ -1,4 +1,4 @@
-package com.example.inovasiyanotebook.views.changetask;
+package com.example.inovasiyanotebook.views.changetask.components;
 
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.service.entityservices.iml.CategoryService;

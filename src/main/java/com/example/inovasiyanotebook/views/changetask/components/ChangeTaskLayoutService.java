@@ -1,5 +1,7 @@
-package com.example.inovasiyanotebook.views.changetask;
+package com.example.inovasiyanotebook.views.changetask.components;
 
+import com.example.inovasiyanotebook.dto.ChangeTaskItemDTO;
+import com.example.inovasiyanotebook.mapper.ChangeTaskItemMapper;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.changetask.ChangeItemStatus;
 import com.example.inovasiyanotebook.model.changetask.ChangeTask;
@@ -7,6 +9,7 @@ import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskItemService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskService;
 import com.example.inovasiyanotebook.views.DesignTools;
+import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
@@ -17,13 +20,13 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,17 +36,25 @@ public class ChangeTaskLayoutService {
     private final ChangeTaskGridsService changeTaskGridsService;
     private final ChangeTaskService changeTaskService;
     private final ChangeTaskItemService changeTaskItemService;
+    private final NavigationTools navigationTools;
+    private final ChangeTaskItemMapper mapper;
 
     private TextField nameField;
     private TextArea descriptionField;
+    private Button editButton;
     private HorizontalLayout layout;
     private ChangeTask changeTask;
     private boolean viewMode;
 
+
     public HorizontalLayout getNewLayout() {
+        viewMode = false;
+        editButton.setVisible(false);
+
         nameField.clear();
         descriptionField.clear();
         changeTaskGridsService.clearSelectedProducts();
+        changeTaskGridsService.setViewMode(viewMode);
         changeTask = new ChangeTask();
 
         return layout;
@@ -56,6 +67,7 @@ public class ChangeTaskLayoutService {
     public void setChangeTaskData(ChangeTask changeTask, boolean viewMode) {
         this.changeTask = changeTask;
         this.viewMode = viewMode;
+        editButton.setVisible(viewMode);
 
         nameField.setValue(changeTask.getTaskType());
         descriptionField.setValue(changeTask.getDescription());
@@ -63,43 +75,18 @@ public class ChangeTaskLayoutService {
         nameField.setReadOnly(viewMode);
         descriptionField.setReadOnly(viewMode);
 
-        if (viewMode) {
-            changeTaskGridsService.setChangeTaskItems(changeTask.getItems());
-        } else {
-            var selectedProducts = changeTask.getItems().stream()
-                    .map(ChangeTaskItem::getProduct)
-                    .toList();
 
-            changeTaskGridsService.setProducts(selectedProducts);
-        }
+        changeTaskGridsService.setChangeTaskItems(changeTask.getItems().stream().map(mapper::toDTO).toList());
+        var selectedProducts = changeTask.getItems().stream()
+                .map(ChangeTaskItem::getProduct)
+                .toList();
+
+        changeTaskGridsService.setProducts(selectedProducts);
+
+        changeTaskGridsService.setViewMode(viewMode);
 
     }
 
-
-    private Button getButton(TextField nameField, TextArea descriptionField) {
-        Button button = new Button("Yadda saxla");
-        button.addClickListener(e -> {
-            if (viewMode) {
-                changeTaskGridsService.getChangeTaskItemList().forEach(changeTaskItemService::update);
-                Notification.show("Melumat yenilendi", 5000, Notification.Position.MIDDLE);
-            } else {
-                changeTask = changeTask == null ? new ChangeTask() : changeTask;
-                changeTask.setTaskType(nameField.getValue());
-                changeTask.setDescription(descriptionField.getValue());
-
-                var selectedProducts = changeTaskGridsService.getSelectedProducts();
-
-                var items = processChangeTaskItems(changeTask.getItems(), selectedProducts);
-
-                changeTask.setItems(items);
-
-                changeTaskService.create(changeTask);
-
-                Notification.show(changeTask.getId() == null ? "Dəyişiklik yaradıldı" : "Dəyişiklik yeniləndi", 5000, Notification.Position.MIDDLE);
-            }
-        });
-        return button;
-    }
 
     private static ChangeTaskItem getNewChangeTaskItem(Product product, ChangeTask changeTask) {
         ChangeTaskItem ctItem = new ChangeTaskItem();
@@ -149,7 +136,7 @@ public class ChangeTaskLayoutService {
         secondColumn.setHeightFull();
 
         initFirstColum(firstColumn);
-        secondColumn.add(changeTaskGridsService.getProductGridForNewChangeTask(), changeTaskGridsService.getChangeTaskItemsGrid());
+        secondColumn.add(changeTaskGridsService.getChangeTaskItemsGrid(), changeTaskGridsService.getProductGridForNewChangeTask());
         //initSecondColumn(secondColumn);
 
         layout.add(firstColumn, secondColumn);
@@ -161,15 +148,65 @@ public class ChangeTaskLayoutService {
         nameField.setWidthFull();
         descriptionField = designTools.createTextArea("Dəyişiklik təsviri", null, null);
 
-        Button button = getButton(nameField, descriptionField);
+        Button saveButton = getSaveButton(nameField, descriptionField);
+        editButton = getEditButton();
 
         descriptionField.setClassName("change-task-text-area");
 
-        var nameAndButtonLine = new HorizontalLayout(nameField, button);
+        var nameAndButtonLine = new HorizontalLayout(nameField, editButton, saveButton);
         nameAndButtonLine.setWidthFull();
         nameAndButtonLine.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         firstColumn.add(nameAndButtonLine, descriptionField, changeTaskGridsService.getCategoryGrid());
     }
 
+    private Button getEditButton() {
+        Button button = new Button("Dəyişdir");
+
+        button.addClickListener(e -> {
+            var newChangeTask = changeTaskService.getByIdWithItems(changeTask.getId());
+            setChangeTaskData(newChangeTask.get(), false);
+            button.setVisible(viewMode);
+        });
+
+        return button;
+    }
+
+
+    private Button getSaveButton(TextField nameField, TextArea descriptionField) {
+        Button button = new Button("Yadda saxla");
+        button.addClickListener(e -> {
+            if (viewMode) {
+                var newStatusesMap = changeTaskGridsService.getChangeTaskItemList()
+                        .stream()
+                        .collect(Collectors.toMap(ChangeTaskItemDTO::getId, ChangeTaskItemDTO::getStatus));
+                changeTask.getItems()
+                                .forEach(item -> {
+                                    item.setStatus(newStatusesMap.get(item.getId()));
+                                    changeTaskItemService.update(item);
+                                });
+                Notification.show("Melumat yenilendi", 5000, Notification.Position.MIDDLE);
+            } else {
+                changeTask = changeTask == null ? new ChangeTask() : changeTask;
+                changeTask.setTaskType(nameField.getValue());
+                changeTask.setDescription(descriptionField.getValue());
+
+                var selectedProducts = changeTaskGridsService.getSelectedProducts();
+
+                var items = processChangeTaskItems(changeTask.getItems(), selectedProducts);
+
+                changeTask.setItems(items);
+
+                changeTaskService.create(changeTask);
+
+                Notification.show(changeTask.getId() == null ? "Dəyişiklik yaradıldı" : "Dəyişiklik yeniləndi", 5000, Notification.Position.MIDDLE);
+
+                viewMode = true;
+                changeTaskGridsService.setViewMode(true);
+
+                navigationTools.reloadPage();
+            }
+        });
+        return button;
+    }
 }
