@@ -33,6 +33,7 @@ public class AllChangesTaskGrid {
 
     @PostConstruct
     public void init() {
+        log.info("Initializing AllChangesTaskGrid...");
         grid = new Grid<>();
         grid.setClassName("all-change-tasks-grid");
 
@@ -41,14 +42,18 @@ public class AllChangesTaskGrid {
 
         configureColumns();
 
-        grid.addItemClickListener(event ->
-            navigationTools.navigateTo(ViewsEnum.CHANGE_TASK, event.getItem().getId().toString()));
+        grid.addItemClickListener(event -> {
+            log.debug("Navigating to task with ID: {}", event.getItem().getId());
+            navigationTools.navigateTo(ViewsEnum.CHANGE_TASK, event.getItem().getId().toString());
+        });
+        log.info("AllChangesTaskGrid initialized successfully.");
     }
 
     private List<ChangeTask> getSortedTasks() {
+        log.debug("Fetching and sorting tasks...");
         var changeTasks = changeTaskService.getAllWithItems();
 
-        return changeTasks.stream()
+        List<ChangeTask> sortedTasks = changeTasks.stream()
             .sorted(Comparator.comparing((ChangeTask task) ->
                 task.getItems().stream().allMatch(item -> item.getStatus() == ChangeItemStatus.DONE))
                 .thenComparing(task -> task.getItems().stream().allMatch(item -> item.getStatus() == ChangeItemStatus.DONE)
@@ -58,9 +63,13 @@ public class AllChangesTaskGrid {
                         .orElse(LocalDate.MIN)
                     : task.getCreatedAt().toLocalDate(), Comparator.reverseOrder()))
             .collect(Collectors.toList());
+
+        log.info("Tasks sorted successfully.");
+        return sortedTasks;
     }
 
     private void configureColumns() {
+        log.debug("Configuring grid columns...");
         grid.addColumn(ChangeTask::getTaskType).setHeader("Dəyişiklik");
         grid.addColumn(changeTask -> changeTask.getItems().size()).setHeader("Ümumi məhsul");
 
@@ -93,16 +102,21 @@ public class AllChangesTaskGrid {
                         .orElse(null)
             : null
         ).setHeader("Bitmə tarixi");
+
+        log.info("Grid columns configured successfully.");
     }
 
     public void filterTasksByName(String query) {
+        log.debug("Filtering tasks by query: {}", query);
         if (query == null || query.isBlank()) {
             grid.setItems(allTasks);
+            log.debug("Query is blank. Resetting grid items.");
         } else {
             List<ChangeTask> filteredTasks = allTasks.stream()
                 .filter(task -> task.getTaskType().toLowerCase().contains(query.toLowerCase()))
                 .collect(Collectors.toList());
             grid.setItems(filteredTasks);
+            log.debug("Filtered tasks count: {}", filteredTasks.size());
         }
     }
 }

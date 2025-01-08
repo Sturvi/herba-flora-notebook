@@ -21,6 +21,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @UIScope
+@Slf4j
 public class ChangeTaskLayoutService {
     private final DesignTools designTools;
     private final ChangeTaskGridsService changeTaskGridsService;
@@ -46,8 +48,8 @@ public class ChangeTaskLayoutService {
     private ChangeTask changeTask;
     private boolean viewMode;
 
-
     public HorizontalLayout getNewLayout() {
+        log.debug("Initializing new layout for ChangeTask.");
         viewMode = false;
         editButton.setVisible(false);
 
@@ -61,10 +63,12 @@ public class ChangeTaskLayoutService {
     }
 
     public Component getLayout() {
+        log.debug("Returning layout component.");
         return layout;
     }
 
     public void setChangeTaskData(ChangeTask changeTask, boolean viewMode) {
+        log.debug("Setting data for ChangeTask. Task ID: {}, View Mode: {}", changeTask.getId(), viewMode);
         this.changeTask = changeTask;
         this.viewMode = viewMode;
         editButton.setVisible(viewMode);
@@ -75,18 +79,14 @@ public class ChangeTaskLayoutService {
         nameField.setReadOnly(viewMode);
         descriptionField.setReadOnly(viewMode);
 
-
         changeTaskGridsService.setChangeTaskItems(changeTask.getItems().stream().map(mapper::toDTO).toList());
         var selectedProducts = changeTask.getItems().stream()
                 .map(ChangeTaskItem::getProduct)
                 .toList();
 
         changeTaskGridsService.setProducts(selectedProducts);
-
         changeTaskGridsService.setViewMode(viewMode);
-
     }
-
 
     private static ChangeTaskItem getNewChangeTaskItem(Product product, ChangeTask changeTask) {
         ChangeTaskItem ctItem = new ChangeTaskItem();
@@ -97,53 +97,51 @@ public class ChangeTaskLayoutService {
     }
 
     public List<ChangeTaskItem> processChangeTaskItems(Collection<ChangeTaskItem> changeTaskItems, Collection<Product> selectedProducts) {
-        // Сохраняем элементы, чьи продукты остаются в списке
+        log.debug("Processing ChangeTaskItems. Selected products count: {}", selectedProducts.size());
+
         List<ChangeTaskItem> retainedItems = changeTaskItems.stream()
                 .filter(item -> selectedProducts.stream()
                         .anyMatch(product -> product.getId().equals(item.getProduct().getId())))
                 .toList();
 
-
-        // Определяем новые продукты, которые отсутствуют в существующих элементах
         List<Product> newProducts = selectedProducts.stream()
                 .filter(selectedProduct -> changeTaskItems.stream()
                         .noneMatch(item -> item.getProduct().getId().equals(selectedProduct.getId())))
                 .toList();
 
-        // Создаем новые ChangeTaskItem для новых продуктов
         List<ChangeTaskItem> newItems = newProducts.stream()
                 .map(product -> getNewChangeTaskItem(product, changeTask))
                 .toList();
 
-        // Объединяем сохраненные элементы и новые элементы
         List<ChangeTaskItem> resultItems = new ArrayList<>(retainedItems);
         resultItems.addAll(newItems);
 
+        log.debug("Processed ChangeTaskItems. Total items: {}", resultItems.size());
         return resultItems;
     }
 
     @PostConstruct
     private void init() {
+        log.info("Initializing ChangeTaskLayoutService...");
         layout = new HorizontalLayout();
         layout.setSizeFull();
         layout.setSpacing(true);
         layout.setMargin(true);
         layout.setPadding(false);
 
-
         VerticalLayout firstColumn = new VerticalLayout();
         VerticalLayout secondColumn = new VerticalLayout();
         secondColumn.setHeightFull();
 
-        initFirstColum(firstColumn);
+        initFirstColumn(firstColumn);
         secondColumn.add(changeTaskGridsService.getChangeTaskItemsGrid(), changeTaskGridsService.getProductGridForNewChangeTask());
-        //initSecondColumn(secondColumn);
 
         layout.add(firstColumn, secondColumn);
+        log.info("ChangeTaskLayoutService initialized successfully.");
     }
 
-
-    private void initFirstColum(VerticalLayout firstColumn) {
+    private void initFirstColumn(VerticalLayout firstColumn) {
+        log.debug("Initializing first column.");
         nameField = designTools.createTextField("Dəyişiklik adı\n", null, null);
         nameField.setWidthFull();
         descriptionField = designTools.createTextArea("Dəyişiklik təsviri", null, null);
@@ -161,9 +159,11 @@ public class ChangeTaskLayoutService {
     }
 
     private Button getEditButton() {
+        log.debug("Creating edit button.");
         Button button = new Button("Dəyişdir");
 
         button.addClickListener(e -> {
+            log.debug("Edit button clicked.");
             var newChangeTask = changeTaskService.getByIdWithItems(changeTask.getId());
             setChangeTaskData(newChangeTask.get(), false);
             button.setVisible(viewMode);
@@ -172,19 +172,20 @@ public class ChangeTaskLayoutService {
         return button;
     }
 
-
     private Button getSaveButton(TextField nameField, TextArea descriptionField) {
+        log.debug("Creating save button.");
         Button button = new Button("Yadda saxla");
         button.addClickListener(e -> {
+            log.debug("Save button clicked. View mode: {}", viewMode);
             if (viewMode) {
                 var newStatusesMap = changeTaskGridsService.getChangeTaskItemList()
                         .stream()
                         .collect(Collectors.toMap(ChangeTaskItemDTO::getId, ChangeTaskItemDTO::getStatus));
                 changeTask.getItems()
-                                .forEach(item -> {
-                                    item.setStatus(newStatusesMap.get(item.getId()));
-                                    changeTaskItemService.update(item);
-                                });
+                        .forEach(item -> {
+                            item.setStatus(newStatusesMap.get(item.getId()));
+                            changeTaskItemService.update(item);
+                        });
                 Notification.show("Melumat yenilendi", 5000, Notification.Position.MIDDLE);
             } else {
                 changeTask = changeTask == null ? new ChangeTask() : changeTask;
@@ -192,7 +193,6 @@ public class ChangeTaskLayoutService {
                 changeTask.setDescription(descriptionField.getValue());
 
                 var selectedProducts = changeTaskGridsService.getSelectedProducts();
-
                 var items = processChangeTaskItems(changeTask.getItems(), selectedProducts);
 
                 changeTask.setItems(items);

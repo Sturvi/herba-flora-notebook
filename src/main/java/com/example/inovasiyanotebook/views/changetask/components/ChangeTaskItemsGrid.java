@@ -36,6 +36,8 @@ class ChangeTaskItemsGrid {
 
     @PostConstruct
     public void init() {
+        log.info("Initializing ChangeTaskItemsGrid...");
+
         changeTaskItemGrid = new Grid<>();
         changeTaskItemGrid.setHeightFull();
         changeTaskItemGrid.setVisible(false);
@@ -43,13 +45,17 @@ class ChangeTaskItemsGrid {
         searchField = designTools.createTextField();
         searchField.setPlaceholder("Axtarış...");
         searchField.setValueChangeMode(ValueChangeMode.EAGER);
-        searchField.addValueChangeListener(event -> filterGrid(event.getValue()));
+        searchField.addValueChangeListener(event -> {
+            log.debug("Filtering grid with text: {}", event.getValue());
+            filterGrid(event.getValue());
+        });
 
         changeTaskItemGrid.addColumn(ChangeTaskItemDTO::getProductName).setHeader("Məhsul adı");
         changeTaskItemGrid.addColumn(item -> item.getCompletedAt() == null ? null : item.getCompletedAt().toLocalDate()).setHeader("Bitmə tarixi");
         changeTaskItemGrid.addComponentColumn(item -> {
             var comboBox = designTools.creatComboBox(null, Arrays.stream(ChangeItemStatus.values()).toList(), ChangeItemStatus::getDescription, item.getStatus());
             comboBox.addValueChangeListener(attachEvent -> {
+                log.debug("Status changed for item: {}. New status: {}", item.getProductName(), comboBox.getValue());
                 item.setStatus(comboBox.getValue());
             });
             return comboBox;
@@ -58,23 +64,29 @@ class ChangeTaskItemsGrid {
         gridLayout = new VerticalLayout(searchField, changeTaskItemGrid);
         gridLayout.setClassName("full-size");
         gridLayout.addClassName("no-spacing");
+
+        log.info("ChangeTaskItemsGrid initialized successfully.");
     }
 
     public void setChangeTask(List<ChangeTaskItemDTO> items) {
+        log.debug("Setting change task items. Total items: {}", items.size());
         this.changeTaskItems = items;
         updateGridItems(items);
         changeTaskItemGrid.setVisible(true);
     }
 
     public List<ChangeTaskItemDTO> getChangeTaskItems() {
+        log.debug("Getting change task items. Total items: {}", changeTaskItems != null ? changeTaskItems.size() : 0);
         return changeTaskItems;
     }
 
     public Component getGrid() {
+        log.debug("Returning grid layout component.");
         return gridLayout;
     }
 
     public void setVisible(boolean visible) {
+        log.debug("Setting visibility for ChangeTaskItemsGrid: {}", visible);
         gridLayout.setVisible(visible);
         changeTaskItemGrid.setVisible(visible);
         searchField.setVisible(visible);
@@ -82,8 +94,10 @@ class ChangeTaskItemsGrid {
 
     private void filterGrid(String filterText) {
         if (filterText == null || filterText.isEmpty()) {
+            log.debug("Filter text is empty. Resetting grid items.");
             updateGridItems(changeTaskItems);
         } else {
+            log.debug("Applying filter to grid. Filter text: {}", filterText);
             List<ChangeTaskItemDTO> filteredItems = changeTaskItems.stream()
                     .filter(item -> item.getProductName().toLowerCase().contains(filterText.toLowerCase()))
                     .collect(Collectors.toList());
@@ -92,11 +106,11 @@ class ChangeTaskItemsGrid {
     }
 
     private void updateGridItems(List<ChangeTaskItemDTO> items) {
-        // Сортировка списка: сначала по статусу (ожидание выполнения), затем по другим критериям
+        log.debug("Updating grid items. Total items: {}", items.size());
         List<ChangeTaskItemDTO> sortedItems = items.stream()
                 .sorted((item1, item2) -> {
                     if (item1.getStatus() == ChangeItemStatus.PENDING && item2.getStatus() != ChangeItemStatus.PENDING) {
-                        return -1; // "Ожидание выполнения" выше
+                        return -1; // "Oжидание выполнения" выше
                     } else if (item1.getStatus() != ChangeItemStatus.PENDING && item2.getStatus() == ChangeItemStatus.PENDING) {
                         return 1; // Другие статусы ниже
                     }
@@ -105,6 +119,6 @@ class ChangeTaskItemsGrid {
                 .collect(Collectors.toList());
 
         changeTaskItemGrid.setItems(new ListDataProvider<>(sortedItems));
+        log.info("Grid items updated successfully.");
     }
-
 }

@@ -25,45 +25,51 @@ public class AllChangesLayoutService {
     private final DesignTools designTools;
     private final NavigationTools navigationTools;
 
-    VerticalLayout layout;
+    private VerticalLayout layout;
 
     public Component getComponent() {
-
-
+        log.debug("Returning main layout component");
         return layout;
     }
 
     @PostConstruct
     private void init() {
+        log.info("Initializing AllChangesLayoutService...");
         configurateLayout();
 
         Button button = new Button("Yeni deyisiklik", new Icon(VaadinIcon.PLUS));
         button.removeClassNames();
         button.addClickListener(event -> {
+            log.debug("Navigating to CHANGE_TASK with ID 0");
             navigationTools.navigateTo(ViewsEnum.CHANGE_TASK, "0");
         });
-
 
         var filterField = designTools.createTextField();
         filterField.setValueChangeMode(ValueChangeMode.EAGER);
         filterField.addValueChangeListener(event -> {
-
-            allChangesTaskGrid.filterTasksByName(filterField.getValue());
+            String filterValue = filterField.getValue();
+            log.debug("Filtering tasks with value: {}", filterValue);
+            allChangesTaskGrid.filterTasksByName(filterValue);
         });
 
         HorizontalLayout horizontalLayout = new HorizontalLayout(button, filterField);
         horizontalLayout.setWidthFull();
 
         layout.add(horizontalLayout, allChangesTaskGrid.getGrid());
+        log.info("AllChangesLayoutService initialized successfully.");
     }
 
     private void configurateLayout() {
+        log.debug("Configuring main layout...");
         layout = new VerticalLayout();
-
         layout.setHeightFull();
         layout.setWidthFull();
-/*        layout.setSpacing(false);
-        layout.setMargin(false);
-        layout.setPadding(false);*/
+
+        // Uncomment below if spacing, margin, or padding needs to be disabled
+        // layout.setSpacing(false);
+        // layout.setMargin(false);
+        // layout.setPadding(false);
+
+        log.debug("Main layout configuration completed.");
     }
 }

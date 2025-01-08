@@ -35,6 +35,7 @@ public class CategoryGrid {
     private Consumer<Category> deselectedCategoryListener;
 
     public void selectCategory(Category category) {
+        log.debug("Selecting category: {}", category.getName());
         var currentCategory = allCategoriesList.stream().filter(c -> c.getId() == category.getId()).findFirst().orElse(null);
 
         categoriesGrid.select(currentCategory);
@@ -44,8 +45,8 @@ public class CategoryGrid {
     }
 
     public void unselectCategory(Category category) {
+        log.debug("Deselecting category: {}", category.getName());
         var currentCategory = allCategoriesList.stream().filter(c -> c.getId() == category.getId()).findFirst().orElse(null);
-
 
         categoriesGrid.deselect(currentCategory);
 
@@ -53,9 +54,9 @@ public class CategoryGrid {
         deselectParent(currentCategory);
     }
 
-
     @PostConstruct
     public void init() {
+        log.info("Initializing CategoryGrid...");
         categoriesGrid = new TreeGrid<>();
         categoriesGrid.setClassName("category-grid");
         categoriesGrid.setSelectionMode(Grid.SelectionMode.MULTI);
@@ -64,9 +65,9 @@ public class CategoryGrid {
 
         allCategoriesList = categoriesList.stream()
                 .flatMap(category -> Stream.concat(
-                        Stream.of(category), // Основная категория
+                        Stream.of(category), // Main category
                         category.getSubCategories() != null
-                                ? category.getSubCategories().stream() // Субкатегории
+                                ? category.getSubCategories().stream() // Subcategories
                                 : Stream.empty()
                 ))
                 .toList();
@@ -75,17 +76,16 @@ public class CategoryGrid {
 
         categoriesGrid.setItems(categoriesList, Category::getSubCategories);
 
-        // Добавляем обработчик для изменения выбора
         categoriesGrid.addSelectionListener(event -> {
             if (event.isFromClient()) {
                 var selectedItems = event.getAllSelectedItems();
                 var multiSelectionEvent = (MultiSelectionEvent) event;
 
-
                 multiSelectionEvent.getAddedSelection().stream()
                         .forEach(addedSelection -> {
                             Category currentCategory = (Category) addedSelection;
 
+                            log.debug("Adding category to selection: {}", currentCategory.getName());
                             toggleSubCategories(currentCategory, true);
                             selectParentCategoryIfNeed(currentCategory, selectedItems);
                             selectedCategoryListener.accept(currentCategory);
@@ -95,17 +95,19 @@ public class CategoryGrid {
                         .forEach(removedSelection -> {
                             Category currentCategory = (Category) removedSelection;
 
+                            log.debug("Removing category from selection: {}", currentCategory.getName());
                             toggleSubCategories(currentCategory, false);
                             deselectParent(currentCategory);
-
                             deselectedCategoryListener.accept(currentCategory);
                         });
             }
         });
 
+        log.info("CategoryGrid initialized successfully.");
     }
 
     private void deselectParent(Category currentCategory) {
+        log.debug("Deselecting parent for category: {}", currentCategory.getName());
         if (currentCategory.hasParent()) {
             categoriesGrid.deselect(currentCategory.getParentCategory());
             deselectParent(currentCategory.getParentCategory());
@@ -117,22 +119,18 @@ public class CategoryGrid {
             if (currentCategory.hasParent() && isAllSubcategoriesSelected(currentCategory.getParentCategory(), selectedItems)) {
                 categoriesGrid.select(currentCategory.getParentCategory());
 
-                // Создаем копию множества для изменения
                 Set<Category> updatedSelectedItems = new HashSet<>(selectedItems);
                 updatedSelectedItems.add(currentCategory.getParentCategory());
 
                 selectParentCategoryIfNeed(currentCategory.getParentCategory(), updatedSelectedItems);
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
-            log.error("Категория: " + currentCategory.getName());
+            log.error("Error while selecting parent category for: {}", currentCategory.getName(), e);
         }
     }
 
-
     private boolean isAllSubcategoriesSelected(Category parent, Set<Category> selectedItems) {
         List<Category> subCategories = parent.getSubCategories();
-
 
         for (Category category : subCategories) {
             if (!selectedItems.contains(category)) {
@@ -140,35 +138,28 @@ public class CategoryGrid {
             }
         }
 
-
         return true;
     }
 
-    /**
-     * Рекурсивный метод для выделения всех подкатегорий.
-     */
     private void toggleSubCategories(Category category, boolean select) {
-        // Получаем подкатегории
+        log.debug("Toggling subcategories for category: {}. Select: {}", category.getName(), select);
         List<Category> subCategories = category.getSubCategories();
 
-        // Проверяем, есть ли подкатегории
         if (subCategories != null && !subCategories.isEmpty()) {
             subCategories.forEach(subCategory -> {
-                // Выбираем или снимаем выбор подкатегории в зависимости от значения select
                 if (select) {
-                    categoriesGrid.select(subCategory); // Выбираем
+                    categoriesGrid.select(subCategory);
                 } else {
-                    categoriesGrid.deselect(subCategory); // Снимаем выбор
+                    categoriesGrid.deselect(subCategory);
                 }
 
-                // Рекурсивно применяем выбор или снятие выбора для дочерних категорий
                 toggleSubCategories(subCategory, select);
             });
         }
     }
 
-
-    public void setVisible(boolean b) {
-        categoriesGrid.setVisible(b);
+    public void setVisible(boolean visible) {
+        log.debug("Setting visibility for CategoryGrid: {}", visible);
+        categoriesGrid.setVisible(visible);
     }
 }

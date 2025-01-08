@@ -45,6 +45,7 @@ public class ProductGridForNewChangeTask {
     private Consumer<Category> productDeselectedListener;
 
     public void selectProducts(Category category) {
+        log.debug("Selecting products for category: {}", category.getName());
         var productsForSelect = productService.getAllByCategory(category);
 
         products.stream()
@@ -54,6 +55,7 @@ public class ProductGridForNewChangeTask {
     }
 
     public void deselectProducts(Category category) {
+        log.debug("Deselecting products for category: {}", category.getName());
         var productsForSelect = productService.getAllByCategory(category);
 
         products.stream()
@@ -63,11 +65,14 @@ public class ProductGridForNewChangeTask {
     }
 
     public Component getProductGrid() {
+        log.debug("Retrieving product grid component.");
         return gridLayout;
     }
 
     @PostConstruct
     private void init() {
+        log.info("Initializing ProductGridForNewChangeTask...");
+
         productGrid = new Grid<>(Product.class);
         productGrid.setHeightFull();
         products = productService.getAllHerbaFloraProduct();
@@ -75,12 +80,15 @@ public class ProductGridForNewChangeTask {
         productGrid.setSelectionMode(Grid.SelectionMode.MULTI);
 
         productGrid.removeAllColumns();
-        productGrid.addColumn(Product::getName).setHeader("Mehsul adi"); //todo грамматика
+        productGrid.addColumn(Product::getName).setHeader("Mehsul adi");
 
         searchField = designTools.createTextField();
         searchField.setPlaceholder("Axtarış...");
         searchField.setValueChangeMode(ValueChangeMode.EAGER);
-        searchField.addValueChangeListener(event -> filterGrid(event.getValue()));
+        searchField.addValueChangeListener(event -> {
+            log.debug("Filtering grid with text: {}", event.getValue());
+            filterGrid(event.getValue());
+        });
 
         gridLayout = new VerticalLayout(searchField, productGrid);
         gridLayout.setClassName("full-size");
@@ -108,6 +116,8 @@ public class ProductGridForNewChangeTask {
                         .forEach(productDeselectedListener);
             }
         });
+
+        log.info("ProductGridForNewChangeTask initialized successfully.");
     }
 
     private void handleProductSelection(Product selectedProduct) {
@@ -119,15 +129,18 @@ public class ProductGridForNewChangeTask {
                 .size() == productService.getHerbaFloraProductsCountByCategory(productCategory);
 
         if (allCategoryProductsSelected && productSelectedListener != null) {
+            log.debug("All products selected for category: {}. Triggering selection listener.", productCategory.getName());
             productSelectedListener.accept(productCategory);
         }
     }
 
     public Set<Product> getSelectedProducts() {
+        log.debug("Retrieving selected products.");
         return productGrid.getSelectedItems();
     }
 
     public void setProducts(List<Product> productsForSelect) {
+        log.debug("Setting products for selection. Total: {}", productsForSelect.size());
         products.stream()
                 .filter(product -> productsForSelect.stream()
                         .anyMatch(selected -> selected.getId().equals(product.getId())))
@@ -135,31 +148,35 @@ public class ProductGridForNewChangeTask {
 
         productGrid.getSelectedItems().stream()
                 .collect(Collectors.groupingBy(Product::getCategory))
-                .values().stream() // Преобразуем карту в поток записей (ключ-значение)
-                .map(products -> products.iterator().next()) // Берем первый продукт из каждой категории
+                .values().stream()
+                .map(products -> products.iterator().next())
                 .forEach(this::handleProductSelection);
     }
 
     public void clearSelectedProducts() {
+        log.debug("Clearing selected products.");
         productGrid.deselectAll();
 
         productGrid.getSelectedItems().stream()
                 .collect(Collectors.groupingBy(Product::getCategory))
-                .values().stream() // Преобразуем карту в поток записей (ключ-значение)
-                .map(products -> products.iterator().next()) // Берем первый продукт из каждой категории
+                .values().stream()
+                .map(products -> products.iterator().next())
                 .forEach(this::handleProductSelection);
     }
 
-    public void setVisible(boolean b) {
-        productGrid.setVisible(b);
-        searchField.setVisible(b);
-        gridLayout.setVisible(b);
+    public void setVisible(boolean visible) {
+        log.debug("Setting visibility for ProductGrid: {}", visible);
+        productGrid.setVisible(visible);
+        searchField.setVisible(visible);
+        gridLayout.setVisible(visible);
     }
 
     private void filterGrid(String filterText) {
         if (filterText == null || filterText.isEmpty()) {
+            log.debug("Filter text is empty. Resetting grid items.");
             updateGridItems(products);
         } else {
+            log.debug("Applying filter to grid. Filter text: {}", filterText);
             List<Product> filteredItems = products.stream()
                     .filter(item -> item.getName().toLowerCase().contains(filterText.toLowerCase()))
                     .collect(Collectors.toList());
@@ -168,7 +185,7 @@ public class ProductGridForNewChangeTask {
     }
 
     private void updateGridItems(List<Product> items) {
-        // Сортировка списка: сначала по статусу (ожидание выполнения), затем по другим критериям
+        log.debug("Updating grid items. Total items: {}", items.size());
         List<Product> sortedItems = items.stream()
                 .sorted(Comparator.comparing(Product::getName))
                 .collect(Collectors.toList());
