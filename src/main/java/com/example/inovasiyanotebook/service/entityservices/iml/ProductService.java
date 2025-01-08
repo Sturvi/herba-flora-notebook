@@ -77,7 +77,9 @@ public class ProductService implements CRUDService<Product> {
     }
 
     public List<Product> getAllHerbaFloraProduct() {
-        return productRepository.findAllByClientNameIgnoreCase("Herba Flora");
+        var products = productRepository.findAllByClientNameIgnoreCase("Herba Flora");
+        log.info("Retrieving all herba flora products by name: {}", products);
+        return products;
     }
 
     /**
