@@ -1,10 +1,10 @@
-package com.example.inovasiyanotebook.service.entityservices;
+package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.ProductExtraInfo;
 import com.example.inovasiyanotebook.repository.ProductExtraInfoRepository;
+import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +36,6 @@ public class ProductExtraInfoService implements CRUDService<ProductExtraInfo> {
         return productExtraInfoRepository.findAllByProductId(productId);
     }
 
-    @Transactional
     @Override
     public ProductExtraInfo update(ProductExtraInfo entity) {
         if (entity == null || entity.getId() == null) {

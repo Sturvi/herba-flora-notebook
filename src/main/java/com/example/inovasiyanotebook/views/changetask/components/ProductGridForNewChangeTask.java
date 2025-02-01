@@ -43,6 +43,8 @@ public class ProductGridForNewChangeTask {
     private Consumer<Category> productSelectedListener;
     @Setter
     private Consumer<Category> productDeselectedListener;
+    private ListDataProvider<Product> dataProvider;
+
 
     public void selectProducts(Category category) {
         log.debug("Selecting products for category: {}", category.getName());
@@ -75,8 +77,14 @@ public class ProductGridForNewChangeTask {
 
         productGrid = new Grid<>(Product.class);
         productGrid.setHeightFull();
-        products = productService.getAllHerbaFloraProduct();
-        updateGridItems(products);
+
+        products = productService.getAllHerbaFloraProduct().stream()
+                .sorted(Comparator.comparing(Product::getName))
+                .toList();
+
+        dataProvider = new ListDataProvider<>(products);
+        productGrid.setDataProvider(dataProvider);
+
         productGrid.setSelectionMode(Grid.SelectionMode.MULTI);
 
         productGrid.removeAllColumns();
@@ -171,19 +179,6 @@ public class ProductGridForNewChangeTask {
         gridLayout.setVisible(visible);
     }
 
-    private void filterGrid(String filterText) {
-        if (filterText == null || filterText.isEmpty()) {
-            log.debug("Filter text is empty. Resetting grid items.");
-            updateGridItems(products);
-        } else {
-            log.debug("Applying filter to grid. Filter text: {}", filterText);
-            List<Product> filteredItems = products.stream()
-                    .filter(item -> item.getName().toLowerCase().contains(filterText.toLowerCase()))
-                    .collect(Collectors.toList());
-            updateGridItems(filteredItems);
-        }
-    }
-
     private void updateGridItems(List<Product> items) {
         log.debug("Updating grid items. Total items: {}", items.size());
         List<Product> sortedItems = items.stream()
@@ -191,5 +186,14 @@ public class ProductGridForNewChangeTask {
                 .collect(Collectors.toList());
 
         productGrid.setItems(new ListDataProvider<>(sortedItems));
+    }
+
+    private void filterGrid(String filterText) {
+        log.debug("Applying filter to grid. Filter text: {}", filterText);
+        dataProvider.clearFilters();
+
+        if (filterText != null && !filterText.isEmpty()) {
+            dataProvider.addFilter(product -> product.getName().toLowerCase().contains(filterText.toLowerCase()));
+        }
     }
 }

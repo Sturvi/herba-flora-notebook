@@ -1,7 +1,5 @@
 package com.example.inovasiyanotebook.views.user;
 
-import com.example.inovasiyanotebook.model.user.User;
-import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.viewservices.user.AllUserGrid;
 import com.example.inovasiyanotebook.service.viewservices.user.UserInfoValidation;
 import com.example.inovasiyanotebook.views.DesignTools;

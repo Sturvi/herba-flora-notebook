@@ -12,6 +12,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H4;
@@ -23,6 +24,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -311,6 +313,15 @@ public class DesignTools {
         field.getElement().getStyle().remove("color");
         field.getElement().getClassList().remove("italic");
     }
+
+    public void downloadFile(StreamResource resource) {
+
+
+        Anchor downloadLink = new Anchor(resource, "Download");
+        downloadLink.getElement().setAttribute("download", true);
+        UI.getCurrent().getPage().executeJs("window.location.href=$0", downloadLink.getHref());
+    }
+
 
     private H4 getInformationH4(String information) {
         H4 informationElement = new H4(information.isEmpty() ? "Əlavə et" : information);

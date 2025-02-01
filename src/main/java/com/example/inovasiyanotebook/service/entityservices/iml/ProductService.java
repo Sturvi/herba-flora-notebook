@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.mapper.ProductMapper;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.ProductExtraInfo;
 import com.example.inovasiyanotebook.model.client.Category;
@@ -7,6 +8,7 @@ import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ProductRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
+import com.example.inovasiyanotebook.views.aiinformation.components.dto.ProductDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing Product entities. Provides CRUD operations and additional functionality.
@@ -27,6 +30,7 @@ public class ProductService implements CRUDService<Product> {
 
     private final ProductRepository productRepository;
     private final FileUploadService fileUploadService;
+    private final ProductMapper productMapper;
 
     /**
      * Creates a new product entity.
@@ -62,16 +66,25 @@ public class ProductService implements CRUDService<Product> {
      * @return a list of all products. / список всех продуктов.
      */
     @Override
-    @Transactional
     public List<Product> getAll() {
         log.debug("Retrieving all products.");
         return productRepository.findAll();
     }
 
     @Transactional
+    public List<ProductDTO> getAllProductsWithExtraInfo() {
+        var products = productRepository.findAll();
+        products.forEach(product -> Hibernate.initialize(product.getCategory())); // Инициализируем категории
+
+        return products.stream()
+                .map(productMapper::toProductDTO) // Используем обновленный маппер
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
     public List<Product> getAllWithCategory() {
-        var products = getAll();
-        products.forEach(product -> Hibernate.initialize(product.getCategory()));
+        var products = getAllHerbaFloraProduct();
+        products.forEach(product -> Hibernate.initialize(product.getCategory())); //todo сделать через джоин
 
         return products;
     }
@@ -160,7 +173,7 @@ public class ProductService implements CRUDService<Product> {
         return productRepository.findAllByCategoryAndHisSubCategory(category);
     }
 
-    public long getHerbaFloraProductsCountByCategory (Category category) {
+    public long getHerbaFloraProductsCountByCategory(Category category) {
         return productRepository.countProductsByCategoryAndClientName(category, "Herba Flora");
     }
 

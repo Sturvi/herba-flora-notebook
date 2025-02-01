@@ -2,7 +2,7 @@ package com.example.inovasiyanotebook.service.viewservices.product.extrainformat
 
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.ProductExtraInfo;
-import com.example.inovasiyanotebook.service.entityservices.ProductExtraInfoService;
+import com.example.inovasiyanotebook.service.entityservices.iml.ProductExtraInfoService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -13,7 +13,6 @@ import com.vaadin.flow.component.textfield.TextArea;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

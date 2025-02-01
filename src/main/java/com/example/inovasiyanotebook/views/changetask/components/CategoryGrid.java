@@ -81,7 +81,7 @@ public class CategoryGrid {
                 var selectedItems = event.getAllSelectedItems();
                 var multiSelectionEvent = (MultiSelectionEvent) event;
 
-                multiSelectionEvent.getAddedSelection().stream()
+                multiSelectionEvent.getAddedSelection()
                         .forEach(addedSelection -> {
                             Category currentCategory = (Category) addedSelection;
 
@@ -91,7 +91,7 @@ public class CategoryGrid {
                             selectedCategoryListener.accept(currentCategory);
                         });
 
-                multiSelectionEvent.getRemovedSelection().stream()
+                multiSelectionEvent.getRemovedSelection()
                         .forEach(removedSelection -> {
                             Category currentCategory = (Category) removedSelection;
 
