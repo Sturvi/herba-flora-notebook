@@ -73,8 +73,8 @@ public class ProductService implements CRUDService<Product> {
 
     @Transactional
     public List<ProductDTO> getAllProductsWithExtraInfo() {
-        var products = productRepository.findAll();
-        products.forEach(product -> Hibernate.initialize(product.getCategory())); // Инициализируем категории
+        var products = getAllHerbaFloraProduct();
+        //products.forEach(product -> Hibernate.initialize(product.getExtraInfo())); // Инициализируем категории
 
         return products.stream()
                 .map(productMapper::toProductDTO) // Используем обновленный маппер

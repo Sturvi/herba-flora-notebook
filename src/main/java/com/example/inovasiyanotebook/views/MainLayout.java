@@ -10,6 +10,7 @@ import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.example.inovasiyanotebook.service.updateevent.ClientListUpdateCommandEvent;
 import com.example.inovasiyanotebook.service.viewservices.order.UploadComponentCreator;
+import com.example.inovasiyanotebook.views.aiinformation.AiInfoView;
 import com.example.inovasiyanotebook.views.category.CategoryView;
 import com.example.inovasiyanotebook.views.changetask.ChangeTaskView;
 import com.example.inovasiyanotebook.views.openedordersbyproduct.OpenedOrdersByCategoryView;
@@ -96,6 +97,7 @@ public class MainLayout extends AppLayout{
                 new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 new SideNavItem("Sifarişlər (Kateqoriya üzrə)", OpenedOrdersByCategoryView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 new SideNavItem("Dəyişiklər", ChangeTaskView.class, LineAwesomeIcon.EDIT_SOLID.create()),
+                new SideNavItem("AI Məlumatları", AiInfoView.class, LineAwesomeIcon.ROBOT_SOLID.create()),
                 permissionsCheck.isAdminOrHigher() ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 permissionsCheck.isEditorOrHigher() ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
                 designTools.addEmptySpace(),
