@@ -6,7 +6,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
 
     <include file="db/changelog/changes/empty-changelog.xml"/>
-    <include file="db/changelog/changes/2025.03/27-01-changelog.xml"/>
+
 
 
 </databaseChangeLog>

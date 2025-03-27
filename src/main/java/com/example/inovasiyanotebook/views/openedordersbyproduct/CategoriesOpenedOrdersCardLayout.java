@@ -196,7 +196,7 @@ public class CategoriesOpenedOrdersCardLayout {
         log.debug("Populating content layout.");
         categoryOpeningPositionDTO.getPositionList().forEach(dto -> {
             var card = layoutProvider.getObject();
-            card.setProductOpeningPositionDTO(dto);
+            card.setProductOpenInfoDTO(dto);
             contentLayout.add(card.getLayout());
         });
     }

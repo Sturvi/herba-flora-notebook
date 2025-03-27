@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.views.openedordersbyproduct;
 
+import com.example.inovasiyanotebook.dto.ProductOpenInfoDTO;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
@@ -25,7 +26,6 @@ import com.vaadin.flow.component.textfield.TextField;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Service class representing the layout of product order cards.
@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class ProductOrderCardLayout {
 
-    private ProductOpeningPositionDTO productOpeningPositionDTO;
+    private ProductOpenInfoDTO productOpenInfoDTO;
     private VerticalLayout layout;
 
     private final OrderPositionService orderPositionService;
@@ -68,7 +68,7 @@ public class ProductOrderCardLayout {
      * @return VerticalLayout instance
      */
     public VerticalLayout getLayout() {
-        if (productOpeningPositionDTO == null) {
+        if (productOpenInfoDTO == null) {
             log.error("ProductOpeningPositionDTO is not set");
             throw new RuntimeException("ProductOpeningPositionDTO is not set");
         }
@@ -79,10 +79,10 @@ public class ProductOrderCardLayout {
      * Sets the ProductOpeningPositionDTO and constructs the layout.
      * Устанавливает ProductOpeningPositionDTO и создает макет.
      *
-     * @param productOpeningPositionDTO DTO containing product data
+     * @param productOpenInfoDTO DTO containing product data
      */
-    public void setProductOpeningPositionDTO(ProductOpeningPositionDTO productOpeningPositionDTO) {
-        this.productOpeningPositionDTO = productOpeningPositionDTO;
+    public void setProductOpenInfoDTO(ProductOpenInfoDTO productOpenInfoDTO) {
+        this.productOpenInfoDTO = productOpenInfoDTO;
         log.info("ProductOpeningPositionDTO set. Constructing layout...");
         constructLayout();
     }
@@ -94,16 +94,16 @@ public class ProductOrderCardLayout {
     private void constructLayout() {
         layout.removeAll(); // Clear existing components to prevent duplication
 
-        Span productNameSpan = new Span(productOpeningPositionDTO.getProduct().getName());
+        Span productNameSpan = new Span(productOpenInfoDTO.getProduct().getName());
         productNameSpan.setClassName("product-label");
         layout.add(productNameSpan);
 
-        Span dateLabel = new Span("Ən köhnə sifariş tarixi: " + productOpeningPositionDTO.getEarliestOrderReceivedDate());
+        Span dateLabel = new Span("Ən köhnə sifariş tarixi: " + productOpenInfoDTO.getEarliestOrderReceivedDate());
         dateLabel.addClassName("product-date-label");
         layout.add(dateLabel);
 
 
-        var positions = productOpeningPositionDTO.getOpenOrderPositions();
+        var positions = productOpenInfoDTO.getOpenOrderPositions();
 
         for (int i = 0; i < positions.size(); i++) {
             final int index = i; // Переменная должна быть effectively final для использования в лямбда-выражении

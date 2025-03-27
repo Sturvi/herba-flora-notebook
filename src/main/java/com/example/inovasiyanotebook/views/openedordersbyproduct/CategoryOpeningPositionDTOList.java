@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.views.openedordersbyproduct;
 
+import com.example.inovasiyanotebook.dto.ProductOpenInfoDTO;
 import com.example.inovasiyanotebook.model.client.Category;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +27,7 @@ public class CategoryOpeningPositionDTOList {
      * @param productPosition ProductOpeningPositionDTO to add.
      *                       Позиция продукта для добавления.
      */
-    public void addProductPosition(ProductOpeningPositionDTO productPosition) {
+    public void addProductPosition(ProductOpenInfoDTO productPosition) {
         log.debug("Adding product position: {}", productPosition);
         Category parentCategory = productPosition.getParentCategory();
         CategoryOpeningPositionDTO categoryPosition = categoryToPositionMap.computeIfAbsent(

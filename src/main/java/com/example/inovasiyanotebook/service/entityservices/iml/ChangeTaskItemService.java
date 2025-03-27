@@ -47,4 +47,8 @@ public class ChangeTaskItemService implements CRUDService<ChangeTaskItem> {
     public void delete(ChangeTaskItem entity) {
         repository.delete(entity);
     }
+
+    public List<ChangeTaskItem> findAllByStatus(ChangeItemStatus status) {
+        return repository.findAllByStatus(status);
+    }
 }
