@@ -111,7 +111,6 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
                     }
                 });
 
-        // Сбор всех DTO из мапы в Set
         return new ArrayList<>(productOpeningPositionDTOMap.values());
     }
 }
