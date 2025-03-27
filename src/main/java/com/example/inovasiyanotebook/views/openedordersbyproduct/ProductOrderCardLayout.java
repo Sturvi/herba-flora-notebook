@@ -19,6 +19,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ public class ProductOrderCardLayout {
     private final NavigationTools navigationTools;
     private final NewOrderDialog newOrderDialog;
     private final NoteGridService noteGridService;
+    private final ObjectProvider<ChangeTasksLayout> layoutProvider;
 
     /**
      * Initializes the layout after construction.
@@ -135,8 +137,14 @@ public class ProductOrderCardLayout {
             if (index == positions.size() - 1) {
                 layout.add(noteGridService.getHorizontalGridWithHeader(positions.get(index).getProduct()));
             }
+
         }
 
+        if (!productOpenInfoDTO.getOpenChangeTaskItems().isEmpty()){
+            var changeTasksLayout = layoutProvider.getObject();
+            changeTasksLayout.setChangeTaskItems(productOpenInfoDTO.getOpenChangeTaskItems());
+            layout.add(changeTasksLayout.getLayout());
+        }
 
         log.info("Layout constructed successfully.");
     }
