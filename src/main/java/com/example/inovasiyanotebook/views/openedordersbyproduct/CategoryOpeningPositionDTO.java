@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.views.openedordersbyproduct;
 
+import com.example.inovasiyanotebook.dto.ProductOpenInfoDTO;
 import com.example.inovasiyanotebook.model.client.Category;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ import java.util.Objects;
 public class CategoryOpeningPositionDTO {
 
     private final Category category;
-    private final List<ProductOpeningPositionDTO> positionList;
+    private final List<ProductOpenInfoDTO> positionList;
     private LocalDate orderReceivedDate;
 
     /**
@@ -41,7 +42,7 @@ public class CategoryOpeningPositionDTO {
      *
      * @param productOpeningPositionDTO the product position to add / добавляемая позиция товара.
      */
-    public void addOpenedPosition(ProductOpeningPositionDTO productOpeningPositionDTO) {
+    public void addOpenedPosition(ProductOpenInfoDTO productOpeningPositionDTO) {
         if (productOpeningPositionDTO.getParentCategory().equals(category)) {
             positionList.add(productOpeningPositionDTO);
             log.debug("Added product position: {} to category: {}", productOpeningPositionDTO, category);

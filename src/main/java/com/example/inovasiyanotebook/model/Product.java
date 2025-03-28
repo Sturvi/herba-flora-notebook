@@ -17,7 +17,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "products")
 @Setter

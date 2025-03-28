@@ -1,8 +1,10 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.dto.ProductOpenInfoDTO;
 import com.example.inovasiyanotebook.mapper.ProductMapper;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.ProductExtraInfo;
+import com.example.inovasiyanotebook.model.changetask.ChangeItemStatus;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ProductRepository;
@@ -18,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.OPEN;
 
 /**
  * Service for managing Product entities. Provides CRUD operations and additional functionality.
