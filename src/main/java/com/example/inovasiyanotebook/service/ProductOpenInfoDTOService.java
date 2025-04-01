@@ -8,7 +8,6 @@ import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskItemService;
-import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskService;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +28,7 @@ public class ProductOpenInfoDTOService {
 
     public List<ProductOpenInfoDTO> getProductOpenInfo() {
         // Получаем все открытые позиции заказов
-        List<OrderPosition> openOrderPositions = orderPositionService.getAllByStatus(OrderStatusEnum.OPEN);
+        List<OrderPosition> openOrderPositions = orderPositionService.findOrderPositionsByStatus(OrderStatusEnum.OPEN);
 
         // Получаем все открытые задачи на изменение (например, со статусом PENDING)
         List<ChangeTaskItem> openChangeTaskItems = changeTaskItemService.findAllByStatus(ChangeItemStatus.PENDING);

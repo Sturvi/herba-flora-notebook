@@ -12,6 +12,7 @@ import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
@@ -19,6 +20,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -164,30 +166,66 @@ public class OrdersGrid {
     private void addButtonsColumn(User user, Grid<Order> orderGrid) {
         orderGrid.addComponentColumn(order -> {
                     HorizontalLayout componentsColumn = new HorizontalLayout();
-                    Button previewButton = designTools.getNewIconButton(VaadinIcon.PRESENTATION.create(), () -> {
-                        buttonClicked.set(true);
-                        newOrderDialog.openReadOnlyDialog(order, user);
-                    });
-                    componentsColumn.add(previewButton);
 
-                    Button notesDialogButton = designTools.getNewIconButton(VaadinIcon.NOTEBOOK.create(), () -> {
-                        buttonClicked.set(true);
-                        noteDialog.openDialog(order, user);
-                    });
-                    componentsColumn.add(notesDialogButton);
-
-                    if (permissionsCheck.needEditor()) {
-                        Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
-                            buttonClicked.set(true);
-                            newOrderDialog.openNewDialog(order);
-                        });
-
-                        componentsColumn.add(editButton);
-                    }
+                    addDeleteButton(order, componentsColumn, orderGrid);
+                    addPreviewButton(user, order, componentsColumn);
+                    addNotesButton(user, order, componentsColumn);
+                    addEditButtonForOrder(order, componentsColumn);
 
                     return componentsColumn;
                 }
         ).setFlexGrow(2);
+    }
+
+    private void addDeleteButton(Order order, HorizontalLayout componentsColumn, Grid<Order> orderGrid) {
+        if (permissionsCheck.isEditorOrHigher()) {
+            Button deleteButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), () -> {
+                buttonClicked.set(true);
+                designTools.showConfirmationDialog(() -> deleteOrderAndRefreshGrid(order, orderGrid));
+            });
+            componentsColumn.add(deleteButton);
+        }
+    }
+
+    private void deleteOrderAndRefreshGrid(Order order, Grid<Order> orderGrid) {
+        orderService.delete(order); // удаляем из базы
+
+        // Получаем DataProvider
+        ListDataProvider<Order> dataProvider = (ListDataProvider<Order>) orderGrid.getDataProvider();
+
+        // Удаляем из dataProvider
+        dataProvider.getItems().remove(order);
+
+        // Уведомляем, что данные изменились
+        dataProvider.refreshAll();
+    }
+
+
+    private void addEditButtonForOrder(Order order, HorizontalLayout componentsColumn) {
+        if (permissionsCheck.needEditor()) {
+            Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
+                buttonClicked.set(true);
+                newOrderDialog.openNewDialog(order);
+            });
+
+            componentsColumn.add(editButton);
+        }
+    }
+
+    private void addNotesButton(User user, Order order, HorizontalLayout componentsColumn) {
+        Button notesDialogButton = designTools.getNewIconButton(VaadinIcon.NOTEBOOK.create(), () -> {
+            buttonClicked.set(true);
+            noteDialog.openDialog(order, user);
+        });
+        componentsColumn.add(notesDialogButton);
+    }
+
+    private void addPreviewButton(User user, Order order, HorizontalLayout componentsColumn) {
+        Button previewButton = designTools.getNewIconButton(VaadinIcon.PRESENTATION.create(), () -> {
+            buttonClicked.set(true);
+            newOrderDialog.openReadOnlyDialog(order, user);
+        });
+        componentsColumn.add(previewButton);
     }
 
     private static void addStatusColumn(Grid<Order> orderGrid) {
@@ -267,4 +305,7 @@ public class OrdersGrid {
     }
 
 
+    private void refreshGrid(Grid<?> grid) {
+        grid.getDataProvider().refreshAll();
+    }
 }

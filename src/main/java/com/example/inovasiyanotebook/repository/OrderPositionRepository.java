@@ -15,4 +15,6 @@ public interface OrderPositionRepository extends JpaRepository<OrderPosition, Lo
     Set<OrderPosition> getAllByProductAndStatus(Product product, OrderStatusEnum status);
 
     List<OrderPosition> getAllByStatus(OrderStatusEnum orderStatusEnum);
+
+    List<OrderPosition> findAllByStatusAndOrder_Status(OrderStatusEnum positionStatus, OrderStatusEnum orderStatus);
 }
