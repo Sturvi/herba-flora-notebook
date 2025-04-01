@@ -51,7 +51,7 @@ import java.util.List;
  */
 @Service
 @UIScope
-public class MainLayout extends AppLayout{
+public class MainLayout extends AppLayout {
 
     private final UserService userService;
     private final PermissionsCheck permissionsCheck;
@@ -97,7 +97,7 @@ public class MainLayout extends AppLayout{
                 new SideNavItem("Sifarişlər", OrderView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 new SideNavItem("Sifarişlər (Kateqoriya üzrə)", OpenedOrdersByCategoryView.class, LineAwesomeIcon.CLIPBOARD_LIST_SOLID.create()),
                 new SideNavItem("Dəyişiklər", ChangeTaskView.class, LineAwesomeIcon.EDIT_SOLID.create()),
-                new SideNavItem("AI Məlumatları", AiInfoView.class, LineAwesomeIcon.ROBOT_SOLID.create()),
+                permissionsCheck.isAdminOrHigher() ? new SideNavItem("AI Məlumatları", AiInfoView.class, LineAwesomeIcon.ROBOT_SOLID.create()) : null,
                 permissionsCheck.isAdminOrHigher() ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 permissionsCheck.isEditorOrHigher() ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
                 designTools.addEmptySpace(),
@@ -236,19 +236,19 @@ public class MainLayout extends AppLayout{
     @RequiresPermission("EDITOR")
     public Component getIsFunctionalityEnabledButton() {
 
-            var upload = uploadComponentCreator.getUpload();
-            upload.setDropAllowed(true);
-            Checkbox toggleButton = new Checkbox("Admin funksiyaları");
-            toggleButton.setValue(user.isFunctionalityEnabled());
-            toggleButton.addClassName("custom-checkbox"); // Добавление кастомного класса
+        var upload = uploadComponentCreator.getUpload();
+        upload.setDropAllowed(true);
+        Checkbox toggleButton = new Checkbox("Admin funksiyaları");
+        toggleButton.setValue(user.isFunctionalityEnabled());
+        toggleButton.addClassName("custom-checkbox"); // Добавление кастомного класса
 
-            toggleButton.addValueChangeListener(event -> {
-                user.setFunctionalityEnabled(event.getValue());
-                userService.update(user);
-                navigationTools.reloadPage();
-            });
+        toggleButton.addValueChangeListener(event -> {
+            user.setFunctionalityEnabled(event.getValue());
+            userService.update(user);
+            navigationTools.reloadPage();
+        });
 
-            return new VerticalLayout(upload, toggleButton);
+        return new VerticalLayout(upload, toggleButton);
     }
 
     @EventListener
