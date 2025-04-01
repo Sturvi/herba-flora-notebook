@@ -1,8 +1,6 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
-import com.example.inovasiyanotebook.dto.ProductOpenInfoDTO;
 import com.example.inovasiyanotebook.model.Product;
-import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.repository.OrderPositionRepository;
@@ -95,8 +93,8 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
         return orderPositionRepository.getAllByProductAndStatus(product, OPEN);
     }
 
-    public List<OrderPosition> getAllByStatus(OrderStatusEnum status) {
-        return orderPositionRepository.getAllByStatus(status);
+    public List<OrderPosition> findOrderPositionsByStatus(OrderStatusEnum status) {
+        return orderPositionRepository.findAllByStatusAndOrder_Status(status, OPEN);
     }
 }
 

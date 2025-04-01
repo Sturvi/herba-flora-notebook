@@ -29,7 +29,12 @@ public class AllChangesLayoutService {
 
     public Component getComponent() {
         log.debug("Returning main layout component");
+        init();
         return layout;
+    }
+
+    public AllChangesTaskGrid getAllChangesTaskGrid() {
+        return allChangesTaskGrid;
     }
 
     @PostConstruct
@@ -37,7 +42,7 @@ public class AllChangesLayoutService {
         log.info("Initializing AllChangesLayoutService...");
         configurateLayout();
 
-        Button button = new Button("Yeni deyisiklik", new Icon(VaadinIcon.PLUS));
+        Button button = new Button("Yeni dəyişiklik", new Icon(VaadinIcon.PLUS));
         button.removeClassNames();
         button.addClickListener(event -> {
             log.debug("Navigating to CHANGE_TASK with ID 0");

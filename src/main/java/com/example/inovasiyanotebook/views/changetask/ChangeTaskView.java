@@ -12,7 +12,7 @@ import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@PageTitle("Deyisikler") //todo грамматика
+@PageTitle("Dəyişikliklər")
 @Route(value = "change-task", layout = MainLayout.class)
 @RequiredArgsConstructor
 @UIScope
@@ -54,6 +54,7 @@ public class ChangeTaskView extends HorizontalLayout implements HasUrlParameter<
 
         } else {
             log.debug("Parameter is null. Adding all changes layout component.");
+            removeAll();
             add(allChangesLayoutService.getComponent());
         }
     }
