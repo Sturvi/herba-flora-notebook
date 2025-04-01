@@ -10,6 +10,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskItemSe
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
+import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
@@ -44,6 +45,7 @@ public class ChangeTaskLayoutService {
     private TextField nameField;
     private TextArea descriptionField;
     private Button editButton;
+    private Button deleteButton;
     private HorizontalLayout layout;
     private ChangeTask changeTask;
     private boolean viewMode;
@@ -52,6 +54,7 @@ public class ChangeTaskLayoutService {
         log.debug("Initializing new layout for ChangeTask.");
         viewMode = false;
         editButton.setVisible(false);
+        deleteButton.setVisible(false);
 
         nameField.clear();
         descriptionField.clear();
@@ -72,6 +75,7 @@ public class ChangeTaskLayoutService {
         this.changeTask = changeTask;
         this.viewMode = viewMode;
         editButton.setVisible(viewMode);
+        deleteButton.setVisible(viewMode);
 
         nameField.setValue(changeTask.getTaskType());
         descriptionField.setValue(changeTask.getDescription());
@@ -148,14 +152,26 @@ public class ChangeTaskLayoutService {
 
         Button saveButton = getSaveButton(nameField, descriptionField);
         editButton = getEditButton();
+        deleteButton = getDeleteButton();
 
         descriptionField.setClassName("change-task-text-area");
 
-        var nameAndButtonLine = new HorizontalLayout(nameField, editButton, saveButton);
+        var nameAndButtonLine = new HorizontalLayout(nameField, deleteButton, editButton, saveButton);
         nameAndButtonLine.setWidthFull();
         nameAndButtonLine.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         firstColumn.add(nameAndButtonLine, descriptionField, changeTaskGridsService.getCategoryGrid());
+    }
+
+    private Button getDeleteButton() {
+        Button button = new Button("Dəyişikliyi sil");
+        button.addClickListener(e -> {
+            changeTaskService.delete(changeTask);
+            Notification.show("Dəyişiklik silindi", 5000, Notification.Position.MIDDLE);
+            navigationTools.navigateTo(ViewsEnum.CHANGE_TASK);
+        });
+
+        return button;
     }
 
     private Button getEditButton() {
@@ -186,7 +202,7 @@ public class ChangeTaskLayoutService {
                             item.setStatus(newStatusesMap.get(item.getId()));
                             changeTaskItemService.update(item);
                         });
-                Notification.show("Melumat yenilendi", 5000, Notification.Position.MIDDLE);
+                Notification.show("Məlumat yeniləndi", 5000, Notification.Position.MIDDLE);
             } else {
                 changeTask = changeTask == null ? new ChangeTask() : changeTask;
                 changeTask.setTaskType(nameField.getValue());
@@ -204,7 +220,7 @@ public class ChangeTaskLayoutService {
                 viewMode = true;
                 changeTaskGridsService.setViewMode(true);
 
-                navigationTools.reloadPage();
+                navigationTools.navigateTo(ViewsEnum.CHANGE_TASK);
             }
         });
         return button;

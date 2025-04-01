@@ -26,7 +26,11 @@ public class AllChangesTaskGrid {
     private final ChangeTaskService changeTaskService;
     private final NavigationTools navigationTools;
 
-    @Getter
+    public Grid<ChangeTask> getGrid() {
+        init();
+        return grid;
+    }
+
     private Grid<ChangeTask> grid;
 
     private List<ChangeTask> allTasks;
@@ -89,7 +93,7 @@ public class AllChangesTaskGrid {
             changeTask.getItems().stream().allMatch(item -> item.getStatus() == ChangeItemStatus.DONE)
             ? "Bitib"
             : "Davam edir"
-        ).setHeader("Vəzifənin vəziyyəti");
+        ).setHeader("Dəyişikliyin durumu");
 
         grid.addColumn(changeTask -> changeTask.getCreatedAt().toLocalDate())
             .setHeader("Başlanğıc tarixi");
