@@ -21,7 +21,7 @@ import org.atmosphere.config.service.Post;
 
 @PageTitle("Sifariş məhsulları")
 @Route(value = "productmapping", layout = MainLayout.class)
-@RolesAllowed({"EDITOR"})
+@RolesAllowed({"EDITOR", "ADMIN"})
 @RequiredArgsConstructor
 public class ProductMappingView extends VerticalLayout {
     private final DesignTools designTools;
