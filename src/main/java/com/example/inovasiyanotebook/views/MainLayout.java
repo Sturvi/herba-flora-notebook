@@ -16,6 +16,7 @@ import com.example.inovasiyanotebook.views.changetask.ChangeTaskView;
 import com.example.inovasiyanotebook.views.openedordersbyproduct.OpenedOrdersByCategoryView;
 import com.example.inovasiyanotebook.views.order.OrderView;
 import com.example.inovasiyanotebook.views.ordermapping.ProductMappingView;
+import com.example.inovasiyanotebook.views.pricemapping.PriceMappingView;
 import com.example.inovasiyanotebook.views.product.ProductView;
 import com.example.inovasiyanotebook.views.user.UserView;
 import com.vaadin.flow.component.Component;
@@ -100,6 +101,7 @@ public class MainLayout extends AppLayout {
                 permissionsCheck.isAdminOrHigher() ? new SideNavItem("AI Məlumatları", AiInfoView.class, LineAwesomeIcon.ROBOT_SOLID.create()) : null,
                 permissionsCheck.isAdminOrHigher() ? new SideNavItem("İstifadəçilər", UserView.class, LineAwesomeIcon.USERS_SOLID.create()) : null,
                 permissionsCheck.isEditorOrHigher() ? new SideNavItem("1C eyniləşdirmə", ProductMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
+                permissionsCheck.isEditorOrHigher() ? new SideNavItem("Price eyniləşdirmə", PriceMappingView.class, LineAwesomeIcon.EXCHANGE_ALT_SOLID.create()) : null,
                 designTools.addEmptySpace(),
                 addTitle("Müştərilər"),
                 newClientButton(),

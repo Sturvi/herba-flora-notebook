@@ -2,6 +2,7 @@ package com.example.inovasiyanotebook.service;
 
 import com.example.inovasiyanotebook.service.viewservices.order.OrderComponents;
 import com.example.inovasiyanotebook.service.viewservices.ordermapping.ProductMappingDialog;
+import com.example.inovasiyanotebook.views.pricemapping.PricePositionMapperDialog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -17,5 +18,9 @@ public class PrototypeComponentsFactory {
 
     public ProductMappingDialog getProductMappingDialogComponent() {
         return context.getBean(ProductMappingDialog.class);
+    }
+
+    public PricePositionMapperDialog getPricePositionMapperDialog() {
+        return context.getBean(PricePositionMapperDialog.class);
     }
 }
