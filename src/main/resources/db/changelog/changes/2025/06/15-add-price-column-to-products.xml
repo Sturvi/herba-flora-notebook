@@ -5,9 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
 
-    <include file="db/changelog/changes/empty-changelog.xml"/>
-    <include file="/db/changelog/changes/2025/06/15-add-price-column-to-products.xml"/>
-    <include file="/db/changelog/changes/2025/06/15-create-products-price-mapping-table.xml"/>
+    <changeSet id="add-price-column-to-products" author="Emin Baghirov">
+        <addColumn tableName="products">
+            <column name="price" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 
 </databaseChangeLog>
-

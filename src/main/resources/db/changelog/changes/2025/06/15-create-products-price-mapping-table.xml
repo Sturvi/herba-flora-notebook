@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="create-products-price-mapping-table" author="developer">
+        <createTable tableName="products_price_mapping">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="incoming_order_position_name" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="product_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="products_price_mapping"
+                baseColumnNames="product_id"
+                constraintName="fk_products_price_mapping_product"
+                referencedTableName="products"
+                referencedColumnNames="id"/>
+
+        <rollback>
+            <dropTable tableName="products_price_mapping"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -48,6 +48,8 @@ public class Product extends AbstractEntity implements ParentEntity, NamedEntity
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductExtraInfo> extraInfo;
 
+    private String price;
+
     @Override
     public ViewsEnum getViewEnum() {
         return ViewsEnum.PRODUCT;
