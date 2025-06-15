@@ -40,4 +40,9 @@ public class ProductPriceMappingService implements CRUDService<ProductPriceMappi
     public void delete(ProductPriceMapping entity) {
         productPriceMappingRepository.delete(entity);
     }
+
+    public Optional<ProductPriceMapping> findByIncomingOrderPositionName(String incomingOrderPositionName) {
+        log.debug("Поиск ProductPriceMapping по имени позиции входящего заказа: {}", incomingOrderPositionName);
+        return productPriceMappingRepository.findByIncomingOrderPositionName(incomingOrderPositionName);
+    }
 }
