@@ -4,7 +4,6 @@ import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
-import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.CategoryService;
 import com.example.inovasiyanotebook.service.entityservices.iml.ClientService;
@@ -49,7 +48,7 @@ public class ProductInfoViewService {
 
     public Component createProductInformationComponent(Product product) {
         VerticalLayout verticalLayout = new VerticalLayout();
-        ensureProductHasShelfLife(product);
+        validateAndUpdateProduct(product);
 
         if (permissionsCheck.needEditor()) {
             addEditableFieldsToLayout(product, verticalLayout);
@@ -65,9 +64,13 @@ public class ProductInfoViewService {
         return verticalLayout;
     }
 
-    private void ensureProductHasShelfLife(Product product) {
+    private void validateAndUpdateProduct(Product product) {
         if (product.getShelfLife() == null) {
             product.setShelfLife("");
+            productService.update(product);
+        }
+        if (product.getPrice() == null) {
+            product.setPrice("");
             productService.update(product);
         }
     }
@@ -77,6 +80,7 @@ public class ProductInfoViewService {
         designTools.addEditableField(product, verticalLayout, "Barkod:", product.getBarcode(), "^\\d*$", "Yalnız rəqəmlərdən ibarət ola bilər.", this::updateBarcode);
         designTools.addEditableField(product, verticalLayout, "Çəkisi:", product.getWeight(), "^.*$", "", this::updateWeight);
         designTools.addEditableField(product, verticalLayout, "Saxlama müddəti:", product.getShelfLife(), "^.*$", "", this::updateShelfLife);
+        designTools.addEditableField(product, verticalLayout, "Qiymət:", product.getPrice(), "^\\d*\\.?\\d*\\s*[A-Za-z]*$", "Qiymət rəqəmlərdən və hərflərdən ibarət ola bilər.", this::updatePrice);
     }
 
     private ComboBox<Category> setupCategoriesComboBox(Product product) {
@@ -124,6 +128,11 @@ public class ProductInfoViewService {
     private void updateShelfLife(NamedEntity entity, String s) {
         Product product = (Product) entity;
         update(product, s, product::setShelfLife);
+    }
+
+    private void updatePrice(NamedEntity entity, String s) {
+        Product product = (Product) entity;
+        update(product, s, product::setPrice);
     }
 
     private void updateTs(NamedEntity entity, String newTs) {

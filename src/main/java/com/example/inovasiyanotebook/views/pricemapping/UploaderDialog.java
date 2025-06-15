@@ -22,6 +22,8 @@ public class UploaderDialog extends Dialog {
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
 
+        priceListUploader.setOnUploadSuccess(this::close);
+
         this.add(priceListUploader);
     }
 }

@@ -16,8 +16,8 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
+import java.util.Objects;
 
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "categories")
 @Setter
@@ -63,5 +63,18 @@ public class Category extends AbstractEntity implements ParentEntity, HasParentE
     @Override
     public ViewsEnum getViewEnum() {
         return ViewsEnum.CATEGORY;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Category category = (Category) o;
+        return Objects.equals(name, category.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name);
     }
 }

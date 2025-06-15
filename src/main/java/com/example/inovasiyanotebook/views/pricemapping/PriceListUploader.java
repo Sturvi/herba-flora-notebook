@@ -10,6 +10,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,9 @@ import java.io.IOException;
 public class PriceListUploader extends Upload {
     private final PriceListHandler priceListHandler;
     private final NavigationTools navigationTools;
+
+    @Setter
+    private Runnable onUploadSuccess;
 
     @PostConstruct
     private void init() {
@@ -38,11 +42,13 @@ public class PriceListUploader extends Upload {
             log.debug("File upload succeeded: {}", event.getFileName());
             try {
                 priceListHandler.handlePriceList(buffer);
+                onUploadSuccess.run();
+                Notification.show("Qiymət siyahısı uğurla yeniləndi", 5000, Notification.Position.MIDDLE);
             } catch (PriceListException e) {
                 navigationTools.reloadPage();
             } catch (Exception e) {
                 log.error("Error processing price list: {}", e.getMessage(), e);
-                Notification.show("Ошибка при обработке прайс-листа: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
+                Notification.show("Qiymət siyahısının yenilənmə zamanı xəta: " + e.getMessage(), 5000, Notification.Position.MIDDLE);
             }
             log.trace("File processing completed.");
         });
