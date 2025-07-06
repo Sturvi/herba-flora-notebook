@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public interface ProductMapper {
 
     @Mapping(target = "name", source = "name")
+    @Mapping(target = "price", source = "price")
     @Mapping(target = "ts", source = "ts")
     @Mapping(target = "barcode", source = "barcode")
     @Mapping(target = "weight", source = "weight")

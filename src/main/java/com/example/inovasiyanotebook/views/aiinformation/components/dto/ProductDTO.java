@@ -16,6 +16,8 @@ public class   ProductDTO {
 
     private String shelfLife;
 
+    private String price;
+
     private Map<String, String> extraInfo;
 
 }
