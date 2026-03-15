@@ -34,7 +34,7 @@ public class PriceListUploader extends Upload {
         this.setReceiver(buffer);
         this.setDropAllowed(true);
         setUploadButton(new Button(new Icon(VaadinIcon.DOWNLOAD_ALT)));
-        this.setAcceptedFileTypes(".xlsx", ".xls", ".csv");
+        this.setAcceptedFileTypes(".xlsx", ".xls");
         this.setWidthFull();
         this.setHeightFull();
 

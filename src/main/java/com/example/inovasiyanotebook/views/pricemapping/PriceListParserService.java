@@ -75,8 +75,8 @@ public class PriceListParserService {
         }
 
         // Получаем ячейки для названия товара и цены
-        Cell nameCell = row.getCell(1); // Колонка A (название)
-        Cell priceCell = row.getCell(2); // Колонка B (цена)
+        Cell nameCell = row.getCell(0); // Колонка A (название товара)
+        Cell priceCell = row.getCell(2); // Колонка C (цена)
 
         // Проверяем, что обе ячейки содержат данные
         if (nameCell == null || priceCell == null) {
@@ -136,7 +136,12 @@ public class PriceListParserService {
             case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
             case FORMULA -> {
                 try {
-                    yield String.valueOf(cell.getNumericCellValue());
+                    double numValue = cell.getNumericCellValue();
+                    if (numValue == Math.floor(numValue)) {
+                        yield String.valueOf((long) numValue);
+                    } else {
+                        yield String.valueOf(numValue);
+                    }
                 } catch (Exception e) {
                     yield cell.getStringCellValue();
                 }
@@ -155,7 +160,8 @@ public class PriceListParserService {
         // Список ключевых слов для заголовков и категорий
         String[] headerKeywords = {
                 "прайс", "price", "цена", "номенклатура", "ценовая группа",
-                "hazır məhsul", "bitki", "çaylar", "böyük ölçülü", "ətirli çaylar"
+                "hazır məhsul", "bitki", "çaylar", "böyük ölçülü", "ətirli çaylar",
+                "malın adı", "qiymət"
         };
 
         for (String keyword : headerKeywords) {
