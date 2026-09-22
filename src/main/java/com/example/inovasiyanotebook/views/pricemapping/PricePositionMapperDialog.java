@@ -7,6 +7,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.notification.Notification;
@@ -34,6 +35,7 @@ public class PricePositionMapperDialog extends Dialog {
 
     private TextField incomingNameField;
     private ComboBox<Product> productComboBox;
+    private Checkbox ignoredCheckbox;
     private Button saveButton;
     private Button cancelButton;
 
@@ -48,6 +50,13 @@ public class PricePositionMapperDialog extends Dialog {
         incomingNameField.setReadOnly(true);
         productComboBox = designTools.creatComboBox("Məhsul", productService.getAll(), Product::getName, null);
 
+        // Игнорируемая позиция не требует продукта
+        ignoredCheckbox = new Checkbox("Nəzərə alma (bu mövqe qiymət siyahısında ötürülür)");
+        ignoredCheckbox.addValueChangeListener(event -> {
+            productComboBox.setEnabled(!event.getValue());
+            productComboBox.setInvalid(false);
+        });
+
         saveButton = new Button("Yadda saxla");
         saveButton.addClickListener(this::save);
         cancelButton = new Button("Ləğv et");
@@ -56,13 +65,18 @@ public class PricePositionMapperDialog extends Dialog {
         add(
                 incomingNameField,
                 productComboBox,
+                ignoredCheckbox,
                 new HorizontalLayout(saveButton, cancelButton)
         );
     }
 
     private void save(ClickEvent<Button> buttonClickEvent) {
         if (checkValidation()) {
-            productPriceMapping.setProduct(productComboBox.getValue());
+            boolean ignored = ignoredCheckbox.getValue();
+            productPriceMapping.setIgnored(ignored);
+            if (!ignored) {
+                productPriceMapping.setProduct(productComboBox.getValue());
+            }
 
             productPriceMappingService.update(productPriceMapping);
             if (onSaveCallback != null) {
@@ -81,6 +95,7 @@ public class PricePositionMapperDialog extends Dialog {
         } else {
             productComboBox.clear();
         }
+        ignoredCheckbox.setValue(productPriceMapping.isIgnored());
     }
 
     @Override
@@ -96,7 +111,7 @@ public class PricePositionMapperDialog extends Dialog {
     private boolean checkValidation(){
         boolean isValidat = true;
 
-        if (productComboBox.getValue() == null) {
+        if (!ignoredCheckbox.getValue() && productComboBox.getValue() == null) {
             isValidat = false;
             productComboBox.setErrorMessage("Məhsul seçilməyib");
             productComboBox.setInvalid(true);

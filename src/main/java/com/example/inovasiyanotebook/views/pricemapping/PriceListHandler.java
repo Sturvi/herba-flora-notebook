@@ -32,7 +32,12 @@ public class PriceListHandler {
         boolean hasUnmappedPositions = processPricePositions(positions);
 
         if (!hasUnmappedPositions) {
-            updateProductPrices(positions);
+            // Игнорируемые позиции прайса не обновляют цены
+            List<PricePositionDTO> positionsToUpdate = positions.stream()
+                    .filter(position -> !position.getProductPriceMapping().isIgnored())
+                    .toList();
+            log.info("Skipped {} ignored price positions", positions.size() - positionsToUpdate.size());
+            updateProductPrices(positionsToUpdate);
         } else {
             throw new PriceListException("Price list not updated - unmapped positions found");
         }
@@ -53,7 +58,7 @@ public class PriceListHandler {
         for (PricePositionDTO position : positions) {
             ProductPriceMapping mapping = createOrGetMapping(position.getPositionName());
 
-            if (mapping.getProduct() == null) {
+            if (mapping.getProduct() == null && !mapping.isIgnored()) {
                 hasUnmappedPositions = true;
             }
 

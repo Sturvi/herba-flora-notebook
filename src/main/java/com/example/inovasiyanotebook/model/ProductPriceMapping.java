@@ -24,4 +24,9 @@ public class ProductPriceMapping extends AbstractEntity {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    /**
+     * Позиция прайса, которую не нужно сопоставлять с продуктом и учитывать при загрузке
+     */
+    private boolean ignored;
 }

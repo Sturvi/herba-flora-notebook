@@ -1,10 +1,8 @@
 package com.example.inovasiyanotebook.views.pricemapping;
 
-import com.example.inovasiyanotebook.model.ProductMapping;
 import com.example.inovasiyanotebook.model.ProductPriceMapping;
 import com.example.inovasiyanotebook.service.PrototypeComponentsFactory;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductPriceMappingService;
-import com.example.inovasiyanotebook.service.viewservices.ordermapping.OrderMappingStatusEnum;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -28,9 +26,9 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
     @Getter
     private TextField searchField;
     @Getter
-    private ComboBox<OrderMappingStatusEnum> statusComboBox;
+    private ComboBox<PriceMappingStatusEnum> statusComboBox;
     private GridListDataView<ProductPriceMapping> dataView;
-    private OrderMappingStatusEnum status = OrderMappingStatusEnum.TO_BE_MAPPED;
+    private PriceMappingStatusEnum status = PriceMappingStatusEnum.TO_BE_MAPPED;
 
     @PostConstruct
     private void init() {
@@ -51,7 +49,7 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
                 .setKey("positionName")
                 .setFlexGrow(5);
 
-        addColumn(ProductPriceMapping::getProduct)
+        addColumn(this::getProductColumnValue)
                 .setHeader("Məhsul")
                 .setSortable(true)
                 .setKey("product")
@@ -63,6 +61,14 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
                     dialog.setOnSaveCallback(this::reloadGrid);
                     dialog.open();
                 }))
+                .setFlexGrow(1);
+
+        addComponentColumn(productPriceMapping -> {
+            var icon = productPriceMapping.isIgnored() ? VaadinIcon.EYE.create() : VaadinIcon.EYE_SLASH.create();
+            var button = designTools.getNewIconButton(icon, () -> toggleIgnored(productPriceMapping));
+            button.setTooltipText(productPriceMapping.isIgnored() ? "Yenidən nəzərə al" : "Nəzərə alma");
+            return button;
+        })
                 .setFlexGrow(1);
 
     }
@@ -77,33 +83,33 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
         return searchField;
     }
 
-    private ComboBox<OrderMappingStatusEnum> createStatusComboBox () {
-        ComboBox<OrderMappingStatusEnum> comboBox = new ComboBox<>();
-        comboBox.setItems(OrderMappingStatusEnum.values());
-        comboBox.setItemLabelGenerator(OrderMappingStatusEnum::getDisplayName);
+    private ComboBox<PriceMappingStatusEnum> createStatusComboBox () {
+        ComboBox<PriceMappingStatusEnum> comboBox = new ComboBox<>();
+        comboBox.setItems(PriceMappingStatusEnum.values());
+        comboBox.setItemLabelGenerator(PriceMappingStatusEnum::getDisplayName);
         comboBox.addValueChangeListener(event -> {
             status = event.getValue();
             dataView.refreshAll();
         });
-        comboBox.setValue(OrderMappingStatusEnum.TO_BE_MAPPED);
+        comboBox.setValue(PriceMappingStatusEnum.TO_BE_MAPPED);
         return comboBox;
     }
 
     private boolean chekStatus(ProductPriceMapping productPriceMapping) {
-        switch (status) {
-            case TO_BE_MAPPED -> {
-                return productPriceMapping.getProduct() == null;
-            }
-            case ALREADY_MAPPED -> {
-                return productPriceMapping.getProduct() != null;
-            }
-            case ALL -> {
-                return true;
-            }
-            default -> {
-                return false;
-            }
+        return status == null || status.matches(productPriceMapping);
+    }
+
+    private void toggleIgnored(ProductPriceMapping productPriceMapping) {
+        productPriceMapping.setIgnored(!productPriceMapping.isIgnored());
+        productPriceMappingService.update(productPriceMapping);
+        dataView.refreshAll();
+    }
+
+    private String getProductColumnValue(ProductPriceMapping productPriceMapping) {
+        if (productPriceMapping.isIgnored()) {
+            return "Nəzərə alınmır";
         }
+        return productPriceMapping.getProduct() != null ? productPriceMapping.getProduct().getName() : "";
     }
 
     public void reloadGrid() {
