@@ -94,7 +94,7 @@ public class OrderPositionService implements CRUDService<OrderPosition> {
     }
 
     public List<OrderPosition> findOrderPositionsByStatus(OrderStatusEnum status) {
-        return orderPositionRepository.findAllByStatusAndOrder_Status(status, OPEN);
+        return orderPositionRepository.findAllByStatusesWithGraph(status, OPEN);
     }
 }
 

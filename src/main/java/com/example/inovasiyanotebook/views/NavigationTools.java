@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.views;
 
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.CurrentUserCache;
 import com.example.inovasiyanotebook.service.entityservices.iml.UserService;
 import com.vaadin.flow.component.UI;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class NavigationTools {
     }
 
     public User getCurrentUser() {
-        return userService.findByUsername(getCurrentUsername());
+        return CurrentUserCache.resolve(getCurrentUsername(), userService::findByUsername);
     }
 }
 

@@ -1,6 +1,7 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.securety.CurrentUserCache;
 import com.example.inovasiyanotebook.repository.UserRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,9 @@ public class UserService implements CRUDService<User> {
 
     @Override
     public User update(User entity) {
-        return userRepository.save(entity);
+        User saved = userRepository.save(entity);
+        CurrentUserCache.clear();
+        return saved;
     }
 
     @Override

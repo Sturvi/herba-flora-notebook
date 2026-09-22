@@ -64,7 +64,6 @@ public class OrderComponents {
     private VerticalLayout orderLayout;
     private LinkedList<OrderPositionComponents> orderPositionComponents;
     private List<OrderPositionComponents> positionsForRemoved;
-    private List<Product> products;
     private List<PrintedType> printedTypes;
     private Button notesDialogButton;
 
@@ -92,7 +91,6 @@ public class OrderComponents {
         statusField.setValue(OPEN);
 
 
-        products = productService.getAll();
         printedTypes = printedTypeService.getAll();
 
         orderPositionComponents = new LinkedList<>();
@@ -397,7 +395,7 @@ public class OrderComponents {
 
         private void initializeCommonComponents(Integer currentLineNo) {
             this.currentLine = new H3(currentLineNo.toString());
-            this.productComboBox = designTools.creatComboBox("Məhsul", products, Product::getName);
+            this.productComboBox = designTools.createLazyComboBox("Məhsul", productService::fetchForComboBox, productService::countForComboBox, Product::getName, null);
             this.printedTypeComboBox = designTools.creatComboBox("Çap növü", printedTypes, PrintedType::getName);
             this.orderCount = designTools.createTextField("Say", "^\\d+(\\s+.*|)$", "Ya təkcə rəqəmlər ve ya rəqəmlərdən sonra boşluq buraxılaraq yazılar");
             this.note = designTools.createTextField("Not", ".*", null);

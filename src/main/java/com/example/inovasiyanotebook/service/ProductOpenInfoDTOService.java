@@ -7,10 +7,13 @@ import com.example.inovasiyanotebook.model.changetask.ChangeTaskItem;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
+import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.service.entityservices.iml.ChangeTaskItemService;
+import com.example.inovasiyanotebook.service.entityservices.iml.NoteService;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,8 +27,10 @@ import java.util.stream.Collectors;
 public class ProductOpenInfoDTOService {
     private final OrderPositionService orderPositionService;
     private final ChangeTaskItemService changeTaskItemService;
+    private final NoteService noteService;
 
 
+    @Transactional(readOnly = true)
     public List<ProductOpenInfoDTO> getProductOpenInfo() {
         // Получаем все открытые позиции заказов
         List<OrderPosition> openOrderPositions = orderPositionService.findOrderPositionsByStatus(OrderStatusEnum.OPEN);
@@ -40,6 +45,9 @@ public class ProductOpenInfoDTOService {
         // Группируем задачи на изменение по продукту
         Map<Product, List<ChangeTaskItem>> changeTasksGrouped = openChangeTaskItems.stream()
                 .collect(Collectors.groupingBy(ChangeTaskItem::getProduct));
+
+        // Заметки для всех продуктов страницы одним запросом вместо запроса на каждую карточку
+        Map<Long, List<Note>> notesByProduct = noteService.getNotesGroupedByProduct(orderPositionsGrouped.keySet());
 
         List<ProductOpenInfoDTO> dtoList = new ArrayList<>();
 
@@ -63,7 +71,8 @@ public class ProductOpenInfoDTOService {
             // Получаем список задач для продукта, если они есть
             List<ChangeTaskItem> taskItems = changeTasksGrouped.getOrDefault(product, Collections.emptyList());
 
-            dtoList.add(new ProductOpenInfoDTO(product, positions, taskItems, earliestDate, parentCategory));
+            dtoList.add(new ProductOpenInfoDTO(product, positions, taskItems, earliestDate, parentCategory,
+                    notesByProduct.getOrDefault(product.getId(), Collections.emptyList())));
         }
 
         return dtoList;

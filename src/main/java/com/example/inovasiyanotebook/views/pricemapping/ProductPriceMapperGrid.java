@@ -1,12 +1,13 @@
 package com.example.inovasiyanotebook.views.pricemapping;
 
 import com.example.inovasiyanotebook.model.ProductPriceMapping;
+import com.example.inovasiyanotebook.repository.specification.ProductPriceMappingSpecifications.PriceMappingGridFilter;
 import com.example.inovasiyanotebook.service.PrototypeComponentsFactory;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductPriceMappingService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.dataview.GridLazyDataView;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -27,7 +28,7 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
     private TextField searchField;
     @Getter
     private ComboBox<PriceMappingStatusEnum> statusComboBox;
-    private GridListDataView<ProductPriceMapping> dataView;
+    private GridLazyDataView<ProductPriceMapping> dataView;
     private PriceMappingStatusEnum status = PriceMappingStatusEnum.TO_BE_MAPPED;
 
     @PostConstruct
@@ -36,22 +37,22 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
         setHeightFull();
         setSelectionMode(SelectionMode.SINGLE);
 
-
-        loadItems();
-
-
         searchField = createSearchField();
         statusComboBox = createStatusComboBox();
+
+        loadItems();
 
         addColumn(ProductPriceMapping::getIncomingOrderPositionName)
                 .setHeader("Price Listdeki Pozisiya")
                 .setSortable(true)
+                .setSortProperty("incomingOrderPositionName")
                 .setKey("positionName")
                 .setFlexGrow(5);
 
         addColumn(this::getProductColumnValue)
                 .setHeader("Məhsul")
                 .setSortable(true)
+                .setSortProperty("product.name")
                 .setKey("product")
                 .setFlexGrow(5);
 
@@ -77,9 +78,7 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
         TextField searchField = new TextField();
         searchField.setPlaceholder("Axtarış...");
         searchField.setWidthFull();
-        searchField.addValueChangeListener(event -> {
-            dataView.refreshAll();
-        });
+        searchField.addValueChangeListener(event -> reloadGrid());
         return searchField;
     }
 
@@ -89,20 +88,16 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
         comboBox.setItemLabelGenerator(PriceMappingStatusEnum::getDisplayName);
         comboBox.addValueChangeListener(event -> {
             status = event.getValue();
-            dataView.refreshAll();
+            reloadGrid();
         });
         comboBox.setValue(PriceMappingStatusEnum.TO_BE_MAPPED);
         return comboBox;
     }
 
-    private boolean chekStatus(ProductPriceMapping productPriceMapping) {
-        return status == null || status.matches(productPriceMapping);
-    }
-
     private void toggleIgnored(ProductPriceMapping productPriceMapping) {
         productPriceMapping.setIgnored(!productPriceMapping.isIgnored());
         productPriceMappingService.update(productPriceMapping);
-        dataView.refreshAll();
+        reloadGrid();
     }
 
     private String getProductColumnValue(ProductPriceMapping productPriceMapping) {
@@ -112,20 +107,30 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
         return productPriceMapping.getProduct() != null ? productPriceMapping.getProduct().getName() : "";
     }
 
-    public void reloadGrid() {
-        dataView.refreshAll();
+    private PriceMappingGridFilter currentFilter() {
+        return new PriceMappingGridFilter(status, searchField.getValue());
     }
 
     /**
-     * Перечитывает сопоставления из базы (например, после загрузки прайса с новыми позициями)
+     * Перечитывает текущую страницу из базы (после редактирования, смены фильтра или загрузки прайса).
+     */
+    public void reloadGrid() {
+        if (dataView != null) {
+            dataView.refreshAll();
+        }
+    }
+
+    /**
+     * Ленивая загрузка: страницы, фильтр по статусу и поиск выполняются в БД.
+     * Повторный вызов (например, после загрузки прайса с новыми позициями) просто перечитывает данные.
      */
     public void loadItems() {
-        dataView = setItems(productPriceMappingService.getAll());
-        dataView.addFilter(productPriceMapping -> {
-            String searchTerm = searchField.getValue().toLowerCase();
-            return (productPriceMapping.getIncomingOrderPositionName().toLowerCase().contains(searchTerm)
-                    || (productPriceMapping.getProduct() != null && productPriceMapping.getProduct().getName().toLowerCase().contains(searchTerm)))
-                    && chekStatus(productPriceMapping);
-        });
+        if (dataView == null) {
+            dataView = setItems(
+                    query -> productPriceMappingService.fetchForGrid(currentFilter(), query).stream(),
+                    query -> productPriceMappingService.countForGrid(currentFilter()));
+        } else {
+            dataView.refreshAll();
+        }
     }
 }

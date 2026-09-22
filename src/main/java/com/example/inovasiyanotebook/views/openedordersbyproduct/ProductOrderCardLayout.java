@@ -135,7 +135,7 @@ public class ProductOrderCardLayout {
 
             // Добавление сетки заметок для последней позиции
             if (index == positions.size() - 1) {
-                layout.add(noteGridService.getHorizontalGridWithHeader(positions.get(index).getProduct()));
+                layout.add(noteGridService.getHorizontalGridWithHeader(positions.get(index).getProduct(), productOpenInfoDTO.getNotes()));
             }
 
         }

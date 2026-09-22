@@ -8,18 +8,27 @@ import com.example.inovasiyanotebook.model.changetask.ChangeItemStatus;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.repository.ProductRepository;
+import com.example.inovasiyanotebook.repository.specification.ProductSpecifications;
+import com.example.inovasiyanotebook.repository.specification.ProductSpecifications.ProductGridFilter;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
+import com.example.inovasiyanotebook.service.viewservices.common.GridQuerySupport;
+import com.example.inovasiyanotebook.service.viewservices.common.GridQuerySupport.SortKey;
 import com.example.inovasiyanotebook.service.viewservices.product.technicalreview.FileUploadService;
 import com.example.inovasiyanotebook.views.aiinformation.components.dto.ProductDTO;
+import com.vaadin.flow.data.provider.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.OPEN;
 
@@ -32,9 +41,40 @@ import static com.example.inovasiyanotebook.model.order.OrderStatusEnum.OPEN;
 @RequiredArgsConstructor
 public class ProductService implements CRUDService<Product> {
 
+    private static final List<SortKey> DEFAULT_GRID_SORT = List.of(SortKey.asc("name"));
+
     private final ProductRepository productRepository;
     private final FileUploadService fileUploadService;
     private final ProductMapper productMapper;
+
+    /**
+     * Страница продуктов для ленивого грида: фильтр (клиент / категория / поиск) и сортировка из грида.
+     */
+    @Transactional(readOnly = true)
+    public List<Product> fetchForGrid(ProductGridFilter filter, Query<Product, ?> query) {
+        Specification<Product> specification = ProductSpecifications.forGrid(filter)
+                .and(GridQuerySupport.orderBy(GridQuerySupport.toSortKeys(query.getSortOrders(), DEFAULT_GRID_SORT)));
+        return productRepository.findAll(specification, GridQuerySupport.toPageable(query)).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public int countForGrid(ProductGridFilter filter) {
+        return (int) productRepository.count(ProductSpecifications.forGrid(filter));
+    }
+
+    /**
+     * Страница продуктов для ленивого ComboBox: фильтр - введённый пользователем текст.
+     */
+    @Transactional(readOnly = true)
+    public Stream<Product> fetchForComboBox(Query<Product, String> query) {
+        return productRepository.findByNameContainingIgnoreCase(query.getFilter().orElse(""),
+                PageRequest.of(query.getPage(), query.getPageSize(), Sort.by("name"))).stream();
+    }
+
+    @Transactional(readOnly = true)
+    public int countForComboBox(Query<Product, String> query) {
+        return (int) productRepository.countByNameContainingIgnoreCase(query.getFilter().orElse(""));
+    }
 
     /**
      * Creates a new product entity.

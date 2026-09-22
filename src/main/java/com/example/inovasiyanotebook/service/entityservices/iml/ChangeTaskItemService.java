@@ -49,6 +49,6 @@ public class ChangeTaskItemService implements CRUDService<ChangeTaskItem> {
     }
 
     public List<ChangeTaskItem> findAllByStatus(ChangeItemStatus status) {
-        return repository.findAllByStatus(status);
+        return repository.findAllByStatusWithTaskAndProduct(status);
     }
 }

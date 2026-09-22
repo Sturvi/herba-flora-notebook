@@ -1,5 +1,9 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.repository.specification.NoteSpecifications;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
 import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
@@ -68,6 +72,61 @@ public class NoteService implements CRUDService<Note> {
         if (product.getCategory() != null && product.getCategory().getParent() != null) categoriesList.add(product.getCategory().getParentCategory());
 
         return noteRepository.getNotesByProductClientCategories(product, product.getClient(), categoriesList,PageRequest.of(pageNumber, 10));
+    }
+
+    /**
+     * Заметки для набора продуктов одним запросом, сгруппированные по id продукта.
+     * Для каждого продукта действуют те же правила, что и в {@link #getAllByProductWithPagination}:
+     * заметка самого продукта, заметка его клиента без категории, заметка его категории (или родительской) без клиента,
+     * заметка клиента и категории вместе. Внутри группы - закреплённые сверху, затем по дате создания вниз.
+     */
+    @Transactional(readOnly = true)
+    public Map<Long, List<Note>> getNotesGroupedByProduct(Collection<Product> products) {
+        Map<Long, List<Note>> result = new HashMap<>();
+        if (products.isEmpty()) {
+            return result;
+        }
+        Set<Client> clients = products.stream().map(Product::getClient).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<Category> categories = products.stream().flatMap(p -> categoriesOf(p).stream()).collect(Collectors.toSet());
+
+        List<Note> notes = noteRepository.findAll(
+                NoteSpecifications.forProductsClientsCategories(products, clients, categories),
+                Sort.by(Sort.Order.desc("isPinned"), Sort.Order.desc("createdAt")));
+
+        for (Product product : products) {
+            List<Category> productCategories = categoriesOf(product);
+            List<Note> matching = notes.stream()
+                    .filter(note -> matchesProduct(note, product, productCategories))
+                    .toList();
+            result.put(product.getId(), matching);
+        }
+        return result;
+    }
+
+    private static List<Category> categoriesOf(Product product) {
+        List<Category> categories = new ArrayList<>();
+        if (product.getCategory() != null) {
+            categories.add(product.getCategory());
+            if (product.getCategory().getParentCategory() != null) {
+                categories.add(product.getCategory().getParentCategory());
+            }
+        }
+        return categories;
+    }
+
+    private static boolean matchesProduct(Note note, Product product, List<Category> categories) {
+        if (note.getProduct() != null) {
+            return note.getProduct().equals(product);
+        }
+        boolean sameClient = note.getClient() != null && note.getClient().equals(product.getClient());
+        boolean inCategories = note.getCategory() != null && categories.contains(note.getCategory());
+        if (note.getClient() != null && note.getCategory() == null) {
+            return sameClient;
+        }
+        if (note.getCategory() != null && note.getClient() == null) {
+            return inCategories;
+        }
+        return sameClient && inCategories;
     }
 
     public Page<Note> getAllByOrderWithPagination(Order order, int pageNumber) {

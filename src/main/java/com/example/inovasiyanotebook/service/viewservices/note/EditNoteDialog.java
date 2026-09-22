@@ -57,7 +57,7 @@ public class EditNoteDialog {
         var contentArea = designTools.createTextArea("Not", "^(?=.*[^\\n])[\\s\\S]+$", "Not boş ola bilməz.", note.getText());
         var clientComboBox = designTools.creatComboBox("Müştəri:", clientService.getAll(), Client::getName, note.getClient());
         var categoryComboBox = designTools.creatComboBox("Kateqoriya", categoryService.getAllSortingByParent(), Category::getFullName, note.getCategory());
-        var productComboBox = designTools.creatComboBox("Məhsul", productService.getAll(), Product::getName, note.getProduct());
+        var productComboBox = designTools.createLazyComboBox("Məhsul", productService::fetchForComboBox, productService::countForComboBox, Product::getName, note.getProduct());
         setupComboBoxListeners(clientComboBox, categoryComboBox, productComboBox);
 
         components.add(contentArea);

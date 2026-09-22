@@ -4,6 +4,7 @@ import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.order.Order;
 import com.example.inovasiyanotebook.model.order.OrderStatusEnum;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.repository.specification.OrderSpecifications.OrderGridFilter;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
 import com.example.inovasiyanotebook.service.viewservices.note.NoteDialog;
@@ -12,26 +13,23 @@ import com.example.inovasiyanotebook.views.NavigationTools;
 import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridSortOrder;
-import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.dataview.GridLazyDataView;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -51,16 +49,19 @@ public class OrdersGrid {
 
 
     public VerticalLayout getAllOrdersGrid(User user) {
-        var orders = orderService.getAll();
-        return createGridComponent(orders, user, newOrderDialog::openNewDialog, true);
+        return createGridComponent(null, user, newOrderDialog::openNewDialog, true);
     }
 
     public VerticalLayout getOrderGrid(User user, Product product) {
-        var orders = orderService.getAllByProduct(product);
-        return createGridComponent(orders.stream().toList(), user, null, false);
+        return createGridComponent(product, user, null, false);
     }
 
-    private VerticalLayout createGridComponent(List<Order> orders, User user, Runnable addButtonAction, boolean hasTitle) {
+    /**
+     * Грид с ленивой загрузкой: страницы, фильтр по статусу, поиск и сортировка выполняются в БД.
+     *
+     * @param product null - все заказы; иначе только заказы, где есть позиция с этим продуктом
+     */
+    private VerticalLayout createGridComponent(Product product, User user, Runnable addButtonAction, boolean hasTitle) {
 
         VerticalLayout layout = new VerticalLayout();
         layout.setHeightFull();
@@ -77,7 +78,9 @@ public class OrdersGrid {
         orderGrid.setHeightFull();
         orderGrid.setWidthFull();
 
-        addGridColumns(user, orderGrid);
+        // Права вычисляются один раз на грид: иначе каждая строка делала бы отдельный запрос пользователя из БД
+        GridPermissions permissions = new GridPermissions(permissionsCheck.isEditorOrHigher(), permissionsCheck.needEditor());
+        addGridColumns(user, orderGrid, permissions);
 
         orderGrid.addItemClickListener(orderLine -> {
             if (!buttonClicked.get()) {
@@ -86,31 +89,22 @@ public class OrdersGrid {
             buttonClicked.set(false);
         });
 
-        GridListDataView<Order> dataView = orderGrid.setItems(orders);
+        Long productId = product == null ? null : product.getId();
+        Supplier<OrderGridFilter> filter = () -> new OrderGridFilter(
+                statusComboBox.getValue() == null ? null : statusComboBox.getValue().getStatus(),
+                searchField.getValue(),
+                productId);
+
+        GridLazyDataView<Order> dataView = orderGrid.setItems(
+                query -> orderService.fetchForGrid(filter.get(), query).stream(),
+                query -> orderService.countForGrid(filter.get()));
 
         statusComboBox.addValueChangeListener(event -> dataView.refreshAll());
         searchField.addValueChangeListener(event -> dataView.refreshAll());
 
-        applySearchAndStatusFilters(dataView, statusComboBox, searchField);
-
         layout.add(orderGrid);
 
         return layout;
-    }
-
-    private void applySearchAndStatusFilters(GridListDataView<Order> dataView, ComboBox<StatusWrapper> statusComboBox, TextField searchField) {
-        dataView.addFilter(order -> {
-            if (statusComboBox.getValue() != StatusWrapper.ALL && statusComboBox.getValue().status != order.getStatus()) {
-                return false;
-            }
-
-            String searchTerm = searchField.getValue().trim().toLowerCase();
-            if (searchTerm.isEmpty()) return true;
-            boolean matchesName = matchesTerm(order.getOrderNo().toString(), searchTerm);
-            boolean matchesProducts = matchesTerm(order.getProductsString(), searchTerm);
-            boolean matchesStatus = matchesTerm(order.getStatus().getName(), searchTerm);
-            return matchesName || matchesProducts || matchesStatus;
-        });
     }
 
     private static TextField getSearchField() {
@@ -129,13 +123,20 @@ public class OrdersGrid {
         return statusComboBox;
     }
 
-    private void addGridColumns(User user, Grid<Order> orderGrid) {
+    private void addGridColumns(User user, Grid<Order> orderGrid, GridPermissions permissions) {
         addOrderNoColumn(orderGrid);
         addProductsNameColumn(orderGrid);
         addOrderReceivedDateTimeColum(orderGrid);
         addOrderCompletedDateTimeColumn(orderGrid);
         addStatusColumn(orderGrid);
-        addButtonsColumn(user, orderGrid);
+        addButtonsColumn(user, orderGrid, permissions);
+    }
+
+    /**
+     * @param editorOrHigher роль EDITOR/ADMIN (кнопка удаления)
+     * @param editorEnabled  роль EDITOR/ADMIN с включёнными админ-функциями (кнопка редактирования)
+     */
+    private record GridPermissions(boolean editorOrHigher, boolean editorEnabled) {
     }
 
     private void displayOrdersGridHeader(Runnable addButtonAction, boolean hasTitle, ComboBox<StatusWrapper> statusComboBox, TextField searchField, VerticalLayout layout) {
@@ -163,14 +164,18 @@ public class OrdersGrid {
         }
     }
 
-    private void addButtonsColumn(User user, Grid<Order> orderGrid) {
+    private void addButtonsColumn(User user, Grid<Order> orderGrid, GridPermissions permissions) {
         orderGrid.addComponentColumn(order -> {
                     HorizontalLayout componentsColumn = new HorizontalLayout();
 
-                    addDeleteButton(order, componentsColumn, orderGrid);
+                    if (permissions.editorOrHigher()) {
+                        addDeleteButton(order, componentsColumn, orderGrid);
+                    }
                     addPreviewButton(user, order, componentsColumn);
                     addNotesButton(user, order, componentsColumn);
-                    addEditButtonForOrder(order, componentsColumn);
+                    if (permissions.editorEnabled()) {
+                        addEditButtonForOrder(order, componentsColumn);
+                    }
 
                     return componentsColumn;
                 }
@@ -178,38 +183,26 @@ public class OrdersGrid {
     }
 
     private void addDeleteButton(Order order, HorizontalLayout componentsColumn, Grid<Order> orderGrid) {
-        if (permissionsCheck.isEditorOrHigher()) {
-            Button deleteButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), () -> {
-                buttonClicked.set(true);
-                designTools.showConfirmationDialog(() -> deleteOrderAndRefreshGrid(order, orderGrid));
-            });
-            componentsColumn.add(deleteButton);
-        }
+        Button deleteButton = designTools.getNewIconButton(VaadinIcon.TRASH.create(), () -> {
+            buttonClicked.set(true);
+            designTools.showConfirmationDialog(() -> deleteOrderAndRefreshGrid(order, orderGrid));
+        });
+        componentsColumn.add(deleteButton);
     }
 
     private void deleteOrderAndRefreshGrid(Order order, Grid<Order> orderGrid) {
-        orderService.delete(order); // удаляем из базы
-
-        // Получаем DataProvider
-        ListDataProvider<Order> dataProvider = (ListDataProvider<Order>) orderGrid.getDataProvider();
-
-        // Удаляем из dataProvider
-        dataProvider.getItems().remove(order);
-
-        // Уведомляем, что данные изменились
-        dataProvider.refreshAll();
+        orderService.delete(order);
+        orderGrid.getDataProvider().refreshAll();
     }
 
 
     private void addEditButtonForOrder(Order order, HorizontalLayout componentsColumn) {
-        if (permissionsCheck.needEditor()) {
-            Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
-                buttonClicked.set(true);
-                newOrderDialog.openNewDialog(order);
-            });
+        Button editButton = designTools.getNewIconButton(VaadinIcon.EDIT.create(), () -> {
+            buttonClicked.set(true);
+            newOrderDialog.openNewDialog(order);
+        });
 
-            componentsColumn.add(editButton);
-        }
+        componentsColumn.add(editButton);
     }
 
     private void addNotesButton(User user, Order order, HorizontalLayout componentsColumn) {
@@ -233,6 +226,7 @@ public class OrdersGrid {
                 .setHeader("Status")
                 .setFlexGrow(2)
                 .setSortable(true)
+                .setSortProperty("status")
                 .setKey("status");
     }
 
@@ -242,8 +236,7 @@ public class OrdersGrid {
                                 order.getOrderCompletedDateTime().format(DATE_FORMATTER) : "")
                 .setHeader("Sifariş bitdi")
                 .setSortable(true)
-                .setComparator(order ->
-                        order.getOrderCompletedDateTime() != null ? order.getOrderCompletedDateTime() : LocalDateTime.MIN)
+                .setSortProperty("orderCompletedDateTime")
                 .setFlexGrow(2)
                 .setKey("complete_date");
     }
@@ -253,8 +246,8 @@ public class OrdersGrid {
                         order.getOrderReceivedDate() != null ?
                                 order.getOrderReceivedDate().format(DATE_FORMATTER) : "")
                 .setHeader("Sifariş gəldi")
-                .setComparator(order ->
-                        order.getOrderReceivedDate() != null ? order.getOrderReceivedDate() : LocalDate.MIN)
+                .setSortable(true)
+                .setSortProperty("orderReceivedDate")
                 .setFlexGrow(2)
                 .setKey("incoming_date");
 
@@ -274,12 +267,9 @@ public class OrdersGrid {
         orderGrid.addColumn(Order::getOrderNo)
                 .setHeader("Sifariş nömrəsi")
                 .setSortable(true)
+                .setSortProperty("orderNo")
                 .setFlexGrow(2)
                 .setKey("number");
-    }
-
-    private boolean matchesTerm(String value, String searchTerm) {
-        return value != null && value.trim().toLowerCase().contains(searchTerm);
     }
 
     public enum StatusWrapper {
@@ -302,10 +292,5 @@ public class OrdersGrid {
         public static List<StatusWrapper> getAllStatuses() {
             return Arrays.asList(StatusWrapper.values());
         }
-    }
-
-
-    private void refreshGrid(Grid<?> grid) {
-        grid.getDataProvider().refreshAll();
     }
 }

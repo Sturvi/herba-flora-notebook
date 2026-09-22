@@ -7,8 +7,6 @@ import com.example.inovasiyanotebook.model.user.User;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderPositionService;
 import com.example.inovasiyanotebook.service.entityservices.iml.OrderService;
-import com.example.inovasiyanotebook.service.entityservices.iml.PrintedTypeService;
-import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.DesignTools;
 import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.Text;
@@ -41,8 +39,6 @@ public class OrderInformation {
     private final NewOrderDialog newOrderDialog;
     private final PermissionsCheck permissionsCheck;
     private final OrderPositionService orderPositionService;
-    private final ProductService productService;
-    private final PrintedTypeService printedTypeService;
     private final NavigationTools navigationTools;
 
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
@@ -98,10 +94,6 @@ public class OrderInformation {
     }
 
     private VerticalLayout getOrdersComponents (List<OrderPosition> orderPositions) {
-        var products = productService.getAll();
-        var printedTypes = printedTypeService.getAll();
-
-
         VerticalLayout ordersComponents = new VerticalLayout();
         for (OrderPosition orderPosition : orderPositions) {
 

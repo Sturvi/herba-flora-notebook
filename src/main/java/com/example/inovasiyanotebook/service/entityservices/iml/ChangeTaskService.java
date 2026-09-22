@@ -1,10 +1,13 @@
 package com.example.inovasiyanotebook.service.entityservices.iml;
 
+import com.example.inovasiyanotebook.dto.ChangeTaskSummaryDTO;
 import com.example.inovasiyanotebook.model.changetask.ChangeTask;
 import com.example.inovasiyanotebook.repository.ChangeTaskRepository;
 import com.example.inovasiyanotebook.service.entityservices.CRUDService;
+import com.vaadin.flow.data.provider.Query;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,11 +46,21 @@ public class ChangeTaskService implements CRUDService<ChangeTask> {
         return repository.findAll();
     }
 
-    @Transactional
-    public List<ChangeTask> getAllWithItems() {
-        return repository.findAll().stream()
-                .peek(changeTask -> Hibernate.initialize(changeTask.getItems()))
-                .toList();
+    /**
+     * Страница строк грида задач; агрегаты по позициям и порядок считаются в БД.
+     */
+    @Transactional(readOnly = true)
+    public List<ChangeTaskSummaryDTO> fetchSummaries(String term, Query<ChangeTaskSummaryDTO, ?> query) {
+        return repository.findSummaries(likePattern(term), PageRequest.of(query.getPage(), query.getPageSize()));
+    }
+
+    @Transactional(readOnly = true)
+    public int countSummaries(String term) {
+        return (int) repository.countByTaskTypeContainingIgnoreCase(term == null ? "" : term.trim());
+    }
+
+    private static String likePattern(String term) {
+        return "%" + (term == null ? "" : term.trim().toLowerCase()) + "%";
     }
 
     @Override

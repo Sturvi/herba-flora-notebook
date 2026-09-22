@@ -1,5 +1,6 @@
 package com.example.inovasiyanotebook.dto;
 
+import com.example.inovasiyanotebook.model.Note;
 import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.order.OrderPosition;
@@ -14,18 +15,21 @@ public class ProductOpenInfoDTO {
     private final List<ChangeTaskItem> openChangeTaskItems;
     private final LocalDate earliestOrderReceivedDate;
     private final Category parentCategory;
+    private final List<Note> notes;
 
     public ProductOpenInfoDTO(
             Product product,
             List<OrderPosition> openOrderPositions,
             List<ChangeTaskItem> openChangeTaskItems,
             LocalDate earliestOrderReceivedDate,
-            Category parentCategory) {
+            Category parentCategory,
+            List<Note> notes) {
         this.product = product;
         this.openOrderPositions = openOrderPositions;
         this.openChangeTaskItems = openChangeTaskItems;
         this.earliestOrderReceivedDate = earliestOrderReceivedDate;
         this.parentCategory = parentCategory;
+        this.notes = notes;
     }
 
     // Геттеры
@@ -48,5 +52,12 @@ public class ProductOpenInfoDTO {
 
     public Category getParentCategory() {
         return parentCategory;
+    }
+
+    /**
+     * Заметки продукта (и его клиента/категории), загруженные одним запросом на всю страницу.
+     */
+    public List<Note> getNotes() {
+        return notes;
     }
 }

@@ -48,7 +48,7 @@ public class PricePositionMapperDialog extends Dialog {
 
         incomingNameField = designTools.createTextField("Price List-də ad", null, null);
         incomingNameField.setReadOnly(true);
-        productComboBox = designTools.creatComboBox("Məhsul", productService.getAll(), Product::getName, null);
+        productComboBox = designTools.createLazyComboBox("Məhsul", productService::fetchForComboBox, productService::countForComboBox, Product::getName, null);
 
         // Игнорируемая позиция не требует продукта
         ignoredCheckbox = new Checkbox("Nəzərə alma (bu mövqe qiymət siyahısında ötürülür)");

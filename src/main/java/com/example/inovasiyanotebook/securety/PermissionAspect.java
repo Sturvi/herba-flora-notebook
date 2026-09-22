@@ -33,7 +33,7 @@ public class PermissionAspect {
 
     @Before("@annotation(requiresPermission)")
     public void checkPermission(RequiresPermission requiresPermission) throws PermissionDeniedException {
-        Object principal = userService.findByUsername(navigationTools.getCurrentUsername());
+        Object principal = CurrentUserCache.resolve(navigationTools.getCurrentUsername(), userService::findByUsername);
 
         if (principal == null) {
             log.error("Unauthorized access attempt detected");

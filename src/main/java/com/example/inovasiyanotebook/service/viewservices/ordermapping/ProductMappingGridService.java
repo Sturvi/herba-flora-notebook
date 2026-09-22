@@ -1,24 +1,19 @@
 package com.example.inovasiyanotebook.service.viewservices.ordermapping;
 
 import com.example.inovasiyanotebook.model.ProductMapping;
-import com.example.inovasiyanotebook.model.interfaces.NamedEntity;
-import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.repository.specification.ProductMappingSpecifications.ProductMappingGridFilter;
 import com.example.inovasiyanotebook.service.PrototypeComponentsFactory;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductMappingService;
 import com.example.inovasiyanotebook.service.viewservices.product.AddNewProductViewService;
 import com.example.inovasiyanotebook.views.DesignTools;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.dataview.GridLazyDataView;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Comparator;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +26,7 @@ public class ProductMappingGridService {
 
     private Grid<ProductMapping> productMappingGrid;
     private VerticalLayout gridLayout;
-    private GridListDataView<ProductMapping> dataView;
+    private GridLazyDataView<ProductMapping> dataView;
     private OrderMappingStatusEnum status;
     private String searchTerm;
 
@@ -67,51 +62,6 @@ public class ProductMappingGridService {
         dataView.refreshAll();
     }
 
-    private void gridFilters() {
-        dataView.addFilter(productMapping -> {
-            if (isSearchTermNonMatching(productMapping)) {
-                return false;
-            }
-            return filterByStatus(productMapping);
-        });
-    }
-
-    private boolean isSearchTermNonMatching(ProductMapping productMapping) {
-        if (searchTerm.isEmpty()) return false;
-
-        boolean matches1CNames = matchesTerm(productMapping.getIncomingOrderPositionName(), searchTerm);
-        boolean matchesProducts = matchesTermOptional(productMapping.getProduct(), searchTerm);
-        boolean matchesPrintedTypes = matchesTermOptional(productMapping.getPrintedType(), searchTerm);
-
-        return !(matches1CNames || matchesProducts || matchesPrintedTypes);
-    }
-
-    private boolean matchesTermOptional(NamedEntity entity, String term) {
-        return entity != null && matchesTerm(entity.getName(), term);
-    }
-
-    private boolean filterByStatus(ProductMapping productMapping) {
-        switch (status) {
-            case TO_BE_MAPPED -> {
-                return productMapping.getProduct() == null || productMapping.getPrintedType() == null;
-            }
-            case ALREADY_MAPPED -> {
-                return productMapping.getProduct() != null && productMapping.getPrintedType() != null;
-            }
-            case ALL -> {
-                return true;
-            }
-            default -> {
-                return false;
-            }
-        }
-    }
-
-
-    private boolean matchesTerm(String value, String searchTerm) {
-        return value != null && value.trim().toLowerCase().contains(searchTerm);
-    }
-
     private void initializeOrderMappingGrid(Grid<ProductMapping> productMappingGrid) {
         createIncomingOrderPositionNameColumn(productMappingGrid);
         createProductColumn(productMappingGrid);
@@ -130,26 +80,21 @@ public class ProductMappingGridService {
                 .setFlexGrow(1);
     }
 
+    /**
+     * Ленивая загрузка: страницы, фильтр по статусу сопоставления и поиск выполняются в БД.
+     * По умолчанию несопоставленные строки идут первыми.
+     */
     private void setProductMappings(Grid<ProductMapping> productMappingGrid) {
-        List<ProductMapping> allProductMappings = productMappingService.getAll();
-
-        // Создаем компаратор, который сортирует null значения в начало
-        Comparator<ProductMapping> byProductNullFirst = Comparator.comparing(
-                productMapping -> productMapping.getProduct() == null ? "" : productMapping.getProduct().toString(),
-                Comparator.nullsFirst(String::compareTo)
-        );
-
-        // Применяем компаратор к списку
-        allProductMappings.sort(byProductNullFirst);
-
-        dataView = productMappingGrid.setItems(allProductMappings);
-        gridFilters();
+        dataView = productMappingGrid.setItems(
+                query -> productMappingService.fetchForGrid(new ProductMappingGridFilter(status, searchTerm), query).stream(),
+                query -> productMappingService.countForGrid(new ProductMappingGridFilter(status, searchTerm)));
     }
 
     private void createCommentColumn(Grid<ProductMapping> productMappingGrid) {
         productMappingGrid.addColumn(ProductMapping::getComment)
                 .setHeader("Not")
                 .setSortable(true)
+                .setSortProperty("comment")
                 .setFlexGrow(3)
                 .setKey("comment");
     }
@@ -158,6 +103,7 @@ public class ProductMappingGridService {
         productMappingGrid.addColumn(ProductMapping::getPrintedType)
                 .setHeader("Çap Növü")
                 .setSortable(true)
+                .setSortProperty("printedType.name")
                 .setFlexGrow(2)
                 .setKey("printedType");
     }
@@ -166,6 +112,7 @@ public class ProductMappingGridService {
         productMappingGrid.addColumn(ProductMapping::getProduct)
                 .setHeader("Məhsul")
                 .setSortable(true)
+                .setSortProperty("product.name")
                 .setFlexGrow(3)
                 .setKey("productName");
     }
@@ -174,6 +121,7 @@ public class ProductMappingGridService {
         productMappingGrid.addColumn(ProductMapping::getIncomingOrderPositionName)
                 .setHeader("1C-də adı")
                 .setSortable(true)
+                .setSortProperty("incomingOrderPositionName")
                 .setFlexGrow(10)
                 .setKey("incomingOrderPositionName");
     }

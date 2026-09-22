@@ -11,6 +11,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
@@ -248,6 +249,25 @@ public class DesignTools {
 
     public <T> ComboBox<T> creatComboBox(String boxName, List<T> dataList, Function<T, String> nameFunction) {
         return creatComboBox(boxName, dataList, nameFunction, null);
+    }
+
+    /**
+     * ComboBox с ленивой загрузкой: элементы запрашиваются страницами, фильтр - введённый пользователем текст
+     * ({@code query.getFilter()}). Для больших справочников, например продуктов.
+     */
+    public <T> ComboBox<T> createLazyComboBox(String boxName,
+                                              CallbackDataProvider.FetchCallback<T, String> fetchCallback,
+                                              CallbackDataProvider.CountCallback<T, String> countCallback,
+                                              Function<T, String> nameFunction,
+                                              T value) {
+        ComboBox<T> comboBox = new ComboBox<>(boxName);
+        comboBox.setItems(fetchCallback, countCallback);
+        comboBox.setItemLabelGenerator(nameFunction::apply);
+        comboBox.setErrorMessage("Boş ola bilməz");
+        comboBox.setValue(value);
+        comboBox.setWidthFull();
+
+        return comboBox;
     }
 
     public void addResponsive(Component desktopView, Component mobileView) {

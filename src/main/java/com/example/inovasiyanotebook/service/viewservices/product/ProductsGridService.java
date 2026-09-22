@@ -4,6 +4,7 @@ import com.example.inovasiyanotebook.model.Product;
 import com.example.inovasiyanotebook.model.client.Category;
 import com.example.inovasiyanotebook.model.client.Client;
 import com.example.inovasiyanotebook.model.user.User;
+import com.example.inovasiyanotebook.repository.specification.ProductSpecifications.ProductGridFilter;
 import com.example.inovasiyanotebook.securety.PermissionsCheck;
 import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.example.inovasiyanotebook.views.NavigationTools;
@@ -11,7 +12,7 @@ import com.example.inovasiyanotebook.views.ViewsEnum;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.dataview.GridLazyDataView;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -24,10 +25,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * This class provides methods to create a product grid component based on different parameters.
+ * Грид ленивый: страницы, поиск и сортировка выполняются в БД.
  */
 @Service
 @RequiredArgsConstructor
@@ -40,51 +42,38 @@ public class ProductsGridService {
     private final AddNewProductViewService addNewProductViewService;
 
     /**
-     * This method is used to create a product grid component.
-     *
-     * @param client The client object.
-     * @param user The user object.
-     * @return The product grid component.
+     * Продукты клиента.
      */
     public Component getProductGrid(Client client, User user) {
-        List<Product> productList = productService.getAllByClient(client);
-        return createProductGridComponent(productList, user, () -> addNewProductViewService.creatNewProductDialog(client));
+        return createProductGridComponent(new ProductGridFilter(client, null, null),
+                () -> addNewProductViewService.creatNewProductDialog(client), true);
     }
 
     /**
-     * Retrieves a product grid component for the given category and user.
-     *
-     * @param category The category of products to display in the grid.
-     * @param user The user for whom the grid is being displayed.
-     * @return A {@code Component} representing the product grid.
+     * Продукты категории и её подкатегорий.
      */
     public Component getProductGrid(Category category, User user) {
-        List<Product> productList = productService.getAllByCategory(category);
-        return createProductGridComponent(productList, user, () -> addNewProductViewService.creatNewProductDialog(category));
-    }
-
-    public Component getProductGrid(User user) {
-        List<Product> productList = productService.getAll();
-        return createProductGridComponent(productList, null, false);
-    }
-
-    private Component createProductGridComponent(List<Product> products, User user, Runnable addButtonAction){
-        return createProductGridComponent(products, addButtonAction, true);
+        return createProductGridComponent(new ProductGridFilter(null, category, null),
+                () -> addNewProductViewService.creatNewProductDialog(category), true);
     }
 
     /**
-     * Creates a component that displays a grid of products.
-     *
-     * @param products         the list of products to display in the grid
-     * @param user             the user for permission check
-     * @param addButtonAction  the action to be performed when the add button is clicked
-     * @return a component containing the product grid
+     * Все продукты.
      */
-    private Component createProductGridComponent(List<Product> products, Runnable addButtonAction, boolean hasTitle) {
+    public Component getProductGrid(User user) {
+        return createProductGridComponent(new ProductGridFilter(null, null, null), null, false);
+    }
+
+    /**
+     * @param base            базовый фильтр (клиент / категория); строка поиска подставляется из поля
+     * @param addButtonAction действие кнопки «добавить», null - без кнопки
+     * @param hasTitle        показывать заголовок «Məhsullar»
+     */
+    private Component createProductGridComponent(ProductGridFilter base, Runnable addButtonAction, boolean hasTitle) {
         HorizontalLayout productNameLine = new HorizontalLayout();
 
         if (hasTitle) {
-             productNameLine.add(new H2("Məhsullar"));
+            productNameLine.add(new H2("Məhsullar"));
         }
 
         if (permissionsCheck.needEditor() && addButtonAction != null) {
@@ -94,43 +83,40 @@ public class ProductsGridService {
             productNameLine.add(button);
         }
 
+        TextField textField = new TextField();
+        textField.setPlaceholder("Axtarış...");
+        textField.setWidthFull();
+
         Grid<Product> productGrid = new Grid<>();
         productGrid.setHeightFull();
         productGrid.addColumn(Product::getName)
                 .setHeader("Məhsul")
                 .setSortable(true)
+                .setSortProperty("name")
                 .setFlexGrow(3)
                 .setKey("name");
         productGrid.addColumn(Product::getCategory)
                 .setHeader("Kateqoriya")
                 .setSortable(true)
+                .setSortProperty("category.name")
                 .setFlexGrow(1)
                 .setKey("category");
         productGrid.addColumn(Product::getClient)
                 .setHeader("Müştəri")
                 .setSortable(true)
+                .setSortProperty("client.name")
                 .setFlexGrow(1)
                 .setKey("client");
-        GridListDataView<Product> dataView = productGrid.setItems(products);
+
+        Supplier<ProductGridFilter> filter = () -> new ProductGridFilter(base.client(), base.category(), textField.getValue());
+        GridLazyDataView<Product> dataView = productGrid.setItems(
+                query -> productService.fetchForGrid(filter.get(), query).stream(),
+                query -> productService.countForGrid(filter.get()));
+        textField.addValueChangeListener(event -> dataView.refreshAll());
+
         productGrid.addItemClickListener(event -> {
             String productId = event.getItem().getId().toString();
             navigationTools.navigateTo(ViewsEnum.PRODUCT, productId);
-        });
-
-        // Создание объекта TextField для фильтрации
-        TextField textField = new TextField();
-        textField.setPlaceholder("Axtarış...");
-        textField.setWidthFull();
-        textField.addValueChangeListener(event -> dataView.refreshAll());
-
-        // Анонимный класс фильтрации
-        dataView.addFilter(product -> {
-            String searchTerm = textField.getValue().trim().toLowerCase();
-            if (searchTerm.isEmpty()) return true;
-            boolean matchesName = matchesTerm(product.getName(), searchTerm);
-            boolean matchesCategory = matchesTerm(product.getCategory().getName(), searchTerm);
-            boolean matchesClient = matchesTerm(product.getClient().getName(), searchTerm);
-            return matchesName || matchesCategory || matchesClient;
         });
 
         productNameLine.add(textField);
@@ -141,17 +127,6 @@ public class ProductsGridService {
         verticalLayout.setHeightFull();
 
         return verticalLayout;
-    }
-
-    /**
-     * Determines whether the given search term is present in the value.
-     *
-     * @param value The string value to search in. Must not be null.
-     * @param searchTerm The search term to look for. Must not be null.
-     * @return True if the search term is present in the value, false otherwise.
-     */
-    private boolean matchesTerm(String value, String searchTerm) {
-        return value != null && value.trim().toLowerCase().contains(searchTerm);
     }
 
 }

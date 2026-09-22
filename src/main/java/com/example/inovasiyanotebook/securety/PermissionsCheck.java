@@ -55,7 +55,10 @@ public class PermissionsCheck {
         return hasRole(user.getRole(), allowedRoles);
     }
 
+    /**
+     * Пользователь берётся из кэша сессии ({@link CurrentUserCache}), а не из БД на каждую проверку.
+     */
     private User getCurrentUser() {
-        return userService.findByUsername(navigationTools.getCurrentUsername());
+        return CurrentUserCache.resolve(navigationTools.getCurrentUsername(), userService::findByUsername);
     }
 }

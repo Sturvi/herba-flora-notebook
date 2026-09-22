@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <!-- Индексы под серверную пагинацию, фильтры и сортировку гридов.
+         Схема таблиц создавалась вне Liquibase, поэтому у каждого индекса preCondition: если уже есть - MARK_RAN. -->
+    <changeSet id="idx_orders_status_received_date" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_orders_status_received_date" tableName="orders"/></not>
+        </preConditions>
+        <createIndex indexName="idx_orders_status_received_date" tableName="orders">
+            <column name="status"/>
+            <column name="order_received_date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_orders_order_received_date" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_orders_order_received_date" tableName="orders"/></not>
+        </preConditions>
+        <createIndex indexName="idx_orders_order_received_date" tableName="orders">
+            <column name="order_received_date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_orders_order_no" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_orders_order_no" tableName="orders"/></not>
+        </preConditions>
+        <createIndex indexName="idx_orders_order_no" tableName="orders">
+            <column name="order_no"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_orders_order_completed_date_time" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_orders_order_completed_date_time" tableName="orders"/></not>
+        </preConditions>
+        <createIndex indexName="idx_orders_order_completed_date_time" tableName="orders">
+            <column name="order_completed_date_time"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_order_positions_order_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_order_positions_order_id" tableName="order_positions"/></not>
+        </preConditions>
+        <createIndex indexName="idx_order_positions_order_id" tableName="order_positions">
+            <column name="order_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_order_positions_product_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_order_positions_product_id" tableName="order_positions"/></not>
+        </preConditions>
+        <createIndex indexName="idx_order_positions_product_id" tableName="order_positions">
+            <column name="product_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_order_positions_status" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_order_positions_status" tableName="order_positions"/></not>
+        </preConditions>
+        <createIndex indexName="idx_order_positions_status" tableName="order_positions">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_products_client_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_products_client_id" tableName="products"/></not>
+        </preConditions>
+        <createIndex indexName="idx_products_client_id" tableName="products">
+            <column name="client_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_products_category_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_products_category_id" tableName="products"/></not>
+        </preConditions>
+        <createIndex indexName="idx_products_category_id" tableName="products">
+            <column name="category_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_categories_parent_category_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_categories_parent_category_id" tableName="categories"/></not>
+        </preConditions>
+        <createIndex indexName="idx_categories_parent_category_id" tableName="categories">
+            <column name="parent_category_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_products_mapping_product_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_products_mapping_product_id" tableName="products_mapping"/></not>
+        </preConditions>
+        <createIndex indexName="idx_products_mapping_product_id" tableName="products_mapping">
+            <column name="product_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_products_mapping_printed_type_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_products_mapping_printed_type_id" tableName="products_mapping"/></not>
+        </preConditions>
+        <createIndex indexName="idx_products_mapping_printed_type_id" tableName="products_mapping">
+            <column name="printed_type_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_products_price_mapping_product_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_products_price_mapping_product_id" tableName="products_price_mapping"/></not>
+        </preConditions>
+        <createIndex indexName="idx_products_price_mapping_product_id" tableName="products_price_mapping">
+            <column name="product_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_change_task_items_task_id" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_change_task_items_task_id" tableName="change_task_items"/></not>
+        </preConditions>
+        <createIndex indexName="idx_change_task_items_task_id" tableName="change_task_items">
+            <column name="task_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="idx_change_task_items_status" author="Emin Baghirov">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists indexName="idx_change_task_items_status" tableName="change_task_items"/></not>
+        </preConditions>
+        <createIndex indexName="idx_change_task_items_status" tableName="change_task_items">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

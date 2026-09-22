@@ -48,7 +48,7 @@ public class ProductMappingDialog {
     private void init (){
         incomingNameField = designTools.createTextField("1C-də ad", null, null);
         incomingNameField.setReadOnly(true);
-        productComboBox = designTools.creatComboBox("Məhsul", productService.getAll(), Product::getName, null);
+        productComboBox = designTools.createLazyComboBox("Məhsul", productService::fetchForComboBox, productService::countForComboBox, Product::getName, null);
         printedTypeComboBox = designTools.creatComboBox("Çap növü", printedTypeService.getAll(), PrintedType::getName, null);
         commentTextField = designTools.createTextField("Not", null, null);
 
