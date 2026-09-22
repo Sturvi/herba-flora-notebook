@@ -1,6 +1,5 @@
 package com.example.inovasiyanotebook.views.pricemapping;
 
-import com.example.inovasiyanotebook.views.NavigationTools;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -23,7 +22,7 @@ import java.io.IOException;
 @UIScope
 public class PriceListUploader extends Upload {
     private final PriceListHandler priceListHandler;
-    private final NavigationTools navigationTools;
+    private final ProductPriceMapperGrid productPriceMapperGrid;
 
     @Setter
     private Runnable onUploadSuccess;
@@ -45,7 +44,10 @@ public class PriceListUploader extends Upload {
                 onUploadSuccess.run();
                 Notification.show("Qiymət siyahısı uğurla yeniləndi", 5000, Notification.Position.MIDDLE);
             } catch (PriceListException e) {
-                navigationTools.reloadPage();
+                productPriceMapperGrid.loadItems();
+                onUploadSuccess.run();
+                Notification.show("Eyniləşdirilməmiş mövqelər var — əvvəlcə onları eyniləşdirin, sonra faylı yenidən yükləyin",
+                        7000, Notification.Position.MIDDLE);
             } catch (Exception e) {
                 log.error("Error processing price list: {}", e.getMessage(), e);
                 Notification.show("Qiymət siyahısının yenilənmə zamanı xəta: " + e.getMessage(), 5000, Notification.Position.MIDDLE);

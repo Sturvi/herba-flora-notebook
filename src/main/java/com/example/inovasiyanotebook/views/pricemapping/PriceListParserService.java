@@ -14,6 +14,8 @@ import java.util.List;
 
 @Service
 public class PriceListParserService {
+    private static final String NAME_HEADER = "malın adı";
+    private static final String PRICE_HEADER = "qiymət";
 
     /**
      * Парсит Excel файл из MemoryBuffer и возвращает список позиций с ценами
@@ -36,9 +38,22 @@ public class PriceListParserService {
             Sheet sheet = workbook.getSheetAt(0); // Берем первый лист
             Iterator<Row> rowIterator = sheet.iterator();
 
+            // Колонки названия и цены определяем по строке заголовков, а не по фиксированным индексам
+            int nameCol = -1;
+            int priceCol = -1;
+            while (rowIterator.hasNext() && (nameCol < 0 || priceCol < 0)) {
+                Row row = rowIterator.next();
+                nameCol = findColumn(row, NAME_HEADER);
+                priceCol = findColumn(row, PRICE_HEADER);
+            }
+
+            if (nameCol < 0 || priceCol < 0) {
+                throw new IllegalArgumentException("Qiymət siyahısında 'Malın adı' / 'Qiymət' başlıqları tapılmadı");
+            }
+
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
-                PricePositionDTO position = parseRow(row);
+                PricePositionDTO position = parseRow(row, nameCol, priceCol);
 
                 if (position != null) {
                     pricePositions.add(position);
@@ -47,6 +62,20 @@ public class PriceListParserService {
         }
 
         return pricePositions;
+    }
+
+    /**
+     * Ищет в строке ячейку с заданным заголовком
+     *
+     * @return индекс колонки или -1, если заголовок не найден
+     */
+    private int findColumn(Row row, String header) {
+        for (Cell cell : row) {
+            if (header.equals(getCellValueAsString(cell).trim().toLowerCase())) {
+                return cell.getColumnIndex();
+            }
+        }
+        return -1;
     }
 
     /**
@@ -66,17 +95,19 @@ public class PriceListParserService {
     /**
      * Парсит строку Excel и извлекает информацию о позиции и цене
      *
-     * @param row строка Excel
+     * @param row      строка Excel
+     * @param nameCol  индекс колонки с названием
+     * @param priceCol индекс колонки с ценой
      * @return объект PricePositionDTO или null, если строка не содержит товар с ценой
      */
-    private PricePositionDTO parseRow(Row row) {
+    private PricePositionDTO parseRow(Row row, int nameCol, int priceCol) {
         if (row == null) {
             return null;
         }
 
         // Получаем ячейки для названия товара и цены
-        Cell nameCell = row.getCell(0); // Колонка A (название товара)
-        Cell priceCell = row.getCell(2); // Колонка C (цена)
+        Cell nameCell = row.getCell(nameCol);
+        Cell priceCell = row.getCell(priceCol);
 
         // Проверяем, что обе ячейки содержат данные
         if (nameCell == null || priceCell == null) {

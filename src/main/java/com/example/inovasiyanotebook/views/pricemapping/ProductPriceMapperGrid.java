@@ -39,13 +39,7 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
         setSelectionMode(SelectionMode.SINGLE);
 
 
-        dataView = setItems(productPriceMappingService.getAll());
-        dataView.addFilter(productPriceMapping -> {
-            String searchTerm = searchField.getValue().toLowerCase();
-            return (productPriceMapping.getIncomingOrderPositionName().toLowerCase().contains(searchTerm)
-                    || (productPriceMapping.getProduct() != null && productPriceMapping.getProduct().getName().toLowerCase().contains(searchTerm)))
-                    && chekStatus(productPriceMapping);
-        });
+        loadItems();
 
 
         searchField = createSearchField();
@@ -114,5 +108,18 @@ public class ProductPriceMapperGrid extends Grid<ProductPriceMapping> {
 
     public void reloadGrid() {
         dataView.refreshAll();
+    }
+
+    /**
+     * Перечитывает сопоставления из базы (например, после загрузки прайса с новыми позициями)
+     */
+    public void loadItems() {
+        dataView = setItems(productPriceMappingService.getAll());
+        dataView.addFilter(productPriceMapping -> {
+            String searchTerm = searchField.getValue().toLowerCase();
+            return (productPriceMapping.getIncomingOrderPositionName().toLowerCase().contains(searchTerm)
+                    || (productPriceMapping.getProduct() != null && productPriceMapping.getProduct().getName().toLowerCase().contains(searchTerm)))
+                    && chekStatus(productPriceMapping);
+        });
     }
 }

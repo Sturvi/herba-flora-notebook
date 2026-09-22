@@ -22,6 +22,11 @@ public class PriceListHandler {
 
     public void handlePriceList(MemoryBuffer memoryBuffer) {
         List<PricePositionDTO> positions = parseExcelFile(memoryBuffer);
+        log.info("Parsed {} price positions", positions.size());
+
+        if (positions.isEmpty()) {
+            throw new IllegalStateException("Faylda qiymətli mövqe tapılmadı");
+        }
 
         // Обрабатываем маппинги в отдельной транзакции
         boolean hasUnmappedPositions = processPricePositions(positions);
@@ -78,5 +83,6 @@ public class PriceListHandler {
             product.setPrice(position.getPrice());
             productService.update(product);
         }
+        log.info("Updated prices for {} products", positions.size());
     }
 }
