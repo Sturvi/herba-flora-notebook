@@ -6,6 +6,7 @@ import com.example.inovasiyanotebook.service.entityservices.iml.ProductService;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Comparator;
 
 @org.springframework.stereotype.Component
+@UIScope
 @RequiredArgsConstructor
 @Slf4j
 public class AiInfoGrid {

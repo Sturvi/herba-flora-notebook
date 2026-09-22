@@ -13,7 +13,7 @@ import com.vaadin.flow.server.StreamResource;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.context.annotation.SessionScope;
+import com.vaadin.flow.spring.annotation.UIScope;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +22,7 @@ import java.util.List;
 @org.springframework.stereotype.Component
 @RequiredArgsConstructor
 @Slf4j
-@SessionScope
+@UIScope
 public class DownloadButton {
     private final DesignTools designTools;
     private final ProductService productService;
